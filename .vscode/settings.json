@@ -1,0 +1,8 @@
+{
+    "CodeGPT.apiKey": "Ollama",
+    "github.copilot.chat.anthropic.tools.websearch.userLocation": {
+
+    },
+    "github.copilot.chat.commitMessageGeneration.instructions": [],
+    "workbench.browser.openLocalhostLinks": false
+}
