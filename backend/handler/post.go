@@ -33,12 +33,12 @@ func GetPosts(c *gin.Context) {
 	status := c.Query("status")       // 去掉默认值，前端不传则不筛选所有状态
 	search := c.Query("search")
 
-	// 初始化查询：预加载关联，不默认过滤status
+	// Initial query: Preload associations, only display published articles
 	query := db.Model(&model.Post{}).
 		Preload("Author").
-		Preload("Tags")
+		Preload("Tags").
+		Where("status = ?", "published")
 
-	// 状态筛选：前端传了status才过滤，否则查所有
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
