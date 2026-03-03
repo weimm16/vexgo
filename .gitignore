@@ -6,5 +6,6 @@ backend/blog.exe
 backend/.DS_Store
 frontend/.DS_Store
 backend/uploads/.DS_Store
+.devbox/
 
 
