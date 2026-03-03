@@ -99,8 +99,8 @@ func GetPost(c *gin.Context) {
 	// 增加浏览量（可选）
 	db.Model(&post).UpdateColumn("view_count", gorm.Expr("view_count + ?", 1))
 
-	c.JSON(http.StatusOK, post)
 	fmt.Printf("Successfully fetched post: %+v\n", post)
+	c.JSON(http.StatusOK, gin.H{"post": post})
 }
 
 // 封装前端请求的数据结构，和 model.Post 不完全一致
