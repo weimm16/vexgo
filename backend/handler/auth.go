@@ -43,6 +43,8 @@ func Login(c *gin.Context) {
 		"user_id":  user.ID,
 		"username": user.Username,
 		"exp":      time.Now().Add(24 * time.Hour).Unix(),
+		"iat":      time.Now().Unix(),                                                  // Timestamp
+		"jti":      fmt.Sprintf("%d-%s", user.ID, time.Now().Format(time.RFC3339Nano)), // Unique identifier
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
