@@ -133,18 +133,6 @@ export function Layout({ children }: LayoutProps) {
                       <FileText className="mr-2 h-4 w-4" />
                       我的文章
                     </DropdownMenuItem>
-                    {(user?.role === 'admin' || user?.role === 'super_admin') && (
-                      <>
-                        <DropdownMenuItem onClick={() => navigate('/moderation')}>
-                          <FileText className="mr-2 h-4 w-4" />
-                          内容审核
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate('/admin/users')}>
-                          <Users className="mr-2 h-4 w-4" />
-                          用户管理
-                        </DropdownMenuItem>
-                      </>
-                    )}
                     <DropdownMenuItem onClick={() => navigate('/settings')}>
                       <Settings className="mr-2 h-4 w-4" />
                       设置
