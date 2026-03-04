@@ -48,3 +48,8 @@ func InitDB() {
 		}
 	}
 }
+
+// DB returns the database instance
+func DB() *gorm.DB {
+	return db
+}

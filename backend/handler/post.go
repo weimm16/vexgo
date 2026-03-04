@@ -143,6 +143,12 @@ func resolveTags(names []string) ([]model.Tag, error) {
 func CreatePost(c *gin.Context) {
 	userID, _ := c.Get("userID") // 从 JWT 中获取
 
+	// 获取用户信息以确定角色
+	var user model.User
+	if uid, ok := userID.(uint); ok {
+		db.First(&user, uid)
+	}
+
 	var req postRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -163,16 +169,28 @@ func CreatePost(c *gin.Context) {
 	default:
 		catStr = fmt.Sprintf("%v", v)
 	}
+
+	// 根据用户角色确定文章初始状态
+	initialStatus := req.Status
+	if initialStatus == "" {
+		// 投稿者需要审核
+		if user.Role == "contributor" {
+			initialStatus = "pending"
+			// 作者可以直接发布
+		} else if user.Role == "author" || user.Role == "admin" || user.Role == "super_admin" {
+			initialStatus = "published"
+		} else {
+			initialStatus = "draft"
+		}
+	}
+
 	post := model.Post{
 		Title:      req.Title,
 		Content:    req.Content,
 		Category:   catStr,
 		Excerpt:    req.Excerpt,
 		CoverImage: req.CoverImage,
-		Status:     req.Status,
-	}
-	if post.Status == "" {
-		post.Status = "draft"
+		Status:     initialStatus,
 	}
 
 	if uid, ok := userID.(uint); ok {
@@ -187,12 +205,12 @@ func CreatePost(c *gin.Context) {
 	}
 
 	result := db.Create(&post)
-	
+
 	// 添加日志来诊断问题
 	fmt.Printf("Creating post: %+v\n", post)
 	fmt.Printf("Create result: %+v\n", result)
 	fmt.Printf("Created post ID: %d\n", post.ID)
-	
+
 	c.JSON(http.StatusCreated, gin.H{"message": "文章创建成功", "post": post})
 }
 

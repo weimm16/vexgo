@@ -76,6 +76,11 @@ func main() {
 		api.POST("/upload/files", middleware.JWTAuth(), handler.UploadFiles)  // POST /api/upload/files（多文件上传）
 		api.GET("/upload/my-files", middleware.JWTAuth(), handler.GetMyFiles) // GET /api/upload/my-files（我的文件）
 		api.DELETE("/upload/:id", middleware.JWTAuth(), handler.DeleteFile)   // DELETE /api/upload/:id（删除文件）
+
+		// 文章审核相关API（需要管理员权限）
+		api.GET("/moderation/pending", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetPendingPosts) // GET /api/moderation/pending（获取待审核文章）
+		api.PUT("/moderation/approve/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.ApprovePost) // PUT /api/moderation/approve/:id（审核通过文章）
+		api.PUT("/moderation/reject/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.RejectPost)   // PUT /api/moderation/reject/:id（拒绝文章）
 	}
 
 	// ===================== 静态文件托管（必须在API路由之后） =====================

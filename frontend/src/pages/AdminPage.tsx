@@ -32,8 +32,8 @@ export function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 检查是否为管理员
-    if (user && user.role !== 'admin') {
+    // 检查是否为管理员或超级管理员
+    if (user && user.role !== 'admin' && user.role !== 'super_admin') {
       navigate('/');
       return;
     }

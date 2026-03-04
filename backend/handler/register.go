@@ -41,6 +41,7 @@ func Register(c *gin.Context) {
 		Username: req.Username,
 		Email:    req.Email,
 		Password: string(hashedPassword),
+		Role:     "contributor", // 默认角色为投稿者
 	}
 
 	if err := db.Create(&newUser).Error; err != nil {

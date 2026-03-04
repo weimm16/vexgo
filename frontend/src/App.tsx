@@ -11,6 +11,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { MyPostsPage } from '@/pages/MyPostsPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { ModerationPage } from '@/pages/ModerationPage';
 import { Toaster } from '@/components/ui/sonner';
 
 function App() {
@@ -74,6 +75,14 @@ function App() {
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/moderation"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <ModerationPage />
                 </ProtectedRoute>
               }
             />

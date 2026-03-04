@@ -14,7 +14,7 @@ type Post struct {
 	Author     User      `json:"author" gorm:"foreignKey:AuthorID"`
 	Category   string    `json:"category"`
 	Tags       []Tag     `json:"tags" gorm:"many2many:post_tags;"`
-	Status     string    `json:"status"` // draft/published
+	Status     string    `json:"status"` // draft/published/pending
 	CreatedAt  time.Time `json:"created_at"`
 	UpdatedAt  time.Time `json:"updated_at"`
 }
@@ -23,9 +23,9 @@ type User struct {
 	ID       uint   `json:"id" gorm:"primaryKey"`
 	Username string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"-"`    // 不序列化
-	Role     string `json:"role"` // admin/editor/reader
-	Avatar   string `json:"avatar,omitempty"`            // 头像 URL
+	Password string `json:"-"`                // 不序列化
+	Role     string `json:"role"`             // super_admin/admin/author/contributor/guest
+	Avatar   string `json:"avatar,omitempty"` // 头像 URL
 }
 
 type Tag struct {
