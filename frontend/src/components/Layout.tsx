@@ -43,7 +43,7 @@ export function Layout({ children }: LayoutProps) {
     { path: '/', label: '首页', icon: Home },
     ...(isAuthenticated ? [{ path: '/write', label: '写文章', icon: PenLine }] : []),
     ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/admin', label: '管理后台', icon: BarChart3 }] : []),
-    ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/moderation', label: '内容审核', icon: FileText }] : []),
+    ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/admin/moderation', label: '内容审核', icon: FileText }] : []),
     ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/admin/users', label: '用户管理', icon: Users }] : []),
   ];
 

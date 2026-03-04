@@ -80,7 +80,7 @@ function App() {
               }
             />
             <Route
-              path="/moderation"
+              path="/admin/moderation"
               element={
                 <ProtectedRoute requireAdmin>
                   <ModerationPage />
