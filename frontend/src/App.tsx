@@ -12,6 +12,7 @@ import { MyPostsPage } from '@/pages/MyPostsPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ModerationPage } from '@/pages/ModerationPage';
+import { UserManagementPage } from '@/pages/UserManagementPage';
 import { Toaster } from '@/components/ui/sonner';
 
 function App() {
@@ -83,6 +84,14 @@ function App() {
               element={
                 <ProtectedRoute requireAdmin>
                   <ModerationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <UserManagementPage />
                 </ProtectedRoute>
               }
             />

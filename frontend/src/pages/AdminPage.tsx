@@ -185,7 +185,7 @@ export function AdminPage() {
 
       {/* 管理标签页 */}
       <Tabs defaultValue="posts" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
+        <TabsList className="grid w-full grid-cols-4 max-w-md">
           <TabsTrigger value="posts">文章管理</TabsTrigger>
           <TabsTrigger value="drafts">草稿管理</TabsTrigger>
           <TabsTrigger value="categories">分类管理</TabsTrigger>

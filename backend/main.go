@@ -81,6 +81,10 @@ func main() {
 		api.GET("/moderation/pending", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetPendingPosts) // GET /api/moderation/pending（获取待审核文章）
 		api.PUT("/moderation/approve/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.ApprovePost) // PUT /api/moderation/approve/:id（审核通过文章）
 		api.PUT("/moderation/reject/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.RejectPost)   // PUT /api/moderation/reject/:id（拒绝文章）
+
+		// 用户管理相关API（需要管理员权限）
+		api.GET("/users", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetUserList)             // GET /api/users（获取用户列表）
+		api.PUT("/users/:id/role", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateUserRole) // PUT /api/users/:id/role（更新用户角色）
 	}
 
 	// ===================== 静态文件托管（必须在API路由之后） =====================

@@ -10,9 +10,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
-import { 
-  Search, PenLine, Menu, X, Home, User, Settings, 
-  LogOut, FileText, BarChart3 
+import {
+  Search, PenLine, Menu, X, Home, User, Settings,
+  LogOut, FileText, BarChart3, Users
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -44,6 +44,7 @@ export function Layout({ children }: LayoutProps) {
     ...(isAuthenticated ? [{ path: '/write', label: '写文章', icon: PenLine }] : []),
     ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/admin', label: '管理后台', icon: BarChart3 }] : []),
     ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/moderation', label: '内容审核', icon: FileText }] : []),
+    ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/admin/users', label: '用户管理', icon: Users }] : []),
   ];
 
   const isActive = (path: string) => {
@@ -133,10 +134,16 @@ export function Layout({ children }: LayoutProps) {
                       我的文章
                     </DropdownMenuItem>
                     {(user?.role === 'admin' || user?.role === 'super_admin') && (
-                      <DropdownMenuItem onClick={() => navigate('/moderation')}>
-                        <FileText className="mr-2 h-4 w-4" />
-                        内容审核
-                      </DropdownMenuItem>
+                      <>
+                        <DropdownMenuItem onClick={() => navigate('/moderation')}>
+                          <FileText className="mr-2 h-4 w-4" />
+                          内容审核
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/admin/users')}>
+                          <Users className="mr-2 h-4 w-4" />
+                          用户管理
+                        </DropdownMenuItem>
+                      </>
                     )}
                     <DropdownMenuItem onClick={() => navigate('/settings')}>
                       <Settings className="mr-2 h-4 w-4" />
