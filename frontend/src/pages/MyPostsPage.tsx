@@ -25,9 +25,9 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from '@/components/ui/pagination';
-import { 
-  PenLine, Edit, Trash2, Eye, Clock, 
-  FileX, Plus
+import {
+  PenLine, Edit, Trash2, Eye, Clock,
+  FileX, Plus, CheckCircle, XCircle, AlertCircle
 } from 'lucide-react';
 
 export function MyPostsPage() {
@@ -81,6 +81,46 @@ export function MyPostsPage() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'published':
+        return {
+          variant: 'default' as const,
+          label: '已发布',
+          icon: CheckCircle,
+          className: 'bg-green-600 hover:bg-green-700'
+        };
+      case 'draft':
+        return {
+          variant: 'secondary' as const,
+          label: '草稿',
+          icon: FileX,
+          className: ''
+        };
+      case 'pending':
+        return {
+          variant: 'outline' as const,
+          label: '待审核',
+          icon: Clock,
+          className: 'text-yellow-600 border-yellow-600'
+        };
+      case 'rejected':
+        return {
+          variant: 'destructive' as const,
+          label: '已拒绝',
+          icon: XCircle,
+          className: ''
+        };
+      default:
+        return {
+          variant: 'secondary' as const,
+          label: status,
+          icon: AlertCircle,
+          className: ''
+        };
+    }
   };
 
   if (loading && posts.length === 0) {
@@ -145,9 +185,16 @@ export function MyPostsPage() {
                     <div className="flex-1">
                       {/* 状态标签 */}
                       <div className="flex items-center gap-2 mb-2">
-                        <Badge variant={post.status === 'published' ? 'default' : 'secondary'}>
-                          {post.status === 'published' ? '已发布' : '草稿'}
-                        </Badge>
+                        {(() => {
+                          const status = getStatusBadge(post.status);
+                          const IconComponent = status.icon;
+                          return (
+                            <Badge variant={status.variant} className={status.className}>
+                              <IconComponent className="w-3 h-3 mr-1" />
+                              {status.label}
+                            </Badge>
+                          );
+                        })()}
                         <span className="text-sm text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {formatDate(post.createdAt)}
