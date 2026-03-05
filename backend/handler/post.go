@@ -198,6 +198,10 @@ func CreatePost(c *gin.Context) {
 		}
 	}
 
+	// 添加调试信息
+	fmt.Printf("User ID: %+v\n", userID)
+	fmt.Printf("User Role: %s\n", userRole)
+
 	var req postRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -221,6 +225,7 @@ func CreatePost(c *gin.Context) {
 
 	// 根据用户角色确定文章初始状态
 	initialStatus := req.Status
+	fmt.Printf("Requested status: %s\n", initialStatus)
 	if initialStatus == "" {
 		// 投稿者需要审核
 		if userRole == "contributor" {
@@ -231,6 +236,7 @@ func CreatePost(c *gin.Context) {
 		} else {
 			initialStatus = "draft"
 		}
+		fmt.Printf("Setting status based on role %s: %s\n", userRole, initialStatus)
 	}
 
 	post := model.Post{
