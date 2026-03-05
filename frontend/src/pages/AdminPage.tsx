@@ -12,7 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Users, FileText, MessageSquare, Tag,
   Plus, Trash2, BarChart3, Edit, Shield,
-  CheckCircle, XCircle, Clock, AlertCircle, FileX
+  CheckCircle, XCircle, Clock, AlertCircle, FileX,
+  Mail
 } from 'lucide-react';
 
 export function AdminPage() {
@@ -256,6 +257,18 @@ export function AdminPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">管理系统用户和权限</p>
+              </CardContent>
+            </Card>
+
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/admin/smtp')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  SMTP 设置
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">配置邮件服务器，启用注册验证</p>
               </CardContent>
             </Card>
           </div>

@@ -1,8 +1,9 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import type { 
+import type {
   User, Post, Category, Tag, Comment, MediaFile,
-  AuthResponse, PostsResponse, CommentsResponse, 
-  LikeResponse, UploadResponse, StatsResponse 
+  AuthResponse, PostsResponse, CommentsResponse,
+  LikeResponse, UploadResponse, StatsResponse,
+  SMTPConfig
 } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -59,7 +60,13 @@ export const authApi = {
     api.put('/auth/profile', data),
   
   changePassword: (data: { oldPassword: string; newPassword: string }) =>
-    api.put('/auth/password', data)
+    api.put('/auth/password', data),
+
+  getVerificationStatus: () =>
+    api.get<{ email_verified: boolean; email: string }>('/auth/verification-status'),
+  
+  resendVerificationEmail: () =>
+    api.post<{ message: string }>('/auth/resend-verification')
 };
 
 // 文章相关API
@@ -190,6 +197,15 @@ export const statsApi = {
   
   getLatestPosts: (limit?: number) =>
     api.get<{ posts: Post[] }>('/stats/latest-posts', { params: { limit } })
+};
+
+// SMTP 配置相关API
+export const configApi = {
+  getSMTPConfig: () =>
+    api.get<SMTPConfig>('/config/smtp'),
+  
+  updateSMTPConfig: (data: Partial<SMTPConfig>) =>
+    api.put<{ message: string; smtpConfig: SMTPConfig }>('/config/smtp', data)
 };
 
 export default api;

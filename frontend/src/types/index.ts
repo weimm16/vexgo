@@ -5,7 +5,22 @@ export interface User {
   email: string;
   role: 'super_admin' | 'admin' | 'author' | 'contributor' | 'guest';
   avatar: string | null;
+  emailVerified?: boolean;
   createdAt?: string;
+}
+
+// SMTP 配置类型
+export interface SMTPConfig {
+  id: string;
+  enabled: boolean;
+  host: string;
+  port: number;
+  username: string;
+  password: string; // 仅用于设置，获取时不返回
+  fromEmail: string;
+  fromName: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // 文章类型

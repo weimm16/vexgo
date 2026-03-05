@@ -1,16 +1,18 @@
 package handler
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 
 	"blog-system/backend/model"
+	"blog-system/backend/utils"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
 
 func Register(c *gin.Context) {
-
 	var req struct {
 		Email    string `json:"email" binding:"required,email"`
 		Password string `json:"password" binding:"required"`
@@ -38,10 +40,11 @@ func Register(c *gin.Context) {
 
 	// 创建新用户
 	newUser := model.User{
-		Username: req.Username,
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Role:     "contributor", // 默认角色为投稿者
+		Username:      req.Username,
+		Email:         req.Email,
+		Password:      string(hashedPassword),
+		Role:          "contributor", // 默认角色为投稿者
+		EmailVerified: false,
 	}
 
 	if err := db.Create(&newUser).Error; err != nil {
@@ -49,5 +52,33 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, newUser)
+	// 检查是否启用了 SMTP，如果启用则发送验证邮件
+	mailer := utils.NewMailer(db)
+	enabled, err := mailer.IsEmailEnabled()
+	if err == nil && enabled {
+		// 生成验证令牌
+		token, err := mailer.GenerateVerificationToken(newUser.ID)
+		if err != nil {
+			log.Printf("生成验证令牌失败: %v", err)
+		} else {
+			// 构建验证链接
+			verificationLink := fmt.Sprintf("%s/verify-email?token=%s", c.Request.Host, token)
+
+			// 发送验证邮件
+			if err := mailer.SendVerificationEmail(newUser.Email, newUser.Username, verificationLink); err != nil {
+				log.Printf("发送验证邮件失败: %v", err)
+			} else {
+				c.JSON(http.StatusCreated, gin.H{
+					"message": "注册成功，请检查您的邮箱完成验证",
+					"user":    newUser,
+				})
+				return
+			}
+		}
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "注册成功",
+		"user":    newUser,
+	})
 }

@@ -27,6 +27,9 @@ func main() {
 		api.GET("/posts", handler.GetPosts)    // GET /api/posts（获取文章列表）
 		api.GET("/posts/:id", handler.GetPost) // GET /api/posts/:id（获取单篇文章）
 
+		// 邮箱验证公开接口
+		api.GET("/verify-email", handler.VerifyEmail) // GET /api/verify-email（验证邮箱）
+
 		// 分类/标签公开接口
 		api.GET("/categories", handler.GetCategories) // GET /api/categories（获取分类列表）
 		api.GET("/tags", handler.GetTags)             // GET /api/tags（获取标签列表）
@@ -44,12 +47,14 @@ func main() {
 		// 匹配前端authApi的所有接口：/api/auth/xxx
 		auth := api.Group("/auth")
 		{
-			auth.POST("/register", handler.Register)                            // POST /api/auth/register（注册）
-			auth.POST("/login", handler.Login)                                  // POST /api/auth/login（登录）
-			auth.GET("/me", middleware.JWTAuth(), handler.GetCurrentUser)       // GET /api/auth/me（获取当前用户，需认证）
-			auth.GET("/user", middleware.JWTAuth(), handler.GetCurrentUser)     // 向后兼容：/api/auth/user
-			auth.PUT("/profile", middleware.JWTAuth(), handler.UpdateProfile)   // PUT /api/auth/profile（更新个人信息）
-			auth.PUT("/password", middleware.JWTAuth(), handler.ChangePassword) // PUT /api/auth/password（修改密码）
+			auth.POST("/register", handler.Register)                                                 // POST /api/auth/register（注册）
+			auth.POST("/login", handler.Login)                                                       // POST /api/auth/login（登录）
+			auth.GET("/me", middleware.JWTAuth(), handler.GetCurrentUser)                            // GET /api/auth/me（获取当前用户，需认证）
+			auth.GET("/user", middleware.JWTAuth(), handler.GetCurrentUser)                          // 向后兼容：/api/auth/user
+			auth.PUT("/profile", middleware.JWTAuth(), handler.UpdateProfile)                        // PUT /api/auth/profile（更新个人信息）
+			auth.PUT("/password", middleware.JWTAuth(), handler.ChangePassword)                      // PUT /api/auth/password（修改密码）
+			auth.GET("/verification-status", middleware.JWTAuth(), handler.GetVerificationStatus)    // GET /api/auth/verification-status（获取验证状态）
+			auth.POST("/resend-verification", middleware.JWTAuth(), handler.ResendVerificationEmail) // POST /api/auth/resend-verification（重新发送验证邮件）
 		}
 
 		// -------------------- 需要JWT认证的业务API --------------------
@@ -88,6 +93,10 @@ func main() {
 		// 用户管理相关API（需要管理员权限）
 		api.GET("/users", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetUserList)             // GET /api/users（获取用户列表）
 		api.PUT("/users/:id/role", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateUserRole) // PUT /api/users/:id/role（更新用户角色）
+
+		// SMTP 配置相关API（需要管理员权限）
+		api.GET("/config/smtp", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetSMTPConfig)    // GET /api/config/smtp（获取SMTP配置）
+		api.PUT("/config/smtp", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateSMTPConfig) // PUT /api/config/smtp（更新SMTP配置）
 	}
 
 	// ===================== 静态文件托管（必须在API路由之后） =====================

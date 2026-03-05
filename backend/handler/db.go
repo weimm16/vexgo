@@ -28,6 +28,7 @@ func InitDB() {
 		&model.Comment{},
 		&model.Like{},
 		&model.MediaFile{},
+		&model.SMTPConfig{},
 	); err != nil {
 		log.Fatalf("auto migrate failed: %v", err)
 	}
@@ -43,6 +44,27 @@ func InitDB() {
 				u = model.User{Username: "admin", Email: "admin@example.com", Password: string(pwHash), Role: "super_admin"}
 				if err := db.Create(&u).Error; err != nil {
 					log.Printf("failed to create default admin: %v", err)
+				}
+			}
+
+			// 创建默认 SMTP 配置（如果不存在）
+			var smtpConfig model.SMTPConfig
+			if err := db.First(&smtpConfig).Error; err != nil {
+				if err == gorm.ErrRecordNotFound {
+					smtpConfig = model.SMTPConfig{
+						Enabled:   false,
+						Host:      "",
+						Port:      587,
+						Username:  "",
+						Password:  "",
+						FromEmail: "",
+						FromName:  "Blog System",
+					}
+					if err := db.Create(&smtpConfig).Error; err != nil {
+						log.Printf("failed to create default smtp config: %v", err)
+					} else {
+						log.Println("default smtp config created")
+					}
 				}
 			}
 		}

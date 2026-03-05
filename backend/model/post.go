@@ -20,12 +20,15 @@ type Post struct {
 }
 
 type User struct {
-	ID       uint   `json:"id" gorm:"primaryKey"`
-	Username string `json:"username" binding:"required"`
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"-"`                // 不序列化
-	Role     string `json:"role"`             // super_admin/admin/author/contributor/guest
-	Avatar   string `json:"avatar,omitempty"` // 头像 URL
+	ID                uint      `json:"id" gorm:"primaryKey"`
+	Username          string    `json:"username" binding:"required"`
+	Email             string    `json:"email" binding:"required,email"`
+	Password          string    `json:"-"`                  // 不序列化
+	Role              string    `json:"role"`               // super_admin/admin/author/contributor/guest
+	Avatar            string    `json:"avatar,omitempty"`   // 头像 URL
+	EmailVerified     bool      `json:"email_verified"`     // 邮箱是否已验证
+	VerificationToken string    `json:"verification_token"` // 验证令牌
+	TokenExpiresAt    time.Time `json:"token_expires_at"`   // 令牌过期时间
 }
 
 type Tag struct {

@@ -13,6 +13,7 @@ import { AdminPage } from '@/pages/AdminPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ModerationPage } from '@/pages/ModerationPage';
 import { UserManagementPage } from '@/pages/UserManagementPage';
+import { SMTPSettingsPage } from '@/pages/SMTPSettingsPage';
 import { Toaster } from '@/components/ui/sonner';
 
 function App() {
@@ -92,6 +93,14 @@ function App() {
               element={
                 <ProtectedRoute requireAdmin>
                   <UserManagementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/smtp"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <SMTPSettingsPage />
                 </ProtectedRoute>
               }
             />
