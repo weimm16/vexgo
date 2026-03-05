@@ -43,7 +43,7 @@ func (m *Mailer) SendVerificationEmail(toEmail, toName, verificationLink string)
 
 %s
 
-此链接将在 24 小时后失效。
+此链接将在 5 分钟后失效。
 
 如果您没有注册此账户，请忽略此邮件。
 	`, toName, verificationLink)
@@ -53,43 +53,43 @@ func (m *Mailer) SendVerificationEmail(toEmail, toName, verificationLink string)
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
-        .content { padding: 20px; background-color: #f9f9f9; }
-        .button { 
-            display: inline-block; 
-            padding: 12px 24px; 
-            background-color: #4CAF50; 
-            color: white; 
-            text-decoration: none; 
-            border-radius: 4px; 
-            margin: 20px 0;
-        }
-        .footer { margin-top: 20px; font-size: 12px; color: #777; }
-    </style>
+	   <meta charset="UTF-8">
+	   <style>
+	       body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+	       .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+	       .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; }
+	       .content { padding: 20px; background-color: #f9f9f9; }
+	       .button {
+	           display: inline-block;
+	           padding: 12px 24px;
+	           background-color: #4CAF50;
+	           color: white;
+	           text-decoration: none;
+	           border-radius: 4px;
+	           margin: 20px 0;
+	       }
+	       .footer { margin-top: 20px; font-size: 12px; color: #777; }
+	   </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>邮箱验证</h1>
-        </div>
-        <div class="content">
-            <p>尊敬的 %s，</p>
-            <p>感谢您注册我们的博客系统！请点击下面的按钮完成邮箱验证：</p>
-            <p>
-                <a href="%s" class="button">验证邮箱</a>
-            </p>
+	   <div class="container">
+	       <div class="header">
+	           <h1>邮箱验证</h1>
+	       </div>
+	       <div class="content">
+	           <p>尊敬的 %s，</p>
+	           <p>感谢您注册我们的博客系统！请点击下面的按钮完成邮箱验证：</p>
+	           <p>
+	               <a href="%s" class="button">验证邮箱</a>
+	           </p>
             <p>或者复制以下链接到浏览器中打开：</p>
             <p>%s</p>
-            <p>此链接将在 24 小时后失效。</p>
-        </div>
-        <div class="footer">
-            <p>如果您没有注册此账户，请忽略此邮件。</p>
-        </div>
-    </div>
+            <p>此链接将在 5 分钟后失效。</p>
+	       </div>
+	       <div class="footer">
+	           <p>如果您没有注册此账户，请忽略此邮件。</p>
+	       </div>
+	   </div>
 </body>
 </html>
 	`, toName, verificationLink, verificationLink)
@@ -139,8 +139,8 @@ func (m *Mailer) GenerateVerificationToken(userID uint) (string, error) {
 	// 生成随机令牌（实际应用中应该使用更安全的方式）
 	token := fmt.Sprintf("verify-%d-%d", userID, time.Now().UnixNano())
 
-	// 计算过期时间（24小时后）
-	expiresAt := time.Now().Add(24 * time.Hour)
+	// 计算过期时间（5分钟后）
+	expiresAt := time.Now().Add(5 * time.Minute)
 
 	// 保存到数据库
 	updates := map[string]interface{}{
