@@ -47,6 +47,22 @@ func InitDB() {
 			}
 		}
 	}
+
+	// 创建一个默认分类（如果不存在）
+	var defaultCategory model.Category
+	if err := db.Where("name = ?", "Default").First(&defaultCategory).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			defaultCategory = model.Category{
+				Name:        "Default",
+				Description: "默认分类，用于未指定分类的文章",
+			}
+			if err := db.Create(&defaultCategory).Error; err != nil {
+				log.Printf("failed to create default category: %v", err)
+			} else {
+				log.Println("default category created: Default")
+			}
+		}
+	}
 }
 
 // DB returns the database instance
