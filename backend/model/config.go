@@ -24,7 +24,7 @@ type GeneralSettings struct {
 	ID                  uint      `json:"id" gorm:"primaryKey"`
 	CaptchaEnabled      bool      `json:"captchaEnabled" gorm:"default:false"`     // 是否启用滑块验证
 	RegistrationEnabled bool      `json:"registrationEnabled" gorm:"default:true"` // 是否允许注册
-	SiteName            string    `json:"siteName" gorm:"default:Blog System"`     // 网站名称
+	SiteName            string    `json:"siteName" gorm:"default:VexGo"`           // 网站名称
 	SiteDescription     string    `json:"siteDescription"`                         // 网站描述
 	ItemsPerPage        int       `json:"itemsPerPage" gorm:"default:20"`          // 每页显示数量
 	CreatedAt           time.Time `json:"created_at"`                              // 创建时间

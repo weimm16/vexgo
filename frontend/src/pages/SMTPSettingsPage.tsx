@@ -23,7 +23,7 @@ export function SMTPSettingsPage() {
     username: '',
     password: '',
     fromEmail: '',
-    fromName: 'Blog System',
+    fromName: 'VexGo',
     testEmail: '',
     createdAt: '',
     updatedAt: ''
@@ -242,7 +242,7 @@ export function SMTPSettingsPage() {
               id="fromName"
               value={config.fromName}
               onChange={(e) => setConfig({ ...config, fromName: e.target.value })}
-              placeholder="Blog System"
+              placeholder="VexGo"
               disabled={saving}
             />
           </div>

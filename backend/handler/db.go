@@ -71,7 +71,7 @@ func InitDB() {
 						Username:  "",
 						Password:  "",
 						FromEmail: "",
-						FromName:  "Blog System",
+						FromName:  "VexGo",
 					}
 					if err := db.Create(&smtpConfig).Error; err != nil {
 						log.Printf("failed to create default smtp config: %v", err)
@@ -88,7 +88,7 @@ func InitDB() {
 					generalSettings = model.GeneralSettings{
 						CaptchaEnabled:      false, // 默认不启用滑块验证
 						RegistrationEnabled: true,  // 默认允许注册
-						SiteName:            "Blog System",
+						SiteName:            "VexGo",
 						SiteDescription:     "",
 						ItemsPerPage:        20,
 					}

@@ -42,7 +42,7 @@ func GetSMTPConfig(c *gin.Context) {
 				Username:  "",
 				Password:  "",
 				FromEmail: "",
-				FromName:  "Blog System",
+				FromName:  "VexGo",
 			})
 			return
 		}
@@ -272,7 +272,7 @@ func GetGeneralSettings(c *gin.Context) {
 			c.JSON(http.StatusOK, model.GeneralSettings{
 				CaptchaEnabled:      false,
 				RegistrationEnabled: true,
-				SiteName:            "Blog System",
+				SiteName:            "VexGo",
 				SiteDescription:     "",
 				ItemsPerPage:        20,
 			})

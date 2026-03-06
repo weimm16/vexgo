@@ -18,7 +18,7 @@ export function GeneralSettingsPage() {
     id: '',
     captchaEnabled: false,
     registrationEnabled: true,
-    siteName: 'Blog System',
+    siteName: 'VexGo',
     siteDescription: '',
     itemsPerPage: 20,
     createdAt: '',
