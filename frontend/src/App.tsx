@@ -17,6 +17,8 @@ import { UserManagementPage } from '@/pages/UserManagementPage';
 import { SMTPSettingsPage } from '@/pages/SMTPSettingsPage';
 import { GeneralSettingsPage } from '@/pages/GeneralSettingsPage';
 import { VerifyEmailPage } from '@/pages/VerifyEmailPage';
+import { CommentModerationPage } from '@/pages/CommentModerationPage';
+import { CommentConfigPage } from '@/pages/CommentConfigPage';
 import { Toaster } from '@/components/ui/sonner';
 
 function App() {
@@ -114,6 +116,22 @@ function App() {
               element={
                 <ProtectedRoute requireAdmin>
                   <GeneralSettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/comment-moderation"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <CommentModerationPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/comment-config"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <CommentConfigPage />
                 </ProtectedRoute>
               }
             />

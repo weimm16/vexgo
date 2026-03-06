@@ -83,6 +83,22 @@ export interface Comment {
   updatedAt: string;
 }
 
+// 评论审核配置类型
+export interface CommentModerationConfig {
+  id: string;
+  enabled: boolean;
+  modelProvider: string;
+  apiKey: string;
+  apiEndpoint: string;
+  modelName: string;
+  moderationPrompt: string;
+  blockKeywords: string;
+  autoApproveEnabled: boolean;
+  minScoreThreshold: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // 媒体文件类型
 export interface MediaFile {
   id: string;

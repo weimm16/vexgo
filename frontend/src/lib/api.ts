@@ -3,7 +3,7 @@ import type {
   User, Post, Category, Tag, Comment, MediaFile,
   AuthResponse, PostsResponse, CommentsResponse,
   LikeResponse, UploadResponse, StatsResponse,
-  SMTPConfig, GeneralSettings
+  SMTPConfig, GeneralSettings, CommentModerationConfig
 } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -230,7 +230,14 @@ export const configApi = {
     api.get<GeneralSettings>('/config/general'),
   
   updateGeneralSettings: (data: Partial<GeneralSettings>) =>
-    api.put<{ message: string; generalSettings: GeneralSettings }>('/config/general', data)
+    api.put<{ message: string; generalSettings: GeneralSettings }>('/config/general', data),
+
+  // 评论审核配置相关API
+  getCommentModerationConfig: () =>
+    api.get<CommentModerationConfig>('/moderation/comments/config'),
+  
+  updateCommentModerationConfig: (data: Partial<CommentModerationConfig>) =>
+    api.put<{ message: string; config: CommentModerationConfig }>('/moderation/comments/config', data)
 };
 
 export default api;
