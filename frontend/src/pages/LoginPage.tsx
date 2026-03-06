@@ -323,10 +323,8 @@ export function LoginPage() {
       <SliderCaptcha
         isOpen={isCaptchaModalOpen}
         onClose={() => {
-          // 只有在验证成功后才允许关闭，或者用户手动关闭
-          if (isCaptchaVerified) {
-            setIsCaptchaModalOpen(false);
-          }
+          // 允许用户随时关闭验证窗口
+          setIsCaptchaModalOpen(false);
         }}
         onSuccess={handleCaptchaSuccess}
       />
