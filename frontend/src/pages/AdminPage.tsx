@@ -13,7 +13,7 @@ import {
   Users, FileText, MessageSquare, Tag,
   Plus, Trash2, BarChart3, Edit, Shield,
   CheckCircle, XCircle, Clock, AlertCircle, FileX,
-  Mail
+  Mail, Settings
 } from 'lucide-react';
 
 export function AdminPage() {
@@ -236,6 +236,18 @@ export function AdminPage() {
         
         <TabsContent value="overview" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/admin/general-settings')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  通用设置
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">管理系统基本配置和验证设置</p>
+              </CardContent>
+            </Card>
+            
             <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/admin/moderation')}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

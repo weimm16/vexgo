@@ -24,6 +24,18 @@ export interface SMTPConfig {
   updatedAt: string;
 }
 
+// 通用设置类型
+export interface GeneralSettings {
+  id: string;
+  captchaEnabled: boolean;      // 是否启用滑块验证
+  registrationEnabled: boolean; // 是否允许注册
+  siteName: string;             // 网站名称
+  siteDescription: string;      // 网站描述
+  itemsPerPage: number;         // 每页显示数量
+  createdAt: string;
+  updatedAt: string;
+}
+
 // 文章类型
 export interface Post {
   id: string;

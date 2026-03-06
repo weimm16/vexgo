@@ -246,3 +246,80 @@ func TestSMTP(c *gin.Context) {
 		"to":      recipientEmail,
 	})
 }
+
+// GetGeneralSettings 获取通用设置
+func GetGeneralSettings(c *gin.Context) {
+	var config model.GeneralSettings
+	if err := db.First(&config).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// 返回默认配置
+			c.JSON(http.StatusOK, model.GeneralSettings{
+				CaptchaEnabled:      false,
+				RegistrationEnabled: true,
+				SiteName:            "Blog System",
+				SiteDescription:     "",
+				ItemsPerPage:        20,
+			})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get general settings"})
+		return
+	}
+
+	c.JSON(http.StatusOK, config)
+}
+
+// UpdateGeneralSettings 更新通用设置
+func UpdateGeneralSettings(c *gin.Context) {
+	var req struct {
+		CaptchaEnabled      bool   `json:"captchaEnabled"`
+		RegistrationEnabled bool   `json:"registrationEnabled"`
+		SiteName            string `json:"siteName"`
+		SiteDescription     string `json:"siteDescription"`
+		ItemsPerPage        int    `json:"itemsPerPage"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 获取现有配置
+	var config model.GeneralSettings
+	if err := db.First(&config).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// 创建新配置
+			config = model.GeneralSettings{
+				CaptchaEnabled:      req.CaptchaEnabled,
+				RegistrationEnabled: req.RegistrationEnabled,
+				SiteName:            req.SiteName,
+				SiteDescription:     req.SiteDescription,
+				ItemsPerPage:        req.ItemsPerPage,
+			}
+			if err := db.Create(&config).Error; err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create general settings"})
+				return
+			}
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get general settings"})
+			return
+		}
+	} else {
+		// 更新现有配置
+		config.CaptchaEnabled = req.CaptchaEnabled
+		config.RegistrationEnabled = req.RegistrationEnabled
+		config.SiteName = req.SiteName
+		config.SiteDescription = req.SiteDescription
+		config.ItemsPerPage = req.ItemsPerPage
+
+		if err := db.Save(&config).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update general settings"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":         "General settings updated successfully",
+		"generalSettings": config,
+	})
+}

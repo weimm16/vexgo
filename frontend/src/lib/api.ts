@@ -3,7 +3,7 @@ import type {
   User, Post, Category, Tag, Comment, MediaFile,
   AuthResponse, PostsResponse, CommentsResponse,
   LikeResponse, UploadResponse, StatsResponse,
-  SMTPConfig
+  SMTPConfig, GeneralSettings
 } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -223,7 +223,14 @@ export const configApi = {
     api.put<{ message: string; smtpConfig: SMTPConfig }>('/config/smtp', data),
   
   testSMTP: () =>
-    api.post<{ message: string; to: string }>('/config/smtp/test')
+    api.post<{ message: string; to: string }>('/config/smtp/test'),
+
+  // 通用设置相关API
+  getGeneralSettings: () =>
+    api.get<GeneralSettings>('/config/general'),
+  
+  updateGeneralSettings: (data: Partial<GeneralSettings>) =>
+    api.put<{ message: string; generalSettings: GeneralSettings }>('/config/general', data)
 };
 
 export default api;
