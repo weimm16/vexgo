@@ -27,8 +27,8 @@ export const approvePost = (id: string) =>
   api.put<{ message: string; post: Post }>(`/moderation/approve/${id}`);
 
 // 拒绝文章
-export const rejectPost = (id: string) =>
-  api.put<{ message: string; post: Post }>(`/moderation/reject/${id}`);
+export const rejectPost = (id: string, rejectionReason?: string) =>
+  api.put<{ message: string; post: Post }>(`/moderation/reject/${id}`, { rejectionReason });
 
 // 重新提交文章审核
 export const resubmitPost = (id: string) =>

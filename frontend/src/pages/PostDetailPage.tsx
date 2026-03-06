@@ -24,7 +24,7 @@ import {
 import { 
   Heart, MessageCircle, Calendar, 
   ArrowLeft, Share2, Edit, Trash2, Send,
-  Clock, Eye
+  Clock, Eye, XCircle
 } from 'lucide-react';
 
 export function PostDetailPage() {
@@ -215,6 +215,21 @@ export function PostDetailPage() {
 
       {/* 文章头部 */}
       <div className="mb-8">
+        {/* 文章状态和拒绝原因 */}
+        {post.status === 'rejected' && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+            <div className="flex items-center gap-2 mb-1">
+              <XCircle className="w-5 h-5 text-red-500" />
+              <span className="font-medium text-red-800">此文章已被拒绝</span>
+            </div>
+            {post.rejectionReason && (
+              <p className="text-sm text-red-700">
+                拒绝原因：{post.rejectionReason}
+              </p>
+            )}
+          </div>
+        )}
+        
         {/* 分类和标签 */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {post.categoryInfo && (

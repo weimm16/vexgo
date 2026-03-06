@@ -6,9 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   CheckCircle, XCircle, Clock, AlertCircle,
-  Eye, Edit, Send
+  Eye, Edit, Send, MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -19,6 +21,9 @@ export function ModerationPage() {
   const [rejectedPosts, setRejectedPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
+  const [rejectingPostId, setRejectingPostId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [showRejectDialog, setShowRejectDialog] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -57,14 +62,31 @@ export function ModerationPage() {
   };
 
   const handleRejectPost = async (postId: string) => {
+    setRejectingPostId(postId);
+    setShowRejectDialog(true);
+    setRejectionReason('');
+  };
+
+  const confirmRejectPost = async () => {
+    if (!rejectingPostId) return;
+    
     try {
-      await rejectPost(postId);
+      await rejectPost(rejectingPostId, rejectionReason);
       toast.success('文章已拒绝');
+      setShowRejectDialog(false);
+      setRejectingPostId(null);
+      setRejectionReason('');
       loadData();
     } catch (error) {
       console.error('拒绝文章失败:', error);
       toast.error('拒绝文章失败');
     }
+  };
+
+  const cancelRejectPost = () => {
+    setShowRejectDialog(false);
+    setRejectingPostId(null);
+    setRejectionReason('');
   };
 
   const handleResubmitPost = async (postId: string) => {
@@ -174,9 +196,17 @@ export function ModerationPage() {
                           作者: {post.author?.username}
                         </p>
                         {post.excerpt && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
+                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                             {post.excerpt}
                           </p>
+                        )}
+                        {post.rejectionReason && (
+                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
+                            <p className="text-sm text-red-800">
+                              <span className="font-medium">拒绝原因：</span>
+                              {post.rejectionReason}
+                            </p>
+                          </div>
                         )}
                       </div>
                       <div className="flex flex-col gap-2 ml-4">
@@ -350,6 +380,39 @@ export function ModerationPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* 拒绝原因对话框 */}
+      {showRejectDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-red-500" />
+              拒绝文章
+            </h2>
+            <div className="mb-4">
+              <Label htmlFor="rejectionReason" className="block text-sm font-medium mb-2">
+                拒绝原因
+              </Label>
+              <Textarea
+                id="rejectionReason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="请输入拒绝此文章的原因..."
+                rows={4}
+                className="w-full"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={cancelRejectPost}>
+                取消
+              </Button>
+              <Button variant="destructive" onClick={confirmRejectPost}>
+                确认拒绝
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
