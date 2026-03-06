@@ -116,7 +116,7 @@ func GetPosts(c *gin.Context) {
 		Limit(limit).
 		Find(&posts)
 
-	// 为列表中的每篇文章填充点赞计数和当前登录用户的点赞状态（如果有登录）
+	// 为列表中的每篇文章填充点赞计数、浏览量和当前登录用户的点赞状态（如果有登录）
 	for i := range posts {
 		var count int64
 		db.Model(&model.Like{}).Where("post_id = ?", posts[i].ID).Count(&count)
@@ -362,6 +362,25 @@ func GetMyPosts(c *gin.Context) {
 		Limit(limit).
 		Find(&posts)
 
+	// 为每篇文章填充点赞计数、浏览量和评论计数
+	for i := range posts {
+		var count int64
+		db.Model(&model.Like{}).Where("post_id = ?", posts[i].ID).Count(&count)
+		posts[i].LikesCount = int(count)
+		posts[i].IsLiked = false
+		if userID != 0 {
+			var like model.Like
+			if db.Where("post_id = ? AND user_id = ?", posts[i].ID, userID).First(&like).Error == nil {
+				posts[i].IsLiked = true
+			}
+		}
+
+		// 填充评论计数
+		var ccount int64
+		db.Model(&model.Comment{}).Where("post_id = ?", posts[i].ID).Count(&ccount)
+		posts[i].CommentsCount = int(ccount)
+	}
+
 	totalPages := (int(total) + limit - 1) / limit
 	if totalPages == 0 {
 		totalPages = 1
@@ -423,6 +442,25 @@ func GetDraftPosts(c *gin.Context) {
 		Offset((page - 1) * limit).
 		Limit(limit).
 		Find(&posts)
+
+	// 为每篇文章填充点赞计数、浏览量和评论计数
+	for i := range posts {
+		var count int64
+		db.Model(&model.Like{}).Where("post_id = ?", posts[i].ID).Count(&count)
+		posts[i].LikesCount = int(count)
+		posts[i].IsLiked = false
+		if userID != 0 {
+			var like model.Like
+			if db.Where("post_id = ? AND user_id = ?", posts[i].ID, userID).First(&like).Error == nil {
+				posts[i].IsLiked = true
+			}
+		}
+
+		// 填充评论计数
+		var ccount int64
+		db.Model(&model.Comment{}).Where("post_id = ?", posts[i].ID).Count(&ccount)
+		posts[i].CommentsCount = int(ccount)
+	}
 
 	totalPages := (int(total) + limit - 1) / limit
 	if totalPages == 0 {

@@ -3,7 +3,6 @@ package handler
 import (
 	"blog-system/backend/model"
 	"net/http"
-	"sort"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -35,7 +34,7 @@ func GetPopularPosts(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "5"))
 	var posts []model.Post
 
-	// 先获取所有已发布文章（带关联），再在应用层统计点赞数并按点赞数排序
+	// 先查询所有已发布的文章
 	db.Where("status = ?", "published").
 		Preload("Author").
 		Preload("Tags").
@@ -48,16 +47,20 @@ func GetPopularPosts(c *gin.Context) {
 		posts[i].LikesCount = int(count)
 	}
 
-	// 按 LikesCount 降序排序，创建时间作为次级排序
-	sort.SliceStable(posts, func(i, j int) bool {
-		if posts[i].LikesCount == posts[j].LikesCount {
-			return posts[i].CreatedAt.After(posts[j].CreatedAt)
+	// 按照点赞数乘5加浏览量之和排序
+	// 使用自定义排序，因为GORM不支持复杂的表达式排序
+	for i := 0; i < len(posts); i++ {
+		for j := i + 1; j < len(posts); j++ {
+			scoreI := posts[i].LikesCount*5 + posts[i].ViewCount
+			scoreJ := posts[j].LikesCount*5 + posts[j].ViewCount
+			if scoreJ > scoreI {
+				posts[i], posts[j] = posts[j], posts[i]
+			}
 		}
-		return posts[i].LikesCount > posts[j].LikesCount
-	})
+	}
 
-	// 截取 limit
-	if len(posts) > limit {
+	// 限制返回数量
+	if limit < len(posts) {
 		posts = posts[:limit]
 	}
 

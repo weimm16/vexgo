@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/pagination';
 import { 
   Heart, MessageCircle, Calendar, 
-  TrendingUp, Clock, Tag, SearchX 
+  TrendingUp, Clock, Tag, SearchX, Eye 
 } from 'lucide-react';
 
 export function HomePage() {
@@ -298,6 +298,10 @@ export function HomePage() {
                             <MessageCircle className="w-4 h-4" />
                             {post.commentsCount || 0}
                           </span>
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <Eye className="w-4 h-4" />
+                            {post.viewCount || 0}
+                          </span>
                         </div>
                       </div>
                     </CardContent>
@@ -400,9 +404,15 @@ export function HomePage() {
                       <h4 className="text-sm font-medium line-clamp-2 group-hover:text-primary transition-colors">
                         {post.title}
                       </h4>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                        <Heart className="w-3 h-3" />
-                        {post.likesCount || 0}
+                      <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Heart className="w-3 h-3" />
+                          {post.likesCount || 0}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Eye className="w-3 h-3" />
+                          {post.viewCount || 0}
+                        </div>
                       </div>
                     </div>
                   </Link>
