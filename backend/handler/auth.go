@@ -190,7 +190,7 @@ func UpdatePost(c *gin.Context) {
 	userID := uid.(uint)
 	var user model.User
 	if err := db.First(&user, userID).Error; err == nil {
-		if user.Role != "admin" && post.AuthorID != userID {
+		if user.Role != "admin" && user.Role != "super_admin" && post.AuthorID != userID {
 			c.JSON(http.StatusForbidden, gin.H{"error": "无权修改该文章"})
 			return
 		}
@@ -267,7 +267,7 @@ func DeletePost(c *gin.Context) {
 	userID := uid.(uint)
 	var user model.User
 	if err := db.First(&user, userID).Error; err == nil {
-		if user.Role != "admin" && post.AuthorID != userID {
+		if user.Role != "admin" && user.Role != "super_admin" && post.AuthorID != userID {
 			c.JSON(http.StatusForbidden, gin.H{"error": "无权删除该文章"})
 			return
 		}
