@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SliderCaptcha } from '@/components/ui/slider-captcha';
 import { Loader2, Mail, Lock, User, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -26,18 +27,19 @@ export function RegisterPage() {
   const [isCaptchaModalOpen, setIsCaptchaModalOpen] = useState(false);
   const [captchaEnabled, setCaptchaEnabled] = useState(false);
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+  const [registrationEnabled, setRegistrationEnabled] = useState(true);
 
   useEffect(() => {
-    loadCaptchaSettings();
+    loadSettings();
   }, []);
 
-  const loadCaptchaSettings = async () => {
+  const loadSettings = async () => {
     try {
       const response = await configApi.getGeneralSettings();
       setCaptchaEnabled(response.data.captchaEnabled);
+      setRegistrationEnabled(response.data.registrationEnabled);
     } catch (error) {
-      console.error('加载验证设置失败:', error);
-      setCaptchaEnabled(false);
+      console.error('加载设置失败:', error);
     }
   };
 
@@ -78,7 +80,7 @@ export function RegisterPage() {
     try {
       if (captchaEnabled) {
         if (!captchaData) {
-          alert('请先完成滑块验证');
+          toast.error('请先完成滑块验证');
           setIsCaptchaModalOpen(true);
           return;
         }
@@ -93,7 +95,7 @@ export function RegisterPage() {
       // 邮箱验证等后端错误仍可弹窗提示
       const error = err as { response?: { data?: { message?: string } }; message?: string };
       const msg = error.response?.data?.message || error.message || '';
-      alert(msg || '注册失败，请重试');
+      toast.error(msg || '注册失败，请重试');
       // 注册失败后不重置验证码状态，允许用户重试
     } finally {
       setLoading(false);
@@ -125,10 +127,16 @@ export function RegisterPage() {
     }
     if (hasError) return;
     
+    // 检查是否允许注册
+    if (!registrationEnabled) {
+      toast.error('系统已关闭注册功能，请联系管理员');
+      return;
+    }
+    
     // 如果启用了滑块验证，检查是否已完成验证
     if (captchaEnabled) {
       if (!isCaptchaVerified || !captchaData) {
-        alert('请先完成滑块验证');
+        toast.error('请先完成滑块验证');
         setIsCaptchaModalOpen(true);
         return;
       }
