@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { configApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,7 +15,7 @@ import {
   Search, PenLine, Menu, X, Home, User, Settings,
   LogOut, FileText, BarChart3
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,23 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [siteName, setSiteName] = useState('BlogHub');
+
+  useEffect(() => {
+    const loadSiteName = async () => {
+      try {
+        const response = await configApi.getGeneralSettings();
+        if (response.data.siteName) {
+          setSiteName(response.data.siteName);
+          // 更新网页标题
+          document.title = response.data.siteName;
+        }
+      } catch (error) {
+        console.error('加载网站名称失败:', error);
+      }
+    };
+    loadSiteName();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +86,7 @@ export function Layout({ children }: LayoutProps) {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <PenLine className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold hidden sm:inline">BlogHub</span>
+              <span className="text-xl font-bold hidden sm:inline">{siteName}</span>
             </Link>
 
             {/* 搜索框 - 桌面端 */}
@@ -218,10 +236,10 @@ export function Layout({ children }: LayoutProps) {
               <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
                 <PenLine className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-semibold">BlogHub</span>
+              <span className="font-semibold">{siteName}</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2024 BlogHub. All rights reserved.
+              © 2024 {siteName}. All rights reserved.
             </p>
             <div className="flex gap-4">
               <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
