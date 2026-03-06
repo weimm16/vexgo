@@ -91,16 +91,46 @@ func DeleteComment(c *gin.Context) {
         return
     }
 
-    uid, _ := c.Get("userID")
-    userID := uid.(uint)
-    var user model.User
-    if err := db.First(&user, userID).Error; err == nil {
-        if user.Role != "admin" && comment.UserID != userID {
-            c.JSON(http.StatusForbidden, gin.H{"error": "无权删除该评论"})
-            return
-        }
+    // 获取当前操作用户 ID
+    uid, exists := c.Get("userID")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
+        return
     }
 
-    db.Delete(&comment)
-    c.JSON(http.StatusOK, gin.H{"message": "评论已删除"})
+    var userID uint
+    switch v := uid.(type) {
+    case uint:
+        userID = v
+    case int:
+        userID = uint(v)
+    case float64:
+        userID = uint(v)
+    default:
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "无效的用户信息"})
+        return
+    }
+
+    var user model.User
+    if err := db.First(&user, userID).Error; err != nil {
+        c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+        return
+    }
+
+    // 管理员或超级管理员可以删除任意评论，作者本人也可以删除自己的评论
+    if !model.IsAdmin(user) && comment.UserID != userID {
+        c.JSON(http.StatusForbidden, gin.H{"error": "无权删除该评论"})
+        return
+    }
+
+    if err := db.Delete(&comment).Error; err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": "删除评论失败"})
+        return
+    }
+
+    // 返回删除后的评论计数，便于前端同步
+    var count int64
+    db.Model(&model.Comment{}).Where("post_id = ?", comment.PostID).Count(&count)
+
+    c.JSON(http.StatusOK, gin.H{"message": "评论已删除", "commentsCount": count})
 }

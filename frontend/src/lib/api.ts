@@ -147,7 +147,7 @@ export const commentsApi = {
     api.post<{ message: string; comment: Comment; commentsCount?: number }>('/comments', data),
   
   deleteComment: (id: string) =>
-    api.delete<{ message: string }>(`/comments/${id}`)
+    api.delete<{ message: string; commentsCount?: number }>(`/comments/${id}`)
 };
 
 // 点赞相关API

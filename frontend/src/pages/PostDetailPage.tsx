@@ -76,8 +76,10 @@ export function PostDetailPage() {
     try {
       const response = await commentsApi.getComments(id!);
       setComments(response.data.comments);
+      return response.data.comments;
     } catch (error) {
       console.error('加载评论失败:', error);
+      return [] as Comment[];
     }
   };
 
@@ -153,8 +155,12 @@ export function PostDetailPage() {
 
   const handleDeleteComment = async (commentId: string) => {
     try {
-      await commentsApi.deleteComment(commentId);
-      loadComments();
+      const response = await commentsApi.deleteComment(commentId);
+      await loadComments();
+      const newCount = response.data.commentsCount ?? (comments.length > 0 ? comments.length - 1 : 0);
+      try {
+        window.dispatchEvent(new CustomEvent('comment-changed', { detail: { postId: id, commentsCount: newCount } }));
+      } catch (e) {}
     } catch (error) {
       console.error('删除评论失败:', error);
     }
@@ -398,7 +404,7 @@ export function PostDetailPage() {
                             {formatDate(comment.createdAt)}
                           </span>
                         </div>
-                        {user && (user.id === comment.userId || user.role === 'admin') && (
+                        {user && (user.id === comment.userId || user.role === 'admin' || user.role === 'super_admin') && (
                           <Button
                             variant="ghost"
                             size="sm"
