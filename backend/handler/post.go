@@ -128,6 +128,11 @@ func GetPosts(c *gin.Context) {
 				posts[i].IsLiked = true
 			}
 		}
+
+		// 填充评论计数
+		var ccount int64
+		db.Model(&model.Comment{}).Where("post_id = ?", posts[i].ID).Count(&ccount)
+		posts[i].CommentsCount = int(ccount)
 	}
 
 	// 4. 计算总页数
@@ -189,6 +194,10 @@ func GetPost(c *gin.Context) {
 			}
 		}
 	}
+	// 填充评论计数
+	var ccount int64
+	db.Model(&model.Comment{}).Where("post_id = ?", post.ID).Count(&ccount)
+	post.CommentsCount = int(ccount)
 
 	fmt.Printf("Successfully fetched post: %+v\n", post)
 	c.JSON(http.StatusOK, gin.H{"post": post})

@@ -122,12 +122,19 @@ export function PostDetailPage() {
 
     setSubmittingComment(true);
     try {
-      await commentsApi.createComment({
+      const response = await commentsApi.createComment({
         postId: id!,
         content: commentContent.trim()
       });
       setCommentContent('');
-      loadComments();
+      await loadComments();
+      // 使用后端返回的 commentsCount 同步首页
+      const newCount = response.data.commentsCount ?? (comments.length + 1);
+      try {
+        window.dispatchEvent(new CustomEvent('comment-changed', { detail: { postId: id, commentsCount: newCount } }));
+      } catch (e) {
+        // ignore
+      }
     } catch (error) {
       console.error('发表评论失败:', error);
     } finally {

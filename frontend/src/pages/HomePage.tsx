@@ -51,7 +51,20 @@ export function HomePage() {
       }
     };
     window.addEventListener('like-changed', handler as EventListener);
-    return () => window.removeEventListener('like-changed', handler as EventListener);
+
+    const commentHandler = (e: any) => {
+      try {
+        const d = e.detail || {};
+        const postId = String(d.postId);
+        setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, commentsCount: d.commentsCount } : p));
+      } catch (err) {}
+    };
+    window.addEventListener('comment-changed', commentHandler as EventListener);
+
+    return () => {
+      window.removeEventListener('like-changed', handler as EventListener);
+      window.removeEventListener('comment-changed', commentHandler as EventListener);
+    };
   }, []);
 
   useEffect(() => {
