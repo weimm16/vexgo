@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SliderCaptcha } from '@/components/ui/slider-captcha';
 import { Loader2, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 
@@ -19,7 +18,10 @@ export function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [confirmPasswordError, setConfirmPasswordError] = useState('');
   const [captchaData, setCaptchaData] = useState<{ id: string; token: string; x: number } | null>(null);
   const [isCaptchaModalOpen, setIsCaptchaModalOpen] = useState(false);
   const [captchaEnabled, setCaptchaEnabled] = useState(false);
@@ -34,7 +36,6 @@ export function RegisterPage() {
       setCaptchaEnabled(response.data.captchaEnabled);
     } catch (error) {
       console.error('加载验证设置失败:', error);
-      // 如果加载失败，默认不启用滑块验证
       setCaptchaEnabled(false);
     }
   };
@@ -42,35 +43,24 @@ export function RegisterPage() {
   // 验证码验证成功回调
   const handleCaptchaSuccess = (data: { id: string; token: string; x: number }) => {
     setCaptchaData(data);
-    // 验证码验证成功后，直接执行注册
     performRegister();
   };
 
   const performRegister = async () => {
     setLoading(true);
-
     try {
-      // 如果启用了滑块验证，传递验证码数据
       if (captchaEnabled && captchaData) {
         await register(username, email, password, captchaData);
       } else {
-        // 传递空的验证码数据（undefined）
         await register(username, email, password);
       }
-      // 注册成功后关闭验证码弹窗
       setIsCaptchaModalOpen(false);
-      // 注册成功且不需要验证，跳转到首页
       navigate('/');
-    } catch (err) {
-      // 如果需要邮箱验证，显示提示信息但不跳转
-      const error = err as { requiresVerification?: boolean; response?: { data?: { message?: string } }; message?: string };
-      if (error.requiresVerification) {
-        setError(error.message || '请先验证您的邮箱地址才能登录');
-      } else {
-        setError(error.response?.data?.message || '注册失败，请重试');
-      }
-      
-      // 注册失败后重置验证码状态
+    } catch (err: any) {
+      // 邮箱验证等后端错误仍可弹窗提示
+      const msg = (err && typeof err === 'object') ?
+        (err.response?.data?.message || err.message) : '';
+      alert(msg || '注册失败，请重试');
       setCaptchaData(null);
     } finally {
       setLoading(false);
@@ -79,37 +69,36 @@ export function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
-    // 验证
+    setUsernameError('');
+    setEmailError('');
+    setPasswordError('');
+    setConfirmPasswordError('');
+    let hasError = false;
     if (username.length < 3) {
-      setError('用户名至少需要3个字符');
-      return;
+      setUsernameError('用户名至少需要3个字符');
+      hasError = true;
     }
-
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setEmailError('请输入有效的邮箱地址');
+      hasError = true;
+    }
     if (password.length < 6) {
-      setError('密码至少需要6个字符');
-      return;
+      setPasswordError('密码至少需要6个字符');
+      hasError = true;
     }
-
     if (password !== confirmPassword) {
-      setError('两次输入的密码不一致');
-      return;
+      setConfirmPasswordError('两次输入的密码不一致');
+      hasError = true;
     }
-    
-    // 如果启用了滑块验证，打开验证码弹窗
+    if (hasError) return;
     if (captchaEnabled) {
-      // 如果已经有验证码数据，直接执行注册
       if (captchaData) {
         performRegister();
         return;
       }
-      // 打开验证码弹窗
       setIsCaptchaModalOpen(true);
       return;
     }
-    
-    // 未启用滑块验证，直接执行注册
     performRegister();
   };
 
@@ -123,13 +112,7 @@ export function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="space-y-2">
               <Label htmlFor="username">用户名</Label>
               <div className="relative">
@@ -141,10 +124,9 @@ export function RegisterPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="pl-10"
-                  required
-                  minLength={3}
                 />
               </div>
+              {usernameError && <div className="text-red-500 text-sm mt-1">{usernameError}</div>}
             </div>
 
             <div className="space-y-2">
@@ -154,13 +136,13 @@ export function RegisterPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="请输入邮箱"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
-                  required
                 />
               </div>
+              {emailError && <div className="text-red-500 text-sm mt-1">{emailError}</div>}
             </div>
 
             <div className="space-y-2">
@@ -174,8 +156,6 @@ export function RegisterPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10"
-                  required
-                  minLength={6}
                 />
                 <button
                   type="button"
@@ -185,6 +165,7 @@ export function RegisterPage() {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
+              {passwordError && <div className="text-red-500 text-sm mt-1">{passwordError}</div>}
             </div>
 
             <div className="space-y-2">
@@ -198,9 +179,9 @@ export function RegisterPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="pl-10"
-                  required
                 />
               </div>
+              {confirmPasswordError && <div className="text-red-500 text-sm mt-1">{confirmPasswordError}</div>}
             </div>
 
             <Button
