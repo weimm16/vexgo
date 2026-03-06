@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func Register(c *gin.Context) {
@@ -26,6 +27,23 @@ func Register(c *gin.Context) {
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 检查是否允许注册
+	var settings model.GeneralSettings
+	if err := db.First(&settings).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// 默认允许注册
+			settings.RegistrationEnabled = true
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check registration settings"})
+			return
+		}
+	}
+
+	if !settings.RegistrationEnabled {
+		c.JSON(http.StatusForbidden, gin.H{"error": "注册功能已关闭，请联系管理员"})
 		return
 	}
 
