@@ -252,11 +252,23 @@ export function AdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="w-5 h-5" />
-                  内容审核
+                  文章审核
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">管理待审核的文章内容</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/admin/comment-moderation')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  评论审核
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">管理待审核的评论内容</p>
               </CardContent>
             </Card>
             

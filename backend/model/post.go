@@ -24,7 +24,6 @@ type Post struct {
 	CommentsCount int `json:"commentsCount" gorm:"-"`
 }
 
-
 type User struct {
 	ID                uint      `json:"id" gorm:"primaryKey"`
 	Username          string    `json:"username" binding:"required"`
@@ -61,6 +60,7 @@ type Comment struct {
 	UserID    uint      `json:"userId"`
 	User      User      `json:"author" gorm:"foreignKey:UserID"`
 	Content   string    `json:"content" gorm:"type:text"`
+	Status    string    `json:"status" gorm:"default:'published'"` // published, pending, rejected
 	ParentID  *uint     `json:"parentId,omitempty"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`

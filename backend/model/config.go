@@ -45,3 +45,19 @@ type Captcha struct {
 	Used      bool      `json:"used" gorm:"default:false"` // 是否已使用
 	CreatedAt time.Time `json:"created_at"`                // 创建时间
 }
+
+// CommentModerationConfig 评论审核配置
+type CommentModerationConfig struct {
+	ID                 uint      `json:"id" gorm:"primaryKey"`
+	Enabled            bool      `json:"enabled" gorm:"default:false"`              // 是否启用AI评论审核
+	ModelProvider      string    `json:"modelProvider" gorm:"default:''"`           // AI模型提供商 (openai, azure, etc.)
+	ApiKey             string    `json:"apiKey" gorm:"default:''"`                  // API密钥
+	ApiEndpoint        string    `json:"apiEndpoint" gorm:"default:''"`             // API端点
+	ModelName          string    `json:"modelName" gorm:"default:'gpt-3.5-turbo'"`  // 模型名称
+	ModerationPrompt   string    `json:"moderationPrompt" gorm:"default:''"`        // 审核提示词
+	BlockKeywords      string    `json:"blockKeywords" gorm:"type:text;default:''"` // 屏蔽关键词，逗号分隔
+	AutoApproveEnabled bool      `json:"autoApproveEnabled" gorm:"default:true"`    // 是否自动批准低风险评论
+	MinScoreThreshold  float64   `json:"minScoreThreshold" gorm:"default:0.5"`      // 最低分数阈值（低于此分数将被拒绝）
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+}

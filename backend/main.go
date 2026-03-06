@@ -81,6 +81,15 @@ func main() {
 		api.POST("/comments", middleware.JWTAuth(), handler.CreateComment)       // POST /api/comments（创建评论）
 		api.DELETE("/comments/:id", middleware.JWTAuth(), handler.DeleteComment) // DELETE /api/comments/:id（删除评论）
 
+		// 评论审核相关API（需要管理员权限）
+		api.GET("/moderation/comments/pending", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetPendingComments)           // GET /api/moderation/comments/pending（获取待审核评论）
+		api.GET("/moderation/comments/approved", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetApprovedComments)         // GET /api/moderation/comments/approved（获取已通过评论）
+		api.GET("/moderation/comments/rejected", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetRejectedComments)         // GET /api/moderation/comments/rejected（获取已拒绝评论）
+		api.PUT("/moderation/comments/approve/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.ApproveComment)           // PUT /api/moderation/comments/approve/:id（审核通过评论）
+		api.PUT("/moderation/comments/reject/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.RejectComment)             // PUT /api/moderation/comments/reject/:id（拒绝评论）
+		api.GET("/moderation/comments/config", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetCommentModerationConfig)    // GET /api/moderation/comments/config（获取评论审核配置）
+		api.PUT("/moderation/comments/config", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateCommentModerationConfig) // PUT /api/moderation/comments/config（更新评论审核配置）
+
 		// 点赞操作（需登录）
 		api.POST("/likes/:postId", middleware.JWTAuth(), handler.ToggleLike) // POST /api/likes/:postId（切换点赞）
 

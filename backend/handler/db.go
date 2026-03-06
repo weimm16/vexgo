@@ -32,6 +32,7 @@ func InitDB() {
 		&model.SMTPConfig{},
 		&model.Captcha{},
 		&model.GeneralSettings{},
+		&model.CommentModerationConfig{},
 	); err != nil {
 		log.Fatalf("auto migrate failed: %v", err)
 	}
