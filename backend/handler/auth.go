@@ -36,7 +36,7 @@ func verifyCaptcha(captchaID, captchaToken string, captchaX int, markAsUsed bool
 	}
 
 	// 验证位置（允许一定误差范围）
-	tolerance := 5 // 允许5像素的误差
+	tolerance := 10 // 允许5像素的误差
 	if math.Abs(float64(captchaX-captcha.X)) > float64(tolerance) {
 		return nil, fmt.Errorf("验证失败，请重试")
 	}
@@ -94,7 +94,7 @@ func Login(c *gin.Context) {
 		}
 
 		// 验证位置（允许一定误差范围）
-		tolerance := 5
+		tolerance := 10
 		if math.Abs(float64(req.CaptchaX-captcha.X)) > float64(tolerance) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "验证失败，请重试"})
 			return
