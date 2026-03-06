@@ -426,12 +426,12 @@ export function HomePage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                关于 BlogHub
+                关于 VexGo
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                BlogHub 是一个现代化的博客平台，支持富文本编辑、图片视频上传、评论互动等功能。
+                VexGo 是一个现代化的博客平台，支持富文本编辑、图片视频上传、评论互动等功能。
                 快来分享你的故事吧！
               </p>
             </CardContent>

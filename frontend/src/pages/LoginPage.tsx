@@ -163,7 +163,7 @@ export function LoginPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">欢迎回来</CardTitle>
           <CardDescription>
-            登录你的 BlogHub 账号
+            登录你的 VexGo 账号
           </CardDescription>
         </CardHeader>
         <CardContent>

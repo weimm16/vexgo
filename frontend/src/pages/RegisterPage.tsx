@@ -151,7 +151,7 @@ export function RegisterPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">创建账号</CardTitle>
           <CardDescription>
-            加入 BlogHub，开始你的创作之旅
+            加入 VexGo，开始你的创作之旅
           </CardDescription>
         </CardHeader>
         <CardContent>

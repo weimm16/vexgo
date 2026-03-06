@@ -27,7 +27,7 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [siteName, setSiteName] = useState('BlogHub');
+  const [siteName, setSiteName] = useState('VexGo');
 
   useEffect(() => {
     const loadSiteName = async () => {
