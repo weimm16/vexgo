@@ -4,19 +4,20 @@ package model
 import "time"
 
 type Post struct {
-	ID         uint      `json:"id" gorm:"primaryKey"`
-	Title      string    `json:"title" binding:"required"`
-	Content    string    `json:"content" binding:"required" gorm:"type:text"`
-	Excerpt    string    `json:"excerpt" gorm:"type:text"`
-	CoverImage string    `json:"coverImage"`
-	ViewCount  int       `json:"viewCount" gorm:"default:0"`
-	AuthorID   uint      `json:"authorId"`
-	Author     User      `json:"author" gorm:"foreignKey:AuthorID"`
-	Category   string    `json:"category"`
-	Tags       []Tag     `json:"tags" gorm:"many2many:post_tags;"`
-	Status     string    `json:"status"` // draft/published/pending/rejected
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+	ID              uint      `json:"id" gorm:"primaryKey"`
+	Title           string    `json:"title" binding:"required"`
+	Content         string    `json:"content" binding:"required" gorm:"type:text"`
+	Excerpt         string    `json:"excerpt" gorm:"type:text"`
+	CoverImage      string    `json:"coverImage"`
+	ViewCount       int       `json:"viewCount" gorm:"default:0"`
+	AuthorID        uint      `json:"authorId"`
+	Author          User      `json:"author" gorm:"foreignKey:AuthorID"`
+	Category        string    `json:"category"`
+	Tags            []Tag     `json:"tags" gorm:"many2many:post_tags;"`
+	Status          string    `json:"status"`                           // draft/published/pending/rejected
+	RejectionReason string    `json:"rejectionReason" gorm:"type:text"` // 拒绝原因
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
 	// 非数据库字段：用于在 API 返回中包含点赞计数与当前用户是否已点赞
 	LikesCount int  `json:"likesCount" gorm:"-"`
 	IsLiked    bool `json:"isLiked" gorm:"-"`
