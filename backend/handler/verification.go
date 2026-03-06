@@ -216,20 +216,49 @@ func createGradientBackground(width, height int) *image.RGBA {
 	return img
 }
 
-// createPuzzleShape 创建拼图形状
+// createPuzzleShape 创建拼图形状 - 对称十字形
 func createPuzzleShape(width, height int) [][]bool {
 	// 创建一个拼图形状
 	shape := make([][]bool, height)
+
+	// 计算十字的中心和臂长
+	centerX := width / 2
+	centerY := height / 2
+	// 臂长取宽高的较小值的一半，确保十字在方形区域内对称
+	armLength := min(width, height) / 3
+
+	// 计算边界
+	left := centerX - armLength
+	right := centerX + armLength
+	top := centerY - armLength
+	bottom := centerY + armLength
+
+	// 臂的厚度（中心正方形的一半）
+	armThickness := armLength / 2
+
 	for y := 0; y < height; y++ {
 		shape[y] = make([]bool, width)
 		for x := 0; x < width; x++ {
-			// 创建一个基本的矩形形状
-			if y >= height/4 && y <= 3*height/4 && x >= width/4 && x <= 3*width/4 {
+			// 中心正方形区域
+			if x >= left && x <= right && y >= top && y <= bottom {
 				shape[y][x] = true
-			} else if y >= height/3 && y <= 2*height/3 {
-				shape[y][x] = true
-			} else {
-				shape[y][x] = false
+				continue
+			}
+
+			// 垂直臂（上下延伸）- 在中心垂直范围内，但在中心正方形之外
+			if x >= centerX-armThickness && x <= centerX+armThickness {
+				if y < top || y > bottom {
+					shape[y][x] = true
+					continue
+				}
+			}
+
+			// 水平臂（左右延伸）- 在中心水平范围内，但在中心正方形之外
+			if y >= centerY-armThickness && y <= centerY+armThickness {
+				if x < left || x > right {
+					shape[y][x] = true
+					continue
+				}
 			}
 		}
 	}
