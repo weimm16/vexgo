@@ -239,7 +239,7 @@ export function Layout({ children }: LayoutProps) {
               <span className="font-semibold">{siteName}</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2024 {siteName}. All rights reserved.
+              © 2026 {siteName}. All rights reserved.
             </p>
             <div className="flex gap-4">
               <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
