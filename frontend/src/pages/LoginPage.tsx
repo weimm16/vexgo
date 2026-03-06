@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { authApi } from '@/lib/api';
+import { authApi, configApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,9 +22,25 @@ export function LoginPage() {
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
   const [captchaData, setCaptchaData] = useState<{ id: string; token: string; x: number } | null>(null);
   const [isCaptchaModalOpen, setIsCaptchaModalOpen] = useState(false);
+  const [captchaEnabled, setCaptchaEnabled] = useState(false);
 
   // 获取重定向地址
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+
+  useEffect(() => {
+    loadCaptchaSettings();
+  }, []);
+
+  const loadCaptchaSettings = async () => {
+    try {
+      const response = await configApi.getGeneralSettings();
+      setCaptchaEnabled(response.data.captchaEnabled);
+    } catch (error) {
+      console.error('加载验证设置失败:', error);
+      // 如果加载失败，默认不启用滑块验证
+      setCaptchaEnabled(false);
+    }
+  };
 
   // 验证码验证成功回调
   const handleCaptchaSuccess = (data: { id: string; token: string; x: number }) => {
@@ -34,22 +50,26 @@ export function LoginPage() {
   };
 
   const performLogin = async () => {
-    if (!captchaData) return;
-    
     setLoading(true);
 
     try {
-      // 传递验证码数据到登录函数
-      await login(email, password, captchaData);
+      // 如果启用了滑块验证，传递验证码数据
+      if (captchaEnabled && captchaData) {
+        await login(email, password, captchaData);
+      } else {
+        // 传递空的验证码数据
+        await login(email, password);
+      }
       // 登录成功后关闭验证码弹窗
       setIsCaptchaModalOpen(false);
       navigate(from, { replace: true });
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || '登录失败，请检查邮箱和密码';
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string; email_verified?: boolean } }; message?: string };
+      const errorMessage = error.response?.data?.message || error.message || '登录失败，请检查邮箱和密码';
       setError(errorMessage);
       
       // 如果是因为邮箱未验证，保存邮箱状态以便显示重新发送链接
-      if (err.response?.data?.email_verified === false) {
+      if (error.response?.data?.email_verified === false) {
         setEmailVerified(false);
       }
       
@@ -74,14 +94,20 @@ export function LoginPage() {
       return;
     }
     
-    // 如果已经有验证码数据，直接执行登录
-    if (captchaData) {
-      performLogin();
+    // 如果启用了滑块验证，打开验证码弹窗
+    if (captchaEnabled) {
+      // 如果已经有验证码数据，直接执行登录
+      if (captchaData) {
+        performLogin();
+        return;
+      }
+      // 打开验证码弹窗
+      setIsCaptchaModalOpen(true);
       return;
     }
     
-    // 打开验证码弹窗
-    setIsCaptchaModalOpen(true);
+    // 未启用滑块验证，直接执行登录
+    performLogin();
   };
 
   const handleResendVerification = async () => {
@@ -95,8 +121,9 @@ export function LoginPage() {
       await authApi.resendVerificationEmail();
       setError('');
       alert('验证邮件已重新发送，请检查您的邮箱');
-    } catch (err: any) {
-      setError(err.response?.data?.message || '重新发送失败，请重试');
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } } };
+      setError(error.response?.data?.message || '重新发送失败，请重试');
     } finally {
       setLoading(false);
     }

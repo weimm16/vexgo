@@ -13,6 +13,19 @@ import (
 	"gorm.io/gorm"
 )
 
+// IsCaptchaEnabled 检查是否启用了滑块验证
+func IsCaptchaEnabled() (bool, error) {
+	var settings model.GeneralSettings
+	if err := db.First(&settings).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			// 默认不启用
+			return false, nil
+		}
+		return false, err
+	}
+	return settings.CaptchaEnabled, nil
+}
+
 // GetSMTPConfig 获取 SMTP 配置
 func GetSMTPConfig(c *gin.Context) {
 	var config model.SMTPConfig

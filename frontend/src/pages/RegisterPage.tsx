@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { configApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +22,22 @@ export function RegisterPage() {
   const [error, setError] = useState('');
   const [captchaData, setCaptchaData] = useState<{ id: string; token: string; x: number } | null>(null);
   const [isCaptchaModalOpen, setIsCaptchaModalOpen] = useState(false);
+  const [captchaEnabled, setCaptchaEnabled] = useState(false);
+
+  useEffect(() => {
+    loadCaptchaSettings();
+  }, []);
+
+  const loadCaptchaSettings = async () => {
+    try {
+      const response = await configApi.getGeneralSettings();
+      setCaptchaEnabled(response.data.captchaEnabled);
+    } catch (error) {
+      console.error('加载验证设置失败:', error);
+      // 如果加载失败，默认不启用滑块验证
+      setCaptchaEnabled(false);
+    }
+  };
 
   // 验证码验证成功回调
   const handleCaptchaSuccess = (data: { id: string; token: string; x: number }) => {
@@ -30,23 +47,27 @@ export function RegisterPage() {
   };
 
   const performRegister = async () => {
-    if (!captchaData) return;
-
     setLoading(true);
 
     try {
-      // 传递验证码数据到注册函数
-      await register(username, email, password, captchaData);
+      // 如果启用了滑块验证，传递验证码数据
+      if (captchaEnabled && captchaData) {
+        await register(username, email, password, captchaData);
+      } else {
+        // 传递空的验证码数据（undefined）
+        await register(username, email, password);
+      }
       // 注册成功后关闭验证码弹窗
       setIsCaptchaModalOpen(false);
       // 注册成功且不需要验证，跳转到首页
       navigate('/');
-    } catch (err: any) {
+    } catch (err) {
       // 如果需要邮箱验证，显示提示信息但不跳转
-      if (err.requiresVerification) {
-        setError(err.message || '请先验证您的邮箱地址才能登录');
+      const error = err as { requiresVerification?: boolean; response?: { data?: { message?: string } }; message?: string };
+      if (error.requiresVerification) {
+        setError(error.message || '请先验证您的邮箱地址才能登录');
       } else {
-        setError(err.response?.data?.message || '注册失败，请重试');
+        setError(error.response?.data?.message || '注册失败，请重试');
       }
       
       // 注册失败后重置验证码状态
@@ -76,14 +97,20 @@ export function RegisterPage() {
       return;
     }
     
-    // 如果已经有验证码数据，直接执行注册
-    if (captchaData) {
-      performRegister();
+    // 如果启用了滑块验证，打开验证码弹窗
+    if (captchaEnabled) {
+      // 如果已经有验证码数据，直接执行注册
+      if (captchaData) {
+        performRegister();
+        return;
+      }
+      // 打开验证码弹窗
+      setIsCaptchaModalOpen(true);
       return;
     }
     
-    // 打开验证码弹窗
-    setIsCaptchaModalOpen(true);
+    // 未启用滑块验证，直接执行注册
+    performRegister();
   };
 
   return (

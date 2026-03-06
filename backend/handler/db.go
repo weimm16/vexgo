@@ -31,6 +31,7 @@ func InitDB() {
 		&model.MediaFile{},
 		&model.SMTPConfig{},
 		&model.Captcha{},
+		&model.GeneralSettings{},
 	); err != nil {
 		log.Fatalf("auto migrate failed: %v", err)
 	}
@@ -74,6 +75,25 @@ func InitDB() {
 						log.Printf("failed to create default smtp config: %v", err)
 					} else {
 						log.Println("default smtp config created")
+					}
+				}
+			}
+
+			// 创建默认通用设置（如果不存在）
+			var generalSettings model.GeneralSettings
+			if err := db.First(&generalSettings).Error; err != nil {
+				if err == gorm.ErrRecordNotFound {
+					generalSettings = model.GeneralSettings{
+						CaptchaEnabled:      false, // 默认不启用滑块验证
+						RegistrationEnabled: true,  // 默认允许注册
+						SiteName:            "Blog System",
+						SiteDescription:     "",
+						ItemsPerPage:        20,
+					}
+					if err := db.Create(&generalSettings).Error; err != nil {
+						log.Printf("failed to create default general settings: %v", err)
+					} else {
+						log.Println("default general settings created")
 					}
 				}
 			}

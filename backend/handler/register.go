@@ -17,9 +17,9 @@ func Register(c *gin.Context) {
 		Email        string `json:"email" binding:"required,email"`
 		Password     string `json:"password" binding:"required"`
 		Username     string `json:"username" binding:"required"`
-		CaptchaID    string `json:"captcha_id" binding:"required"`
-		CaptchaToken string `json:"captcha_token" binding:"required"`
-		CaptchaX     int    `json:"captcha_x" binding:"required"`
+		CaptchaID    string `json:"captcha_id"`
+		CaptchaToken string `json:"captcha_token"`
+		CaptchaX     int    `json:"captcha_x"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -27,11 +27,24 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// 验证滑动拼图验证码
-	_, err := verifyCaptcha(req.CaptchaID, req.CaptchaToken, req.CaptchaX, true)
+	// 检查是否启用了滑块验证
+	captchaEnabled, err := IsCaptchaEnabled()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check captcha settings"})
 		return
+	}
+
+	// 如果启用了滑块验证，则验证验证码
+	if captchaEnabled {
+		if req.CaptchaID == "" || req.CaptchaToken == "" || req.CaptchaX == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "请完成滑块验证"})
+			return
+		}
+		_, err := verifyCaptcha(req.CaptchaID, req.CaptchaToken, req.CaptchaX, true)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	// 检查用户是否已存在
