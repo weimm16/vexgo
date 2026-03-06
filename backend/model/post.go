@@ -20,6 +20,8 @@ type Post struct {
 	// 非数据库字段：用于在 API 返回中包含点赞计数与当前用户是否已点赞
 	LikesCount int  `json:"likesCount" gorm:"-"`
 	IsLiked    bool `json:"isLiked" gorm:"-"`
+	// 非数据库字段：评论计数
+	CommentsCount int `json:"commentsCount" gorm:"-"`
 }
 
 

@@ -144,7 +144,7 @@ export const commentsApi = {
     api.get<CommentsResponse>(`/comments/post/${postId}`),
   
   createComment: (data: { postId: string; content: string; parentId?: string }) =>
-    api.post<{ message: string; comment: Comment }>('/comments', data),
+    api.post<{ message: string; comment: Comment; commentsCount?: number }>('/comments', data),
   
   deleteComment: (id: string) =>
     api.delete<{ message: string }>(`/comments/${id}`)
