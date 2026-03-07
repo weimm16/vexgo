@@ -8,6 +8,8 @@ backend/vexgo
 backend/blog.db
 backend/data/
 backend/public/dist/
+data/
+.env
 
 .DS_Store
 backend/.DS_Store

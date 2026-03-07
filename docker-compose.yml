@@ -1,0 +1,86 @@
+services:
+  vexgo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vexgo-app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      # 服务器配置
+      - ADDR=0.0.0.0
+      - PORT=3001
+      - DATA_DIR=/app/data
+      
+      # JWT密钥（生产环境必须设置！）
+      - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
+      
+      # 数据库配置（默认使用SQLite）
+      # 如果要使用外部数据库，取消注释并配置以下变量：
+      # - DB_TYPE=mysql
+      # - DB_HOST=mysql
+      # - DB_PORT=3306
+      # - DB_USER=vexgo_user
+      # - DB_PASSWORD=${DB_PASSWORD:-your-password}
+      # - DB_NAME=vexgo_db
+      
+      # 或者使用PostgreSQL：
+      # - DB_TYPE=postgres
+      # - DB_HOST=postgres
+      # - DB_PORT=5432
+      # - DB_USER=vexgo_user
+      # - DB_PASSWORD=${DB_PASSWORD:-your-password}
+      # - DB_NAME=vexgo_db
+      # - DB_SSL_MODE=disable
+      
+      # 或者使用配置文件（优先级高于环境变量）：
+      # - CONFIG_FILE=/app/examples/config-mysql.yml
+      # - CONFIG_FILE=/app/examples/config-postgres.yml
+    volumes:
+      # 持久化数据目录（包含SQLite数据库和上传的文件）
+      - ./data:/app/data
+    networks:
+      - vexgo-network
+
+  # MySQL数据库（可选）
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: vexgo-mysql
+  #   restart: unless-stopped
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root-password}
+  #     - MYSQL_DATABASE=vexgo_db
+  #     - MYSQL_USER=vexgo_user
+  #     - MYSQL_PASSWORD=${DB_PASSWORD:-your-password}
+  #   volumes:
+  #     - ./mysql-data:/var/lib/mysql
+  #   networks:
+  #     - vexgo-network
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # PostgreSQL数据库（可选）
+  # postgres:
+  #   image: postgres:18-alpine
+  #   container_name: vexgo-postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     - POSTGRES_USER=vexgo_user
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD:-your-password}
+  #     - POSTGRES_DB=vexgo_db
+  #   volumes:
+  #     - ./postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - vexgo-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U vexgo_user -d vexgo_db"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+networks:
+  vexgo-network:

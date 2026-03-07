@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+
+# 开发环境文件
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# 依赖目录
+node_modules
+frontend/node_modules
+
+# 构建输出
+frontend/dist
+backend/public/dist
+
+# 日志
+*.log
+npm-debug.log*
+
+# 临时文件
+tmp
+temp
+.cache
+
+# 测试覆盖率
+coverage
+
+# 数据库文件（本地开发）
+*.db
+*.sqlite
+*.sqlite3
+
+# 数据目录（本地开发）
+data/
+
+# Docker相关
+Dockerfile
+docker-compose.yml
+
+# 文档
+README.md
+CHANGELOG.md
+docs/
+
+# 示例配置
+examples/
+
+# 开发工具
+devbox.json
+devbox.lock
