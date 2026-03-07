@@ -107,14 +107,30 @@ export function HomePage() {
   const loadPosts = async () => {
     setLoading(true);
     try {
-      const response = await postsApi.getPosts({
-        page: currentPage,
-        limit: 10,
-        search: searchQuery || undefined,
-        category: selectedCategory || undefined
-      });
-      setPosts(response.data.posts.map((p: any) => normalizePost(p)));
-      setPagination(response.data.pagination);
+      if (searchQuery && searchQuery.trim()) {
+        // 优先使用后端的标题搜索结果（分页友好），同时在客户端拉取一定数量的文章做标签匹配备援
+        const [respSearch, respBulk] = await Promise.all([
+          postsApi.getPosts({ page: currentPage, limit: 10, search: searchQuery, category: selectedCategory || undefined }),
+          // 拉取更多文章用于在客户端按标签匹配（后端可能不支持按标签搜索）
+          postsApi.getPosts({ page: 1, limit: 200, category: selectedCategory || undefined })
+        ]);
+        const titleMatches = (respSearch.data.posts || []).map((p: any) => normalizePost(p));
+        const bulk = (respBulk.data.posts || []).map((p: any) => normalizePost(p));
+        const q = searchQuery.trim().toLowerCase();
+        const tagMatches = bulk.filter((p) => (p.tags || []).some((t: string) => String(t).toLowerCase().includes(q)));
+        const combinedMap = new Map<string, Post>();
+        titleMatches.forEach((p) => combinedMap.set(p.id, p));
+        tagMatches.forEach((p) => combinedMap.set(p.id, p));
+        const combined = Array.from(combinedMap.values());
+        setPosts(combined);
+        // 使用标题搜索的分页信息作为页面分页参考
+        setPagination(respSearch.data.pagination);
+      } else {
+        const response = await postsApi.getPosts({ page: currentPage, limit: 10, category: selectedCategory || undefined });
+        const all = response.data.posts.map((p: any) => normalizePost(p));
+        setPosts(all);
+        setPagination(response.data.pagination);
+      }
     } catch (error) {
       console.error('加载文章失败:', error);
     } finally {
