@@ -23,7 +23,7 @@ func main() {
 	handler.DataDir = cfg.DataDir
 
 	// 3. 初始化数据库连接（确保数据库驱动、连接串配置正确）
-	handler.InitDB(cfg.DataDir)
+	handler.InitDB(cfg, cfg.DataDir)
 
 	// 4. 创建Gin引擎实例（默认包含Logger和Recovery中间件）
 	r := gin.Default()

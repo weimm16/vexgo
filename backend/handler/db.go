@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"vexgo/backend/cmd"
 	"vexgo/backend/model"
 
 	dmsql "github.com/go-sql-driver/mysql"
@@ -16,20 +17,45 @@ import (
 
 var db *gorm.DB
 
-// InitDB initializes the database connection based on environment variables
-func InitDB(dataDir string) {
-	dbType := os.Getenv("DB_TYPE")
+// InitDB initializes the database connection based on configuration
+func InitDB(cfg *cmd.Config, dataDir string) {
+	// Determine database type: config file takes priority, fallback to environment variable
+	dbType := cfg.DBType
+	if dbType == "" {
+		dbType = os.Getenv("DB_TYPE")
+	}
 	var err error
 
 	if dbType == "mysql" {
-		// MySQL connection
-		user := os.Getenv("DB_USER")
-		password := os.Getenv("DB_PASSWORD")
-		host := os.Getenv("DB_HOST")
-		port := os.Getenv("DB_PORT")
-		dbname := os.Getenv("DB_NAME")
+		// MySQL connection - use config values with environment fallback
+		user := cfg.DBUser
+		if user == "" {
+			user = os.Getenv("DB_USER")
+		}
+		password := cfg.DBPassword
+		if password == "" {
+			password = os.Getenv("DB_PASSWORD")
+		}
+		host := cfg.DBHost
+		if host == "" {
+			host = os.Getenv("DB_HOST")
+		}
+		port := cfg.DBPort
+		if port == 0 {
+			// If port not set in config, get from env
+			portStr := os.Getenv("DB_PORT")
+			if portStr != "" {
+				fmt.Sscanf(portStr, "%d", &port)
+			} else {
+				port = 3306 // default MySQL port
+			}
+		}
+		dbname := cfg.DBName
+		if dbname == "" {
+			dbname = os.Getenv("DB_NAME")
+		}
 
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 			user, password, host, port, dbname)
 
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -39,7 +65,7 @@ func InitDB(dataDir string) {
 				log.Printf("Database '%s' not found, attempting to create it.", dbname)
 
 				// DSN without database name to connect to the server
-				serverDsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port)
+				serverDsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port)
 				serverDb, serverErr := gorm.Open(mysql.Open(serverDsn), &gorm.Config{})
 				if serverErr != nil {
 					log.Fatalf("failed to connect to MySQL server to create database: %v", serverErr)
@@ -64,6 +90,7 @@ func InitDB(dataDir string) {
 		log.Println("Successfully connected to MySQL database")
 	} else {
 		// SQLite connection (default)
+		// Use dataDir from config (already set via command line or config file)
 		if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
 			log.Fatalf("failed to create data directory: %v", err)
 		}

@@ -1,0 +1,18 @@
+# Server listen address
+addr: "0.0.0.0"
+
+# Server listen port
+port: 3001
+
+# Data directory (for storing SQLite database and uploaded media files)
+data: "./data"
+
+# Database configuration
+db_type: "sqlite"  # Options: "sqlite" or "mysql"
+
+# When db_type is "mysql", configure the following parameters
+# db_host: "127.0.0.1"
+# db_port: 3306
+# db_user: "your_username"
+# db_password: "your_password"
+# db_name: "vexgo"
