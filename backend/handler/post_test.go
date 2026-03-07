@@ -17,7 +17,7 @@ import (
 func resetDB(t *testing.T) {
 	// remove existing file
 	os.Remove("blog.db")
-	InitDB()
+	InitDB(".")
 }
 
 // add a simple user and return its ID
