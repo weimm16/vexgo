@@ -227,20 +227,21 @@ export function HomePage() {
             <>
               <div className="space-y-6">
                 {posts.map((post) => (
-                  <Card key={post.id} className="group hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      {/* 封面图 */}
+                  <Card key={post.id} className="group hover:shadow-lg transition-shadow p-0 gap-0 overflow-hidden">
+                      {/* 封面图（直接放在 Card 顶部以便与卡片边缘贴合） */}
                       {post.coverImage && (
-                        <Link to={`/post/${post.id}`}>
-                          <div className="mb-4 overflow-hidden rounded-lg">
+                        <Link to={`/post/${post.id}`} className="block">
+                          <div className="w-full overflow-hidden rounded-t-xl">
                             <img
                               src={post.coverImage}
                               alt={post.title}
-                              className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-300"
                             />
                           </div>
                         </Link>
                       )}
+
+                    <CardContent className="p-6">
 
                       {/* 分类和标签 */}
                       <div className="flex flex-wrap items-center gap-2 mb-3">
