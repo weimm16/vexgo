@@ -7,6 +7,7 @@ import (
 	"vexgo/backend/config"
 	"vexgo/backend/handler"
 	"vexgo/backend/middleware"
+	"vexgo/backend/public"
 
 	"github.com/gin-gonic/gin"
 )
@@ -142,12 +143,12 @@ func main() {
 	r.Static("/uploads", mediaDir)
 
 	// 2. 托管前端打包后的静态资源：使用嵌入的文件系统
-	// 将嵌入的 static 目录挂载到 /assets 路径
+	// 将嵌入的 dist 目录挂载到 /assets 路径
 	r.GET("/assets/*filepath", func(c *gin.Context) {
 		// 去掉 /assets 前缀
 		file := strings.TrimPrefix(c.Param("filepath"), "/")
-		// 读取嵌入的文件，需要加上 assets 前缀，因为文件在 static/assets/ 下
-		content, err := ReadAsset(filepath.Join("assets", file))
+		// 读取嵌入的文件，需要加上 assets 前缀，因为文件在 dist/assets/ 下
+		content, err := public.ReadAsset(filepath.Join("assets", file))
 		if err != nil {
 			c.Status(404)
 			return
@@ -184,7 +185,7 @@ func main() {
 
 	// 3. 前端入口页面：根路径 / 返回嵌入的index.html
 	r.GET("/", func(c *gin.Context) {
-		c.Data(200, "text/html; charset=utf-8", GetIndexHTML())
+		c.Data(200, "text/html; charset=utf-8", public.GetIndexHTML())
 	})
 
 	// ===================== 前端SPA路由兼容（最后定义） =====================
@@ -193,7 +194,7 @@ func main() {
 	r.NoRoute(func(c *gin.Context) {
 		// 对于非API请求，返回嵌入的index.html以支持前端路由
 		if !strings.HasPrefix(c.Request.URL.Path, "/api/") {
-			c.Data(200, "text/html; charset=utf-8", GetIndexHTML())
+			c.Data(200, "text/html; charset=utf-8", public.GetIndexHTML())
 			return
 		}
 		// API请求未匹配，返回404

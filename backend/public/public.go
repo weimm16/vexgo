@@ -1,4 +1,4 @@
-package main
+package public
 
 import (
 	"embed"
@@ -6,16 +6,16 @@ import (
 	"path/filepath"
 )
 
-//go:embed static/**/*
+//go:embed dist/**/*
 var staticFS embed.FS
 
-//go:embed static/index.html
+//go:embed dist/index.html
 var indexHTML []byte
 
 // GetStaticFS returns the embedded static filesystem
-// It strips the "static" prefix to provide clean paths
+// It strips the "dist" prefix to provide clean paths
 func GetStaticFS() fs.FS {
-	sub, err := fs.Sub(staticFS, "static")
+	sub, err := fs.Sub(staticFS, "dist")
 	if err != nil {
 		panic(err)
 	}
@@ -29,12 +29,12 @@ func GetIndexHTML() []byte {
 
 // ReadAsset reads an asset file from the embedded filesystem
 func ReadAsset(path string) ([]byte, error) {
-	// Read from the original embed.FS with the static prefix
-	return staticFS.ReadFile(filepath.Join("static", path))
+	// Read from the original embed.FS with the dist prefix
+	return staticFS.ReadFile(filepath.Join("dist", path))
 }
 
 // AssetExists checks if an asset exists in the embedded filesystem
 func AssetExists(path string) bool {
-	_, err := staticFS.ReadFile(filepath.Join("static", path))
+	_, err := staticFS.ReadFile(filepath.Join("dist", path))
 	return err == nil
 }
