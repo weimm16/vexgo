@@ -251,14 +251,14 @@ export function PostDetailPage() {
 
         {/* 作者信息 */}
         <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
+          <Link to={`/user/${post.author?.id}`} className="flex items-center gap-4 hover:no-underline">
             <Avatar className="w-12 h-12">
               <AvatarFallback className="bg-primary/10 text-primary text-lg">
                 {post.author?.username?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-medium">{post.author?.username}</p>
+              <p className="font-medium hover:text-primary transition-colors">{post.author?.username}</p>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4" />
@@ -272,7 +272,7 @@ export function PostDetailPage() {
                 )}
               </div>
             </div>
-          </div>
+          </Link>
 
           {/* 操作按钮 */}
           <div className="flex items-center gap-2">
