@@ -26,6 +26,7 @@ import {
   ArrowLeft, Share2, Edit, Trash2, Send,
   Clock, Eye, XCircle
 } from 'lucide-react';
+import { normalizeTagsArray } from '@/lib/utils';
 
 export function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -52,7 +53,9 @@ export function PostDetailPage() {
       console.log('正在加载文章，ID:', id);
       const response = await postsApi.getPost(id!);
       console.log('文章加载成功:', response.data);
-      setPost(response.data.post);
+      const p = response.data.post;
+      p.tags = normalizeTagsArray(p.tags);
+      setPost(p);
       setLikesCount(response.data.post.likesCount || 0);
     } catch (error: any) {
       console.error('加载文章失败:', error);
