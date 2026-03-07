@@ -132,8 +132,8 @@ func main() {
 	}
 
 	// ===================== 静态文件托管（必须在API路由之后） =====================
-	// 1. 托管上传的文件：前端访问 /uploads/xxx 对应后端 ../frontend/dist/uploads 目录
-	r.Static("/uploads", "../frontend/dist/uploads")
+	// 1. 托管上传的文件：前端访问 /uploads/xxx 对应后端 ../uploads 目录
+	r.Static("/uploads", "../uploads")
 	// 2. 托管前端打包后的静态资源：/assets/xxx 对应 ../frontend/dist/assets 目录
 	r.Static("/assets", "../frontend/dist/assets")
 	// 3. 前端入口页面：根路径 / 返回index.html

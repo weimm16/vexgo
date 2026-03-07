@@ -27,7 +27,7 @@ func UploadFile(c *gin.Context) {
 	}
 
 	// 创建上传目录
-	uploadDir := "../frontend/dist/uploads"
+	uploadDir := "../uploads"
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		os.MkdirAll(uploadDir, os.ModePerm)
 	}
@@ -75,7 +75,7 @@ func UploadFiles(c *gin.Context) {
 	}
 
 	files := form.File["files"]
-	uploadDir := "../frontend/dist/uploads"
+	uploadDir := "../uploads"
 	if _, err := os.Stat(uploadDir); os.IsNotExist(err) {
 		os.MkdirAll(uploadDir, os.ModePerm)
 	}
@@ -161,7 +161,7 @@ func DeleteFile(c *gin.Context) {
 	}
 
 	// 删除物理文件
-	path := "../frontend/dist" + media.URL
+	path := ".." + media.URL
 	os.Remove(path)
 	db.Delete(&media)
 	c.JSON(http.StatusOK, gin.H{"message": "文件已删除"})
