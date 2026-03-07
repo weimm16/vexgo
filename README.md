@@ -4,6 +4,7 @@ This is a blog built on React, Go, Gin, JWT, and SQLite, which implements featur
 ## How to run
 
 ### Requirements
+- Linux/MacOS
 - go
 - nodejs
 - pnpm
@@ -15,7 +16,8 @@ cd vexgo/frontend
 pnpm install
 pnpm run build
 cd ../backend
-go run main.go
+go build -o vexgo
+./vexgo
 ```
 Then, visit http://127.0.0.1:3001
 
@@ -25,7 +27,6 @@ For production deployment, it's highly recommended to set the `JWT_SECRET` envir
 
 ```bash
 export JWT_SECRET="your-very-long-random-secret-here"
-go run main.go
 ```
 
 If not set, the application will generate a random secret at startup for development purposes. Never use the default development secret in production.
