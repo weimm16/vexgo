@@ -271,21 +271,21 @@ export function HomePage() {
 
                       {/* 作者和统计 */}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
+                        <Link to={`/user/${post.author?.id}`} className="flex items-center gap-3 hover:no-underline">
                           <Avatar className="w-8 h-8">
                             <AvatarFallback className="bg-primary/10 text-primary text-sm">
                               {post.author?.username?.charAt(0).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>{post.author?.username}</span>
-                            <span>·</span>
-                            <span className="flex items-center gap-1">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-muted-foreground hover:text-primary transition-colors">{post.author?.username}</span>
+                            <span className="text-muted-foreground">·</span>
+                            <span className="flex items-center gap-1 text-muted-foreground">
                               <Calendar className="w-3 h-3" />
                               {formatDate(post.createdAt)}
                             </span>
                           </div>
-                        </div>
+                        </Link>
 
                         <div className="flex items-center gap-4 text-sm">
                           <button

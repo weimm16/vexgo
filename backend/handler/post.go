@@ -477,3 +477,102 @@ func GetDraftPosts(c *gin.Context) {
 		},
 	})
 }
+
+// 获取指定用户的文章列表
+func GetUserPosts(c *gin.Context) {
+	userIDStr := c.Param("id")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的用户ID"})
+		return
+	}
+
+	var posts []model.Post
+
+	// 分页参数
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+
+	// 获取当前用户角色和ID（如果已登录）
+	var currentUserRole string
+	var currentUserID uint
+
+	if uidVal, exists := c.Get("userID"); exists {
+		switch v := uidVal.(type) {
+		case uint:
+			currentUserID = v
+		case int:
+			currentUserID = uint(v)
+		case float64:
+			currentUserID = uint(v)
+		}
+	}
+
+	if userContext, exists := c.Get("user"); exists {
+		if userMap, ok := userContext.(map[string]interface{}); ok {
+			if role, ok := userMap["role"].(string); ok {
+				currentUserRole = role
+			}
+		}
+	}
+
+	// 构建查询
+	query := db.Model(&model.Post{}).
+		Preload("Author").
+		Preload("Tags").
+		Where("author_id = ?", userID)
+
+	// 根据用户角色决定可见的文章
+	if currentUserRole == "" || currentUserRole == model.RoleGuest {
+		// 未登录用户或访客只能看到已发布的文章
+		query = query.Where("status = ?", "published")
+	} else if currentUserRole == model.RoleContributor {
+		// 投稿者可以看到自己所有的文章和别人已发布的文章
+		if uint(userID) != currentUserID {
+			query = query.Where("status = ?", "published")
+		}
+	}
+	// 作者、管理员、超级管理员可以看到所有文章
+
+	var total int64
+	query.Count(&total)
+
+	query.Order("created_at DESC").
+		Offset((page - 1) * limit).
+		Limit(limit).
+		Find(&posts)
+
+	// 为每篇文章填充点赞计数、浏览量和评论计数
+	for i := range posts {
+		var count int64
+		db.Model(&model.Like{}).Where("post_id = ?", posts[i].ID).Count(&count)
+		posts[i].LikesCount = int(count)
+		posts[i].IsLiked = false
+		if currentUserID != 0 {
+			var like model.Like
+			if db.Where("post_id = ? AND user_id = ?", posts[i].ID, currentUserID).First(&like).Error == nil {
+				posts[i].IsLiked = true
+			}
+		}
+
+		// 填充评论计数
+		var ccount int64
+		db.Model(&model.Comment{}).Where("post_id = ?", posts[i].ID).Count(&ccount)
+		posts[i].CommentsCount = int(ccount)
+	}
+
+	totalPages := (int(total) + limit - 1) / limit
+	if totalPages == 0 {
+		totalPages = 1
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"posts": posts,
+		"pagination": gin.H{
+			"total":      total,
+			"page":       page,
+			"limit":      limit,
+			"totalPages": totalPages,
+		},
+	})
+}

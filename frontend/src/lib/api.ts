@@ -120,7 +120,10 @@ export const postsApi = {
     api.get<PostsResponse>('/posts/user/my-posts', { params }),
   
   getDraftPosts: (params?: { page?: number; limit?: number }) =>
-    api.get<PostsResponse>('/posts/drafts', { params })
+    api.get<PostsResponse>('/posts/drafts', { params }),
+  
+  getUserPosts: (userId: string, params?: { page?: number; limit?: number }) =>
+    api.get<PostsResponse>(`/posts/user/${userId}`, { params })
 };
 
 // 分类相关API

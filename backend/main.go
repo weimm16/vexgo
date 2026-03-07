@@ -58,6 +58,8 @@ func main() {
 		// 评论/点赞公开接口
 		api.GET("/comments/post/:id", handler.GetComments) // GET /api/comments/post/:id（获取文章评论）
 		api.GET("/likes/:postId", handler.GetLikeStatus)   // GET /api/likes/:postId（获取点赞状态）
+		// 获取用户文章列表
+		api.GET("/posts/user/:id", handler.GetUserPosts) // GET /api/posts/user/:id（获取指定用户的文章）
 
 		// -------------------- 认证相关API（/api/auth子分组） --------------------
 		// 匹配前端authApi的所有接口：/api/auth/xxx
