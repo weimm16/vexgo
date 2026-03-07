@@ -1,34 +1,79 @@
 package handler
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
 	"vexgo/backend/model"
 
+	dmsql "github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
-
+	"gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 var db *gorm.DB
 
-// InitDB initializes the database connection using the specified data directory
+// InitDB initializes the database connection based on environment variables
 func InitDB(dataDir string) {
-	// Ensure data directory exists
-	if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
-		log.Fatalf("failed to create data directory: %v", err)
-	}
-
-	// Build database path
-	dbPath := filepath.Join(dataDir, "blog.db")
-
+	dbType := os.Getenv("DB_TYPE")
 	var err error
-	db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("failed to connect database: %v", err)
+
+	if dbType == "mysql" {
+		// MySQL connection
+		user := os.Getenv("DB_USER")
+		password := os.Getenv("DB_PASSWORD")
+		host := os.Getenv("DB_HOST")
+		port := os.Getenv("DB_PORT")
+		dbname := os.Getenv("DB_NAME")
+
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			user, password, host, port, dbname)
+
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err != nil {
+			// Check if the error is "Unknown database" (error code 1049)
+			if mysqlErr, ok := err.(*dmsql.MySQLError); ok && mysqlErr.Number == 1049 {
+				log.Printf("Database '%s' not found, attempting to create it.", dbname)
+
+				// DSN without database name to connect to the server
+				serverDsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port)
+				serverDb, serverErr := gorm.Open(mysql.Open(serverDsn), &gorm.Config{})
+				if serverErr != nil {
+					log.Fatalf("failed to connect to MySQL server to create database: %v", serverErr)
+				}
+
+				// Create the database
+				createDbSQL := fmt.Sprintf("CREATE DATABASE `%s` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci", dbname)
+				if execErr := serverDb.Exec(createDbSQL).Error; execErr != nil {
+					log.Fatalf("failed to create database '%s': %v", dbname, execErr)
+				}
+				log.Printf("Database '%s' created successfully.", dbname)
+
+				// Re-attempt connection to the newly created database
+				db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+				if err != nil {
+					log.Fatalf("failed to connect to newly created MySQL database: %v", err)
+				}
+			} else {
+				log.Fatalf("failed to connect to MySQL database: %v", err)
+			}
+		}
+		log.Println("Successfully connected to MySQL database")
+	} else {
+		// SQLite connection (default)
+		if err := os.MkdirAll(dataDir, os.ModePerm); err != nil {
+			log.Fatalf("failed to create data directory: %v", err)
+		}
+		dbPath := filepath.Join(dataDir, "blog.db")
+		db, err = gorm.Open(sqlite.Open(dbPath), &gorm.Config{})
+		if err != nil {
+			log.Fatalf("failed to connect to SQLite database: %v", err)
+		}
+		log.Println("Successfully connected to SQLite database")
 	}
 
 	// 自动迁移模型

@@ -5,7 +5,17 @@ import (
 	"encoding/hex"
 	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
+
+// init is called before main to load environment variables from a .env file.
+func init() {
+	// The path is relative to where the go binary is run.
+	if err := godotenv.Load("../.env"); err != nil {
+		log.Println("No .env file found, will use environment variables from the system")
+	}
+}
 
 // JWTSecret holds the HMAC secret used to sign tokens.
 var JWTSecret []byte

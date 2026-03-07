@@ -14,7 +14,7 @@ func main() {
 	// 1. 解析命令行参数
 	cfg := cmd.ParseFlags()
 
-	// 2. 初始化配置（加载JWT密钥等环境变量）
+	// 2. 初始化配置（加载.env文件和JWT密钥等环境变量）
 	config.Init()
 
 	// 设置数据目录（用于文件上传）
