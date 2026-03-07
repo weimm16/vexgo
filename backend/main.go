@@ -2,6 +2,7 @@ package main
 
 import (
 	"path/filepath"
+	"strings"
 	"vexgo/backend/cmd"
 	"vexgo/backend/config"
 	"vexgo/backend/handler"
@@ -139,16 +140,64 @@ func main() {
 	// 1. 托管上传的文件：前端访问 /uploads/xxx 对应后端数据目录下的 media 文件夹
 	mediaDir := filepath.Join(cfg.DataDir, "media")
 	r.Static("/uploads", mediaDir)
-	// 2. 托管前端打包后的静态资源：/assets/xxx 对应 ../frontend/dist/assets 目录
-	r.Static("/assets", "../frontend/dist/assets")
-	// 3. 前端入口页面：根路径 / 返回index.html
-	r.StaticFile("/", "../frontend/dist/index.html")
+
+	// 2. 托管前端打包后的静态资源：使用嵌入的文件系统
+	// 将嵌入的 static 目录挂载到 /assets 路径
+	r.GET("/assets/*filepath", func(c *gin.Context) {
+		// 去掉 /assets 前缀
+		file := strings.TrimPrefix(c.Param("filepath"), "/")
+		// 读取嵌入的文件，需要加上 assets 前缀，因为文件在 static/assets/ 下
+		content, err := ReadAsset(filepath.Join("assets", file))
+		if err != nil {
+			c.Status(404)
+			return
+		}
+		// 根据文件扩展名设置 Content-Type
+		ext := filepath.Ext(file)
+		switch ext {
+		case ".js":
+			c.Data(200, "application/javascript", content)
+		case ".css":
+			c.Data(200, "text/css", content)
+		case ".html":
+			c.Data(200, "text/html", content)
+		case ".json":
+			c.Data(200, "application/json", content)
+		case ".png":
+			c.Data(200, "image/png", content)
+		case ".jpg", ".jpeg":
+			c.Data(200, "image/jpeg", content)
+		case ".gif":
+			c.Data(200, "image/gif", content)
+		case ".svg":
+			c.Data(200, "image/svg+xml", content)
+		case ".ico":
+			c.Data(200, "image/x-icon", content)
+		case ".woff":
+			c.Data(200, "font/woff", content)
+		case ".woff2":
+			c.Data(200, "font/woff2", content)
+		default:
+			c.Data(200, "application/octet-stream", content)
+		}
+	})
+
+	// 3. 前端入口页面：根路径 / 返回嵌入的index.html
+	r.GET("/", func(c *gin.Context) {
+		c.Data(200, "text/html; charset=utf-8", GetIndexHTML())
+	})
 
 	// ===================== 前端SPA路由兼容（最后定义） =====================
 	// 处理React/Vue的客户端路由（如 /login、/posts/1 等）
 	// 必须放在所有API和静态文件路由之后，确保API请求优先匹配
 	r.NoRoute(func(c *gin.Context) {
-		c.File("../frontend/dist/index.html")
+		// 对于非API请求，返回嵌入的index.html以支持前端路由
+		if !strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			c.Data(200, "text/html; charset=utf-8", GetIndexHTML())
+			return
+		}
+		// API请求未匹配，返回404
+		c.JSON(404, gin.H{"error": "Not Found"})
 	})
 
 	// 启动HTTP服务，监听配置的地址和端口
