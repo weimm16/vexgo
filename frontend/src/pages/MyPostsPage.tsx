@@ -29,6 +29,7 @@ import {
   PenLine, Edit, Trash2, Eye, Clock,
   FileX, Plus, CheckCircle, XCircle, AlertCircle
 } from 'lucide-react';
+import { normalizeTagsArray } from '@/lib/utils';
 
 export function MyPostsPage() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -52,7 +53,7 @@ export function MyPostsPage() {
         page: currentPage,
         limit: 10
       });
-      setPosts(response.data.posts);
+      setPosts(response.data.posts.map((p: any) => ({ ...p, tags: normalizeTagsArray(p.tags) })));
       setPagination(response.data.pagination);
     } catch (error) {
       console.error('加载文章失败:', error);

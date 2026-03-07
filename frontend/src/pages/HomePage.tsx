@@ -19,6 +19,7 @@ import {
   Heart, MessageCircle, Calendar, 
   TrendingUp, Clock, Tag, SearchX, Eye 
 } from 'lucide-react';
+import { normalizeTagsArray } from '@/lib/utils';
 
 export function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -77,6 +78,7 @@ export function HomePage() {
       authorId: raw.authorId !== undefined && raw.authorId !== null ? String(raw.authorId) : raw.authorId,
       createdAt: raw.createdAt ? new Date(raw.createdAt).toISOString() : raw.createdAt,
       updatedAt: raw.updatedAt ? new Date(raw.updatedAt).toISOString() : raw.updatedAt,
+      tags: normalizeTagsArray(raw.tags),
     } as Post;
   };
 

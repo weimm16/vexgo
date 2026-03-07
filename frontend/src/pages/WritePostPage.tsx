@@ -42,6 +42,30 @@ export function WritePostPage() {
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
 
+  // 确保 tags 始终为字符串数组，防止把对象直接渲染到 JSX 中导致 React 报错
+  const normalizeTagsArray = (raw: any): string[] => {
+    if (!raw) return [];
+    if (Array.isArray(raw)) {
+      return raw
+        .map((t: any) => {
+          if (!t && t !== 0) return '';
+          if (typeof t === 'string') return t;
+          if (typeof t === 'number') return String(t);
+          if (typeof t === 'object') {
+            return (
+              t.name || t.Name || t.title || t.label || (t.id ? String(t.id) : '') || ''
+            );
+          }
+          return String(t);
+        })
+        .map((s: string) => (s ? s.trim() : ''))
+        .filter(Boolean);
+    }
+    if (typeof raw === 'string') {
+      return raw.split(',').map((s: string) => s.trim()).filter(Boolean);
+    }
+    return [];
+  };
   // 判断用户角色
   const isContributor = user?.role === 'contributor';
 
@@ -102,7 +126,7 @@ export function WritePostPage() {
         }
 
         console.debug('WritePostPage loaded post.tags raw:', post.tags, 'mapped:', mappedTags);
-        setTags(mappedTags);
+        setTags(normalizeTagsArray(mappedTags));
       } catch (e) {
         console.error('解析 post.tags 失败:', e, post && post.tags);
         setTags([]);
@@ -116,7 +140,7 @@ export function WritePostPage() {
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
+      setTags((prev) => normalizeTagsArray([...prev, tagInput.trim()]));
       setTagInput('');
     }
   };
@@ -348,17 +372,20 @@ export function WritePostPage() {
         {/* 标签展示 */}
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                {tag}
-                <button
-                  onClick={() => handleRemoveTag(tag)}
-                  className="ml-1 hover:text-destructive"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </Badge>
-            ))}
+            {tags.map((tag, idx) => {
+              const display = typeof tag === 'string' ? tag : String(tag);
+              return (
+                <Badge key={`${display}-${idx}`} variant="secondary" className="flex items-center gap-1">
+                  {display}
+                  <button
+                    onClick={() => handleRemoveTag(display)}
+                    className="ml-1 hover:text-destructive"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </Badge>
+              );
+            })}
           </div>
         )}
 
