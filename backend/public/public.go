@@ -3,7 +3,6 @@ package public
 import (
 	"embed"
 	"io/fs"
-	"path/filepath"
 )
 
 //go:embed dist/**/*
@@ -30,11 +29,12 @@ func GetIndexHTML() []byte {
 // ReadAsset reads an asset file from the embedded filesystem
 func ReadAsset(path string) ([]byte, error) {
 	// Read from the original embed.FS with the dist prefix
-	return staticFS.ReadFile(filepath.Join("dist", path))
+	// Use forward slashes for embed.FS compatibility across platforms
+	return staticFS.ReadFile("dist/" + path)
 }
 
 // AssetExists checks if an asset exists in the embedded filesystem
 func AssetExists(path string) bool {
-	_, err := staticFS.ReadFile(filepath.Join("dist", path))
+	_, err := staticFS.ReadFile("dist/" + path)
 	return err == nil
 }

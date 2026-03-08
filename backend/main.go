@@ -150,7 +150,8 @@ func main() {
 		// 去掉 /assets 前缀
 		file := strings.TrimPrefix(c.Param("filepath"), "/")
 		// 读取嵌入的文件，需要加上 assets 前缀，因为文件在 dist/assets/ 下
-		content, err := public.ReadAsset(filepath.Join("assets", file))
+		// Use forward slashes for embed.FS compatibility across platforms
+		content, err := public.ReadAsset("assets/" + file)
 		if err != nil {
 			c.Status(404)
 			return
