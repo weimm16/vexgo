@@ -139,6 +139,7 @@ func Login(c *gin.Context) {
 		"user_id":  user.ID,
 		"username": user.Username,
 		"role":     user.Role,
+		"password_version": user.PasswordVersion,
 		"exp":      time.Now().Add(24 * time.Hour).Unix(),
 		"iat":      time.Now().Unix(),                                                  // Timestamp
 		"jti":      fmt.Sprintf("%d-%s", user.ID, time.Now().Format(time.RFC3339Nano)), // Unique identifier
@@ -339,7 +340,9 @@ func ChangePassword(c *gin.Context) {
 		return
 	}
 
+	// 增加密码版本号，使旧令牌失效
 	user.Password = string(hashed)
+	user.PasswordVersion++
 	db.Save(&user)
 	c.JSON(http.StatusOK, gin.H{"message": "密码已修改"})
 }

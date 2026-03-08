@@ -36,6 +36,7 @@ type User struct {
 	VerificationToken string     `json:"verification_token" gorm:"size:255"` // 验证令牌
 	TokenExpiresAt    *time.Time `json:"token_expires_at"`                   // 令牌过期时间（可为NULL）
 	PendingEmail      string     `json:"pending_email,omitempty" gorm:"size:255"` // 待确认的新邮箱（用于邮箱变更）
+	PasswordVersion   int        `json:"-" gorm:"default:1"`                 // 密码版本，用于密码修改后使旧令牌失效
 }
 
 type Tag struct {

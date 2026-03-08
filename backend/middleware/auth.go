@@ -6,10 +6,20 @@ import (
 	"strings"
 
 	"vexgo/backend/config"
+	"vexgo/backend/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"gorm.io/gorm"
 )
+
+// 全局数据库连接，需要在初始化时设置
+var db *gorm.DB
+
+// SetDB 设置数据库连接
+func SetDB(database *gorm.DB) {
+	db = database
+}
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -39,12 +49,28 @@ func JWTAuth() gin.HandlerFunc {
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
-		c.Set("userID", uint(claims["user_id"].(float64)))
+		userID := uint(claims["user_id"].(float64))
+		
+		// 验证密码版本
+		if db != nil {
+			var user model.User
+			if err := db.First(&user, userID).Error; err == nil {
+				// 检查令牌中的密码版本与用户当前的密码版本是否匹配
+				if tokenPasswordVersion, ok := claims["password_version"].(float64); ok {
+					if int(tokenPasswordVersion) != user.PasswordVersion {
+						c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "密码已修改，请重新登录"})
+						return
+					}
+				}
+			}
+		}
+
+		c.Set("userID", userID)
 		c.Set("username", claims["username"].(string))
 
 		// 获取用户完整信息并设置到上下文中
 		userInfo := map[string]interface{}{
-			"id":       uint(claims["user_id"].(float64)),
+			"id":       userID,
 			"username": claims["username"].(string),
 		}
 
@@ -91,6 +117,31 @@ func OptionalJWTAuth() gin.HandlerFunc {
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
+		userID := uint(0)
+		validToken := true
+		
+		// 验证密码版本
+		if db != nil {
+			if uid, ok := claims["user_id"].(float64); ok {
+				userID = uint(uid)
+				var user model.User
+				if err := db.First(&user, userID).Error; err == nil {
+					// 检查令牌中的密码版本与用户当前的密码版本是否匹配
+					if tokenPasswordVersion, ok := claims["password_version"].(float64); ok {
+						if int(tokenPasswordVersion) != user.PasswordVersion {
+							validToken = false
+						}
+					}
+				}
+			}
+		}
+
+		if !validToken {
+			// 不中断请求，仅忽略无效 token
+			c.Next()
+			return
+		}
+
 		// 安全地设置 userID/username/role
 		if uid, ok := claims["user_id"].(float64); ok {
 			c.Set("userID", uint(uid))
