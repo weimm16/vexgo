@@ -68,6 +68,9 @@ export const authApi = {
   changePassword: (data: { oldPassword: string; newPassword: string }) =>
     api.put('/auth/password', data),
 
+  updateEmail: (data: { email: string }) =>
+    api.put('/auth/email', data),
+
   getVerificationStatus: () =>
     api.get<{ email_verified: boolean; email: string }>('/auth/verification-status'),
   
@@ -75,7 +78,7 @@ export const authApi = {
     api.post<{ message: string }>('/auth/resend-verification'),
 
   verifyEmail: (token: string) =>
-    api.get<{ message: string }>(`/verify-email?token=${token}`),
+    api.get<{ message: string; require_relogin?: boolean; new_email?: string }>(`/verify-email?token=${token}`),
 
   requestPasswordReset: (data: { email: string }) =>
     api.post<{ message: string }>('/auth/request-password-reset', data),

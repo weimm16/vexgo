@@ -8,8 +8,10 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"log"
 	"math"
 	"net/http"
+	"strings"
 	"time"
 
 	"vexgo/backend/model"
@@ -19,24 +21,58 @@ import (
 	"github.com/google/uuid"
 )
 
-// VerifyEmail 验证邮箱
+// VerifyEmail 验证邮箱（支持初始验证和邮箱变更）
 func VerifyEmail(c *gin.Context) {
 	token := c.Query("token")
+	log.Printf("[VerifyEmail] 收到验证请求，令牌: %s", token)
+
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "验证令牌不能为空"})
 		return
 	}
 
 	mailer := utils.NewMailer(db)
-	if err := mailer.VerifyEmail(token); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
 
-	// 重定向到成功页面或返回成功消息
-	c.JSON(http.StatusOK, gin.H{
-		"message": "邮箱验证成功！您现在可以登录了。",
-	})
+	// 根据令牌前缀判断是邮箱验证还是邮箱变更
+	var err error
+	if strings.HasPrefix(token, "email-change-") {
+		log.Printf("[VerifyEmail] 检测到邮箱变更令牌，调用 ConfirmEmailChange")
+		// 邮箱变更令牌
+		err = mailer.ConfirmEmailChange(token)
+		if err != nil {
+			log.Printf("[VerifyEmail] ConfirmEmailChange 失败: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		log.Printf("[VerifyEmail] ConfirmEmailChange 成功")
+		// 查询变更后的用户信息
+		var user model.User
+		if err := db.Where("verification_token = ?", token).First(&user).Error; err == nil {
+			c.JSON(http.StatusOK, gin.H{
+				"message":         "邮箱变更成功！您的新邮箱已生效。",
+				"require_relogin": true,
+				"new_email":       user.Email,
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{
+				"message":         "邮箱变更成功！您的新邮箱已生效。",
+				"require_relogin": true,
+			})
+		}
+	} else {
+		log.Printf("[VerifyEmail] 普通邮箱验证令牌，调用 VerifyEmail")
+		// 普通邮箱验证令牌
+		err = mailer.VerifyEmail(token)
+		if err != nil {
+			log.Printf("[VerifyEmail] VerifyEmail 失败: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		log.Printf("[VerifyEmail] VerifyEmail 成功")
+		c.JSON(http.StatusOK, gin.H{
+			"message": "邮箱验证成功！您现在可以登录了。",
+		})
+	}
 }
 
 // GetVerificationStatus 获取当前用户的邮箱验证状态

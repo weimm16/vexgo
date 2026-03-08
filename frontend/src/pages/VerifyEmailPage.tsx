@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { authApi } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,29 +8,38 @@ import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const navigate = useNavigate();
   
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('');
-
-  const verifyEmail = async (tokenValue: string) => {
-    try {
-      const response = await authApi.verifyEmail(tokenValue);
-      setStatus('success');
-      setMessage(response.data.message || '邮箱验证成功！');
-    } catch (err: any) {
-      setStatus('error');
-      setMessage(err.response?.data?.error || '验证失败，请检查链接是否正确');
-    }
-  };
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error');
+  const [message, setMessage] = useState(token ? '' : '验证令牌不能为空');
+  const [requireRelogin, setRequireRelogin] = useState(false);
 
   useEffect(() => {
     if (!token) {
-      setStatus('error');
-      setMessage('验证令牌不能为空');
       return;
     }
 
-    verifyEmail(token);
+    const verifyEmail = async () => {
+      try {
+        const response = await authApi.verifyEmail(token);
+        setStatus('success');
+        setMessage(response.data.message || '邮箱验证成功！');
+        
+        // 检查是否需要重新登录（邮箱变更成功）
+        if (response.data.require_relogin) {
+          setRequireRelogin(true);
+          // 清除本地登录状态
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+        }
+      } catch (err: unknown) {
+        setStatus('error');
+        const errorMessage = err instanceof Error ? err.message : '验证失败，请检查链接是否正确';
+        setMessage(errorMessage);
+      }
+    };
+
+    verifyEmail();
   }, [token]);
 
   return (
@@ -53,17 +62,25 @@ export function VerifyEmailPage() {
           <p className="text-center text-muted-foreground">{message}</p>
           
           <div className="flex gap-3">
-            <Button asChild className="flex-1">
-              <Link to="/login">
+            {requireRelogin ? (
+              <Button asChild className="flex-1" onClick={() => navigate('/login')}>
                 前往登录
-              </Link>
-            </Button>
-            {status === 'error' && (
-              <Button variant="outline" asChild className="flex-1">
-                <Link to="/">
-                  返回首页
-                </Link>
               </Button>
+            ) : (
+              <>
+                <Button asChild className="flex-1">
+                  <Link to="/login">
+                    前往登录
+                  </Link>
+                </Button>
+                {status === 'error' && (
+                  <Button variant="outline" asChild className="flex-1">
+                    <Link to="/">
+                      返回首页
+                    </Link>
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </CardContent>
