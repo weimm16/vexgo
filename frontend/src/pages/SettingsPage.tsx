@@ -221,7 +221,11 @@ export function SettingsPage() {
             <div className="space-y-2">
               <Label>账户角色</Label>
               <div className="p-2 bg-muted rounded-md">
-                {user?.role === 'admin' ? '管理员' : '普通用户'}
+                {user?.role === 'super_admin' ? '超级管理员' :
+                 user?.role === 'admin' ? '管理员' :
+                 user?.role === 'author' ? '作者' :
+                 user?.role === 'contributor' ? '贡献者' :
+                 '访客'}
               </div>
             </div>
           </CardContent>
