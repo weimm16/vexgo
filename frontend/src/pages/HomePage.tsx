@@ -26,6 +26,7 @@ export function HomePage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularPosts, setPopularPosts] = useState<Post[]>([]);
+  const [popularTags, setPopularTags] = useState<{ name: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
     total: 0,
@@ -41,6 +42,7 @@ export function HomePage() {
   useEffect(() => {
     loadCategories();
     loadPopularPosts();
+    loadPopularTags();
     // 监听来自文章详情页的点赞事件，保持首页与详情页同步
     const handler = (e: any) => {
       try {
@@ -104,6 +106,34 @@ export function HomePage() {
     }
   };
 
+  const loadPopularTags = async () => {
+    try {
+      // 获取足够多的文章来统计标签
+      const response = await postsApi.getPosts({ page: 1, limit: 200 });
+      const allPosts = response.data.posts.map((p: any) => normalizePost(p));
+      
+      // 统计每个标签的出现次数
+      const tagCounts: Record<string, number> = {};
+      allPosts.forEach((post) => {
+        post.tags?.forEach((tag: string) => {
+          if (tag) {
+            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+          }
+        });
+      });
+      
+      // 转换为数组并按出现次数排序
+      const sortedTags = Object.entries(tagCounts)
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10); // 取前10个
+      
+      setPopularTags(sortedTags);
+    } catch (error) {
+      console.error('加载热门标签失败:', error);
+    }
+  };
+
   const loadPosts = async () => {
     setLoading(true);
     try {
@@ -156,6 +186,13 @@ export function HomePage() {
     } else {
       newParams.set('category', categoryName);
     }
+    newParams.delete('page');
+    setSearchParams(newParams);
+  };
+
+  const handleTagClick = (tagName: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('search', tagName);
     newParams.delete('page');
     setSearchParams(newParams);
   };
@@ -394,6 +431,30 @@ export function HomePage() {
                     onClick={() => handleCategoryClick(category.name)}
                   >
                     {category.name}
+                  </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 热门标签 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Tag className="w-4 h-4" />
+                热门标签
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {popularTags.map((tag) => (
+                  <Badge
+                    key={tag.name}
+                    variant="secondary"
+                    className="cursor-pointer"
+                    onClick={() => handleTagClick(tag.name)}
+                  >
+                    {tag.name} ({tag.count})
                   </Badge>
                 ))}
               </div>
