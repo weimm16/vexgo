@@ -344,6 +344,89 @@ func ChangePassword(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "密码已修改"})
 }
 
+// 更新邮箱
+func UpdateEmail(c *gin.Context) {
+	var req struct {
+		Email string `json:"email" binding:"required,email"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	uid, _ := c.Get("userID")
+	userID := uid.(uint)
+	var user model.User
+	if err := db.First(&user, userID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "用户不存在"})
+		return
+	}
+
+	// 检查新邮箱是否与当前邮箱相同
+	if req.Email == user.Email {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "新邮箱不能与当前邮箱相同"})
+		return
+	}
+
+	// 检查新邮箱是否已被其他用户使用
+	var existingUser model.User
+	if err := db.Where("email = ? AND id != ?", req.Email, userID).First(&existingUser).Error; err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "该邮箱已被其他用户使用"})
+		return
+	}
+
+	// 检查是否启用了 SMTP
+	mailer := utils.NewMailer(db)
+	enabled, err := mailer.IsEmailEnabled()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "检查邮件配置失败"})
+		return
+	}
+
+	if enabled {
+		// 如果启用 SMTP，生成邮箱变更验证令牌并发送确认邮件
+		token, err := mailer.GenerateEmailChangeToken(userID, req.Email)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "生成验证令牌失败"})
+			return
+		}
+
+		// 构建验证链接
+		protocol := "http"
+		if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+			protocol = "https"
+		}
+		host := c.Request.Host
+		verificationLink := fmt.Sprintf("%s://%s/verify-email?token=%s", protocol, host, token)
+
+		// 发送确认邮件
+		if err := mailer.SendEmailChangeEmail(user.Email, user.Username, req.Email, verificationLink); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "发送验证邮件失败"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "已发送验证邮件，请查收并点击链接完成邮箱变更",
+			"pending": true,
+		})
+	} else {
+		// 如果未启用 SMTP，直接更新邮箱
+		if err := db.Model(&user).Update("email", req.Email).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "更新邮箱失败"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "邮箱更新成功",
+			"pending": false,
+			"user": gin.H{
+				"email": req.Email,
+			},
+		})
+	}
+}
+
 // 请求密码重置
 func RequestPasswordReset(c *gin.Context) {
 	var req struct {

@@ -7,6 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, User, Mail, Key, Check } from 'lucide-react';
 
@@ -16,10 +26,13 @@ export function ProfilePage() {
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [newEmail, setNewEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,8 +44,9 @@ export function ProfilePage() {
       const response = await authApi.updateProfile({ username });
       updateUser(response.data.user);
       setSuccess('个人信息更新成功');
-    } catch (err: any) {
-      setError(err.response?.data?.message || '更新失败');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '更新失败';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -61,11 +75,60 @@ export function ProfilePage() {
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || '密码修改失败');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '密码修改失败';
+      setError(errorMessage);
     } finally {
       setPasswordLoading(false);
     }
+  };
+
+  const handleUpdateEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setShowEmailDialog(false);
+
+    if (!newEmail) {
+      setError('请输入新邮箱地址');
+      return;
+    }
+
+    if (newEmail === user?.email) {
+      setError('新邮箱不能与当前邮箱相同');
+      return;
+    }
+
+    setEmailLoading(true);
+
+    try {
+      const response = await authApi.updateEmail({ email: newEmail });
+      setSuccess(response.data.message);
+      setNewEmail('');
+      if (response.data.pending) {
+        // 如果返回 pending: true，表示需要验证邮件，等待用户点击链接
+        // 不需要更新本地用户信息，等验证后再更新
+      } else if (response.data.user) {
+        // 如果直接更新成功（SMTP未启用），更新本地用户信息
+        updateUser(response.data.user);
+      } else {
+        // 如果pending状态，更新本地邮箱显示（等待验证）
+        if (user) {
+          updateUser({ ...user, email: newEmail });
+        }
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '邮箱修改失败';
+      setError(errorMessage);
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  const openEmailChangeDialog = () => {
+    setError('');
+    setSuccess('');
+    setShowEmailDialog(true);
   };
 
   return (
@@ -126,6 +189,17 @@ export function ProfilePage() {
                       className="pl-10 bg-muted"
                     />
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    如需修改邮箱，请点击下方"修改邮箱"按钮
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={openEmailChangeDialog}
+                  >
+                    修改邮箱
+                  </Button>
                 </div>
 
                 <div className="space-y-2">
@@ -231,6 +305,53 @@ export function ProfilePage() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* 邮箱修改确认对话框 */}
+      <AlertDialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>修改邮箱地址</AlertDialogTitle>
+            <AlertDialogDescription>
+              请输入新的邮箱地址。{user?.emailVerified ? '由于您已启用邮件验证，系统将发送一封确认邮件到您的新邮箱，请点击邮件中的链接完成验证。' : '由于未启用SMTP，邮箱将直接更新。'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <div className="space-y-2">
+              <Label htmlFor="newEmailInput">新邮箱</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="newEmailInput"
+                  type="email"
+                  placeholder="请输入新邮箱地址"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={emailLoading}>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleUpdateEmail(e);
+              }}
+              disabled={emailLoading || !newEmail}
+            >
+              {emailLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  处理中...
+                </>
+              ) : (
+                '确认修改'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

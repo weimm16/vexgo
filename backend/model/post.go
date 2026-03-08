@@ -35,6 +35,7 @@ type User struct {
 	EmailVerified     bool       `json:"email_verified"`                     // 邮箱是否已验证
 	VerificationToken string     `json:"verification_token" gorm:"size:255"` // 验证令牌
 	TokenExpiresAt    *time.Time `json:"token_expires_at"`                   // 令牌过期时间（可为NULL）
+	PendingEmail      string     `json:"pending_email,omitempty" gorm:"size:255"` // 待确认的新邮箱（用于邮箱变更）
 }
 
 type Tag struct {
