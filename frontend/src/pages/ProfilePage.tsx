@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { authApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -18,11 +19,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, User, Mail, Key, Check, Eye, EyeOff } from 'lucide-react';
+import { Loader2, User, Mail, Key, Check, Calendar, UserPlus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export function ProfilePage() {
   const { user, updateUser } = useAuth();
   const [username, setUsername] = useState(user?.username || '');
+  const [birthday, setBirthday] = useState(user?.birthday || '');
+  const [bio, setBio] = useState(user?.bio || '');
   const [oldPassword, setOldPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,7 +48,11 @@ export function ProfilePage() {
     setLoading(true);
 
     try {
-      const response = await authApi.updateProfile({ username });
+      const response = await authApi.updateProfile({ 
+        username, 
+        birthday, 
+        bio
+      });
       updateUser(response.data.user);
       setSuccess('个人信息更新成功');
     } catch (err: unknown) {
@@ -220,6 +228,37 @@ export function ProfilePage() {
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="birthday">生日</Label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      id="birthday"
+                      type="date"
+                      value={birthday}
+                      onChange={(e) => setBirthday(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="bio">个性签名</Label>
+                  <div className="relative">
+                    <UserPlus className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                    <Textarea
+                      id="bio"
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="请输入个性签名"
+                      className="pl-10"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+
+
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
                     <>
@@ -379,6 +418,3 @@ export function ProfilePage() {
     </div>
   );
 }
-
-// 需要导入Badge
-import { Badge } from '@/components/ui/badge';

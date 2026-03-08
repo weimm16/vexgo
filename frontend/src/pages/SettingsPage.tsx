@@ -45,6 +45,15 @@ export function SettingsPage() {
   const [profileVisibility, setProfileVisibility] = useState<'public' | 'private'>(() =>
     getSavedSetting('profileVisibility', 'public')
   );
+  const [hideEmail, setHideEmail] = useState(() =>
+    getSavedSetting('hideEmail', false)
+  );
+  const [hideBirthday, setHideBirthday] = useState(() =>
+    getSavedSetting('hideBirthday', false)
+  );
+  const [hideBio, setHideBio] = useState(() =>
+    getSavedSetting('hideBio', false)
+  );
   
   const [success, setSuccess] = useState('');
 
@@ -55,7 +64,10 @@ export function SettingsPage() {
       pushNotifications,
       theme,
       language,
-      profileVisibility
+      profileVisibility,
+      hideEmail,
+      hideBirthday,
+      hideBio
     };
     
     localStorage.setItem('userSettings', JSON.stringify(settings));
@@ -194,6 +206,43 @@ export function SettingsPage() {
                   ? '您的个人资料对所有人可见' 
                   : '只有您自己可以看到您的个人资料'}
               </p>
+            </div>
+            
+            <div className="space-y-4 pt-2">
+              <h3 className="text-sm font-medium">个人信息可见性</h3>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>隐藏邮箱</Label>
+                  <p className="text-sm text-muted-foreground">在个人资料中隐藏您的邮箱地址</p>
+                </div>
+                <Switch
+                  checked={hideEmail}
+                  onCheckedChange={setHideEmail}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>隐藏生日</Label>
+                  <p className="text-sm text-muted-foreground">在个人资料中隐藏您的生日</p>
+                </div>
+                <Switch
+                  checked={hideBirthday}
+                  onCheckedChange={setHideBirthday}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>隐藏个性签名</Label>
+                  <p className="text-sm text-muted-foreground">在个人资料中隐藏您的个性签名</p>
+                </div>
+                <Switch
+                  checked={hideBio}
+                  onCheckedChange={setHideBio}
+                />
+              </div>
             </div>
           </CardContent>
         </Card>

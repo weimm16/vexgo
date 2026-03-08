@@ -7,6 +7,8 @@ export interface User {
   avatar: string | null;
   emailVerified?: boolean;
   createdAt?: string;
+  birthday?: string;
+  bio?: string;
 }
 
 // SMTP 配置类型

@@ -116,7 +116,23 @@ export function UserPostsPage() {
                   </AvatarFallback>
                 </Avatar>
                 <h2 className="text-xl font-bold mb-2">{user?.username || '未知用户'}</h2>
-                <p className="text-sm text-muted-foreground mb-4">{user?.email || ''}</p>
+                {!JSON.parse(localStorage.getItem('userSettings') || '{}').hideEmail && (
+                  <p className="text-sm text-muted-foreground mb-2">{user?.email || ''}</p>
+                )}
+                
+                {/* 生日和个性签名 */}
+                <div className="flex flex-col gap-1 mb-4 text-sm text-muted-foreground">
+                  {user?.birthday && !JSON.parse(localStorage.getItem('userSettings') || '{}').hideBirthday && (
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      <span>生日: {new Date(user.birthday).toLocaleDateString('zh-CN')}</span>
+                    </div>
+                  )}
+                  {user?.bio && !JSON.parse(localStorage.getItem('userSettings') || '{}').hideBio && (
+                    <p className="text-sm text-muted-foreground">{user.bio}</p>
+                  )}
+                </div>
+                
                 <Separator className="my-4" />
                 <div className="w-full">
                   <p className="text-sm text-muted-foreground mb-2">文章总数</p>
