@@ -95,10 +95,15 @@ func GetPosts(c *gin.Context) {
 
 	// 分类筛选
 	if categoryID != "" {
-		// 先转成数字，避免SQL注入/非法值
+		// 尝试使用分类的 id 或名称来筛选文章
+		// 首先尝试将 categoryID 转换为数字，作为分类的 id
 		cid, err := strconv.Atoi(categoryID)
 		if err == nil {
-			query = query.Where("category_id = ?", cid)
+			// 如果转换成功，使用分类的 id 来筛选文章
+			query = query.Where("category = ?", cid)
+		} else {
+			// 如果转换失败，使用分类的名称来筛选文章
+			query = query.Where("category = ?", categoryID)
 		}
 	}
 

@@ -149,12 +149,12 @@ export function HomePage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCategoryClick = (categoryId: string) => {
+  const handleCategoryClick = (categoryName: string) => {
     const newParams = new URLSearchParams(searchParams);
-    if (selectedCategory === categoryId) {
+    if (selectedCategory === categoryName) {
       newParams.delete('category');
     } else {
-      newParams.set('category', categoryId);
+      newParams.set('category', categoryName);
     }
     newParams.delete('page');
     setSearchParams(newParams);
@@ -389,9 +389,9 @@ export function HomePage() {
                 {categories.map((category) => (
                   <Badge
                     key={category.id}
-                    variant={selectedCategory === category.id ? 'default' : 'secondary'}
+                    variant={selectedCategory === category.name ? 'default' : 'secondary'}
                     className="cursor-pointer"
-                    onClick={() => handleCategoryClick(category.id)}
+                    onClick={() => handleCategoryClick(category.name)}
                   >
                     {category.name}
                   </Badge>

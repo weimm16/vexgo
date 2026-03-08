@@ -70,10 +70,13 @@ export function WritePostPage() {
   const isContributor = user?.role === 'contributor';
 
   useEffect(() => {
-    loadCategories();
-    if (isEditMode) {
-      loadPost();
-    }
+    const init = async () => {
+      await loadCategories();
+      if (isEditMode) {
+        loadPost();
+      }
+    };
+    init();
   }, [id]);
 
   const loadCategories = async () => {
@@ -98,8 +101,23 @@ export function WritePostPage() {
       setTitle(post.title);
       setContent(post.content);
       setExcerpt(post.excerpt || '');
-      // 后端的 category 可能是数字或字符串，统一转为字符串以匹配前端 Select 的 value
-      setCategory(post.category ? String(post.category) : '');
+      // 后端的 category 可能是数字或字符串，需要根据分类列表找到对应的分类名称
+      if (post.category) {
+        const categoryStr = String(post.category);
+        // 尝试在分类列表中找到对应的分类
+        const foundCategory = categories.find(cat => 
+          String(cat.id) === categoryStr || cat.name === categoryStr
+        );
+        // 如果找到对应的分类，使用分类的名称作为 value
+        if (foundCategory) {
+          setCategory(foundCategory.name);
+        } else {
+          // 如果没有找到对应的分类，使用原始值
+          setCategory(categoryStr);
+        }
+      } else {
+        setCategory('');
+      }
       // 后端返回的 tags 为对象数组 [{id,name}, ...]，前端需要字符串数组
       try {
         let mappedTags: string[] = [];
@@ -338,7 +356,7 @@ export function WritePostPage() {
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
+                  <SelectItem key={cat.id} value={cat.name}>
                     {cat.name}
                   </SelectItem>
                 ))}
