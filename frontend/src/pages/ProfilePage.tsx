@@ -18,7 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, User, Mail, Key, Check } from 'lucide-react';
+import { Loader2, User, Mail, Key, Check, Eye, EyeOff } from 'lucide-react';
 
 export function ProfilePage() {
   const { user, updateUser } = useAuth();
@@ -33,6 +33,9 @@ export function ProfilePage() {
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -250,12 +253,19 @@ export function ProfilePage() {
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="oldPassword"
-                      type="password"
+                      type={showOldPassword ? 'text' : 'password'}
                       value={oldPassword}
                       onChange={(e) => setOldPassword(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 pr-10"
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowOldPassword(!showOldPassword)}
+                    >
+                      {showOldPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -265,13 +275,20 @@ export function ProfilePage() {
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="newPassword"
-                      type="password"
+                      type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 pr-10"
                       required
                       minLength={6}
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                    >
+                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
@@ -281,12 +298,19 @@ export function ProfilePage() {
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="confirmPassword"
-                      type="password"
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pl-10"
+                      className="pl-10 pr-10"
                       required
                     />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
