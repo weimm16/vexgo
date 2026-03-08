@@ -166,7 +166,7 @@ export function UserManagementPage() {
                     {roleDisplayMap[user.role]?.label || user.role}
                   </Badge>
                   
-                  {currentUser?.id !== user.id && (
+                  {currentUser?.id !== user.id && !(currentUser?.role === 'admin' && user.role === 'admin') && (
                     <div className="flex items-center gap-2">
                       <Select
                         value={user.role}
@@ -184,6 +184,10 @@ export function UserManagementPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
+                  
+                  {currentUser?.id !== user.id && currentUser?.role === 'admin' && user.role === 'admin' && (
+                    <Badge variant="secondary">同等级</Badge>
                   )}
                   
                   {currentUser?.id === user.id && (
