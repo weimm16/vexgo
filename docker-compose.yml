@@ -1,23 +1,21 @@
 services:
   vexgo:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/weimm16/vexgo:latest
     container_name: vexgo-app
     restart: unless-stopped
     ports:
       - "3001:3001"
     environment:
-      # 服务器配置
+      # Server configuration
       - ADDR=0.0.0.0
       - PORT=3001
       - DATA_DIR=/app/data
       
-      # JWT密钥（生产环境必须设置！）
+      # JWT secret (must be set in production!)
       - JWT_SECRET=${JWT_SECRET:-change-me-in-production}
       
-      # 数据库配置（默认使用SQLite）
-      # 如果要使用外部数据库，取消注释并配置以下变量：
+      # Database configuration (SQLite is used by default)
+      # To use an external database, uncomment and configure the following variables:
       # - DB_TYPE=mysql
       # - DB_HOST=mysql
       # - DB_PORT=3306
@@ -25,7 +23,7 @@ services:
       # - DB_PASSWORD=${DB_PASSWORD:-your-password}
       # - DB_NAME=vexgo_db
       
-      # 或者使用PostgreSQL：
+      # Or use PostgreSQL:
       # - DB_TYPE=postgres
       # - DB_HOST=postgres
       # - DB_PORT=5432
@@ -34,16 +32,16 @@ services:
       # - DB_NAME=vexgo_db
       # - DB_SSL_MODE=disable
       
-      # 或者使用配置文件（优先级高于环境变量）：
+      # Or use a configuration file (takes precedence over environment variables):
       # - CONFIG_FILE=/app/examples/config-mysql.yml
       # - CONFIG_FILE=/app/examples/config-postgres.yml
     volumes:
-      # 持久化数据目录（包含SQLite数据库和上传的文件）
+      # Persistent data directory (includes SQLite database and uploaded files)
       - ./data:/app/data
     networks:
       - vexgo-network
 
-  # MySQL数据库（可选）
+  # MySQL database (optional)
   # mysql:
   #   image: mysql:8.0
   #   container_name: vexgo-mysql
@@ -63,7 +61,7 @@ services:
   #     timeout: 10s
   #     retries: 3
 
-  # PostgreSQL数据库（可选）
+  # PostgreSQL database (optional)
   # postgres:
   #   image: postgres:18-alpine
   #   container_name: vexgo-postgres
