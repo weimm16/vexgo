@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, User, Mail, Key, Check, Calendar, UserPlus } from 'lucide-react';
+import { Loader2, User, Mail, Key, Check, Calendar, UserPlus, Eye, EyeOff, Camera } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export function ProfilePage() {
@@ -40,6 +40,7 @@ export function ProfilePage() {
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,16 +143,78 @@ export function ProfilePage() {
     setShowEmailDialog(true);
   };
 
+  const handleAvatarClick = () => {
+    document.getElementById('avatar-upload')?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAvatarLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // 假设上传API的端点是 /upload/avatar
+      const response = await fetch('/api/upload/avatar', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('上传失败');
+      }
+
+      const data = await response.json();
+      if (data.file && data.file.url) {
+        // 更新用户头像
+        const updateResponse = await authApi.updateProfile({ avatar: data.file.url });
+        updateUser(updateResponse.data.user);
+        setSuccess('头像更新成功');
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : '头像更新失败';
+      setError(errorMessage);
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <Card>
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Avatar className="w-24 h-24">
-              <AvatarFallback className="bg-primary/10 text-primary text-3xl">
-                {user?.username?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative cursor-pointer" onClick={handleAvatarClick}>
+              <Avatar className="w-24 h-24">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <AvatarFallback className="bg-primary/10 text-primary text-3xl">
+                    {user?.username?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div className="absolute inset-0 bg-black/30 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                {avatarLoading ? (
+                  <Loader2 className="w-8 h-8 text-white animate-spin" />
+                ) : (
+                  <Camera className="w-8 h-8 text-white" />
+                )}
+              </div>
+              <input
+                type="file"
+                id="avatar-upload"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+            </div>
           </div>
           <CardTitle className="text-2xl">{user?.username}</CardTitle>
           <CardDescription>{user?.email}</CardDescription>
