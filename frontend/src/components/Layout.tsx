@@ -127,18 +127,26 @@ export function Layout({ children }: LayoutProps) {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                       <Avatar className="h-9 w-9">
-                        <AvatarFallback className="bg-primary/10 text-primary">
-                          {user?.username?.charAt(0).toUpperCase()}
-                        </AvatarFallback>
+                        {user?.avatar ? (
+                          <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-primary/10 text-primary">
+                            {user?.username?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <div className="flex items-center gap-2 p-2">
                       <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                          {user?.username?.charAt(0).toUpperCase()}
-                        </AvatarFallback>
+                        {user?.avatar ? (
+                          <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <AvatarFallback className="bg-primary/10 text-primary text-sm">
+                            {user?.username?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        )}
                       </Avatar>
                       <div className="flex flex-col">
                         <p className="text-sm font-medium">{user?.username}</p>
