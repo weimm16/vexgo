@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { postsApi } from '@/lib/api';
 import type { Post } from '@/types';
+import { useTranslation } from '@/lib/I18nContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,13 +18,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
 } from '@/components/ui/pagination';
 import {
   PenLine, Edit, Trash2, Eye, Clock,
@@ -32,6 +33,7 @@ import {
 import { normalizeTagsArray } from '@/lib/utils';
 
 export function MyPostsPage() {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,28 +91,28 @@ export function MyPostsPage() {
       case 'published':
         return {
           variant: 'default' as const,
-          label: '已发布',
+          label: t('myPostsPage.published'),
           icon: CheckCircle,
           className: 'bg-green-600 hover:bg-green-700'
         };
       case 'draft':
         return {
           variant: 'secondary' as const,
-          label: '草稿',
+          label: t('myPostsPage.draft'),
           icon: FileX,
           className: ''
         };
       case 'pending':
         return {
           variant: 'outline' as const,
-          label: '待审核',
+          label: t('myPostsPage.pending'),
           icon: Clock,
           className: 'text-yellow-600 border-yellow-600'
         };
       case 'rejected':
         return {
           variant: 'destructive' as const,
-          label: '已拒绝',
+          label: t('myPostsPage.rejected'),
           icon: XCircle,
           className: ''
         };
@@ -149,12 +151,12 @@ export function MyPostsPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <PenLine className="w-6 h-6" />
-          我的文章
+          {t('myPostsPage.myPosts')}
         </h1>
         <Button asChild>
           <Link to="/write">
             <Plus className="w-4 h-4 mr-2" />
-            写文章
+            {t('myPostsPage.writePost')}
           </Link>
         </Button>
       </div>
@@ -166,12 +168,12 @@ export function MyPostsPage() {
             <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <FileX className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">还没有文章</h3>
-            <p className="text-muted-foreground mb-4">开始创作你的第一篇文章吧！</p>
+            <h3 className="text-lg font-semibold mb-2">{t('myPostsPage.noPosts')}</h3>
+            <p className="text-muted-foreground mb-4">{t('myPostsPage.noPostsDesc')}</p>
             <Button asChild>
               <Link to="/write">
                 <Plus className="w-4 h-4 mr-2" />
-                写文章
+                {t('myPostsPage.writePost')}
               </Link>
             </Button>
           </CardContent>
@@ -246,18 +248,18 @@ export function MyPostsPage() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>确认删除文章？</AlertDialogTitle>
+                            <AlertDialogTitle>{t('myPostsPage.confirmDelete')}</AlertDialogTitle>
                             <AlertDialogDescription>
-                              此操作不可撤销，文章及其所有评论将被永久删除。
+                              {t('myPostsPage.cannotUndo')}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>取消</AlertDialogCancel>
-                            <AlertDialogAction 
+                            <AlertDialogCancel>{t('myPostsPage.cancel')}</AlertDialogCancel>
+                            <AlertDialogAction
                               onClick={() => handleDeletePost(post.id)}
                               className="bg-destructive"
                             >
-                              删除
+                              {t('myPostsPage.delete')}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -281,9 +283,9 @@ export function MyPostsPage() {
                 </PaginationItem>
 
                 {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                  .filter(page => 
-                    page === 1 || 
-                    page === pagination.totalPages || 
+                  .filter(page =>
+                    page === 1 ||
+                    page === pagination.totalPages ||
                     Math.abs(page - currentPage) <= 1
                   )
                   .map((page, index, array) => (

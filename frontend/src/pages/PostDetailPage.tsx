@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { postsApi, commentsApi, likesApi } from '@/lib/api';
 import type { Post, Comment } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/lib/I18nContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,8 +22,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { 
-  Heart, MessageCircle, Calendar, 
+import {
+  Heart, MessageCircle, Calendar,
   ArrowLeft, Share2, Edit, Trash2, Send,
   Clock, Eye, XCircle
 } from 'lucide-react';
@@ -32,6 +33,7 @@ export function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const [post, setPost] = useState<Post | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -213,9 +215,9 @@ export function PostDetailPage() {
   if (!post) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">文章不存在</h1>
+        <h1 className="text-2xl font-bold mb-4">{t('postDetailPage.articleNotExist')}</h1>
         <Button asChild>
-          <Link to="/">返回首页</Link>
+          <Link to="/">{t('postDetailPage.backToHome')}</Link>
         </Button>
       </div>
     );
@@ -227,7 +229,7 @@ export function PostDetailPage() {
       <Button variant="ghost" size="sm" asChild className="mb-6">
         <Link to="/" className="flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
-          返回首页
+          {t('postDetailPage.backToHome')}
         </Link>
       </Button>
 
@@ -238,16 +240,16 @@ export function PostDetailPage() {
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
             <div className="flex items-center gap-2 mb-1">
               <XCircle className="w-5 h-5 text-red-500" />
-              <span className="font-medium text-red-800">此文章已被拒绝</span>
+              <span className="font-medium text-red-800">{t('postDetailPage.rejectedArticle')}</span>
             </div>
             {post.rejectionReason && (
               <p className="text-sm text-red-700">
-                拒绝原因：{post.rejectionReason}
+                {t('postDetailPage.rejectionReason')}{post.rejectionReason}
               </p>
             )}
           </div>
         )}
-        
+
         {/* 分类和标签 */}
         <div className="flex flex-wrap items-center gap-2 mb-4">
           {post.categoryInfo && (
@@ -289,7 +291,7 @@ export function PostDetailPage() {
                 {post.updatedAt !== post.createdAt && (
                   <span className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    更新于 {formatDate(post.updatedAt)}
+                    {t('postDetailPage.updatedAt')} {formatDate(post.updatedAt)}
                   </span>
                 )}
               </div>
@@ -302,7 +304,7 @@ export function PostDetailPage() {
               <Button variant="outline" size="sm" asChild>
                 <Link to={`/edit-post/${post.id}`}>
                   <Edit className="w-4 h-4 mr-1" />
-                  编辑
+                  {t('postDetailPage.edit')}
                 </Link>
               </Button>
             )}
@@ -311,20 +313,20 @@ export function PostDetailPage() {
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm">
                     <Trash2 className="w-4 h-4 mr-1" />
-                    删除
+                    {t('postDetailPage.delete')}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>确认删除文章？</AlertDialogTitle>
+                    <AlertDialogTitle>{t('postDetailPage.confirmDelete')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                      此操作不可撤销，文章及其所有评论将被永久删除。
+                      {t('postDetailPage.cannotUndo')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogCancel>{t('postDetailPage.cancel')}</AlertDialogCancel>
                     <AlertDialogAction onClick={handleDeletePost} className="bg-destructive">
-                      删除
+                      {t('postDetailPage.deleteButton')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -346,7 +348,7 @@ export function PostDetailPage() {
       )}
 
       {/* 文章内容 */}
-      <div 
+      <div
         className="prose prose-lg max-w-none mb-12"
         dangerouslySetInnerHTML={{ __html: post.content }}
       />
@@ -370,7 +372,7 @@ export function PostDetailPage() {
             onClick={() => document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth' })}
           >
             <MessageCircle className="w-5 h-5" />
-            <span>{comments.length}</span>
+            <span>{t('postDetailPage.comments')} ({comments.length})</span>
           </Button>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <Eye className="w-5 h-5" />
@@ -383,7 +385,7 @@ export function PostDetailPage() {
           </Button>
           {shareSuccess && (
             <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-[10px] text-muted-foreground bg-muted px-2 py-1 rounded whitespace-nowrap">
-              链接已复制到剪贴板
+              {t('postDetailPage.copyLink')}
             </div>
           )}
         </div>
@@ -393,7 +395,7 @@ export function PostDetailPage() {
       <div id="comments" className="mt-12">
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <MessageCircle className="w-6 h-6" />
-          评论 ({comments.length})
+          {t('postDetailPage.comments')} ({comments.length})
         </h2>
 
         {/* 发表评论 */}
@@ -401,18 +403,18 @@ export function PostDetailPage() {
           <Card className="mb-8">
             <CardContent className="p-4">
               <Textarea
-                placeholder="写下你的评论..."
+                placeholder={t('postDetailPage.commentPlaceholder')}
                 value={commentContent}
                 onChange={(e) => setCommentContent(e.target.value)}
                 className="mb-4 min-h-[100px]"
               />
               <div className="flex justify-end">
-                <Button 
+                <Button
                   onClick={handleSubmitComment}
                   disabled={!commentContent.trim() || submittingComment}
                 >
                   <Send className="w-4 h-4 mr-2" />
-                  {submittingComment ? '发送中...' : '发表评论'}
+                  {submittingComment ? t('postDetailPage.submitting') : t('postDetailPage.submitComment')}
                 </Button>
               </div>
             </CardContent>
@@ -420,9 +422,9 @@ export function PostDetailPage() {
         ) : (
           <Card className="mb-8">
             <CardContent className="p-6 text-center">
-              <p className="text-muted-foreground mb-4">登录后可以发表评论</p>
+              <p className="text-muted-foreground mb-4">{t('postDetailPage.loginToComment')}</p>
               <Button asChild>
-                <Link to="/login">登录</Link>
+                <Link to="/login">{t('auth.login')}</Link>
               </Button>
             </CardContent>
           </Card>
@@ -432,7 +434,7 @@ export function PostDetailPage() {
         <div className="space-y-4">
           {comments.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              暂无评论，来发表第一条评论吧！
+              {t('postDetailPage.noComments')}
             </div>
           ) : (
             comments.map((comment) => (

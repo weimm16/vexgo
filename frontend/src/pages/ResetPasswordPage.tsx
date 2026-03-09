@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { authApi } from '@/lib/api';
+import { useTranslation } from '@/lib/I18nContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Mail, Lock, ArrowLeft } from 'lucide-react';
 
 export function ResetPasswordPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
@@ -34,7 +36,7 @@ export function ResetPasswordPage() {
     setError('');
 
     if (!email) {
-      setError('请输入邮箱地址');
+      setError(t('resetPasswordPage.emailRequired'));
       return;
     }
 
@@ -45,7 +47,7 @@ export function ResetPasswordPage() {
       setSuccess(true);
       setError('');
     } catch (err: any) {
-      setError(err.response?.data?.error || '请求失败，请重试');
+      setError(err.response?.data?.error || t('resetPasswordPage.requestFailed'));
     } finally {
       setLoading(false);
     }
@@ -56,17 +58,17 @@ export function ResetPasswordPage() {
     setError('');
 
     if (!token) {
-      setError('缺少重置令牌');
+      setError(t('resetPasswordPage.missingToken'));
       return;
     }
 
     if (password.length < 6) {
-      setError('密码至少需要6个字符');
+      setError(t('resetPasswordPage.passwordTooShort'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('两次输入的密码不一致');
+      setError(t('resetPasswordPage.passwordMismatch'));
       return;
     }
 
@@ -81,7 +83,7 @@ export function ResetPasswordPage() {
         navigate('/login');
       }, 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error || '重置密码失败，请重试');
+      setError(err.response?.data?.error || t('resetPasswordPage.resetFailed'));
     } finally {
       setLoading(false);
     }
@@ -92,12 +94,12 @@ export function ResetPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">
-            {step === 'request' ? '找回密码' : '重置密码'}
+            {step === 'request' ? t('resetPasswordPage.findPassword') : t('resetPasswordPage.resetPassword')}
           </CardTitle>
           <CardDescription>
             {step === 'request'
-              ? '输入您的邮箱地址，我们将发送重置密码的链接给您'
-              : '请输入您的新密码'}
+              ? t('resetPasswordPage.resetInstruction')
+              : t('resetPasswordPage.newPasswordInstruction')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -111,8 +113,8 @@ export function ResetPasswordPage() {
             <Alert variant="default" className="mb-4">
               <AlertDescription>
                 {step === 'request'
-                  ? '如果邮箱存在，重置链接已发送。请检查您的收件箱。'
-                  : '密码重置成功！3秒后将跳转到登录页面。'}
+                  ? t('resetPasswordPage.resetLinkSent')
+                  : t('resetPasswordPage.resetSuccess')}
               </AlertDescription>
             </Alert>
           )}
@@ -121,13 +123,13 @@ export function ResetPasswordPage() {
             <form onSubmit={step === 'request' ? handleRequestReset : handleResetPassword} className="space-y-4">
               {step === 'request' ? (
                 <div className="space-y-2">
-                  <Label htmlFor="email">邮箱</Label>
+                  <Label htmlFor="email">{t('resetPasswordPage.emailLabel')}</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       id="email"
                       type="email"
-                      placeholder="your@email.com"
+                      placeholder={t('resetPasswordPage.emailPlaceholder')}
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10"
@@ -138,13 +140,13 @@ export function ResetPasswordPage() {
               ) : (
                 <>
                   <div className="space-y-2">
-                    <Label htmlFor="password">新密码</Label>
+                    <Label htmlFor="password">{t('resetPasswordPage.newPassword')}</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="请输入新密码"
+                        placeholder={t('resetPasswordPage.passwordPlaceholder')}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10 pr-10"
@@ -157,22 +159,22 @@ export function ResetPasswordPage() {
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       >
                         {showPassword ? (
-                          <span className="text-sm">隐藏</span>
+                          <span className="text-sm">{t('common.hide')}</span>
                         ) : (
-                          <span className="text-sm">显示</span>
+                          <span className="text-sm">{t('common.show')}</span>
                         )}
                       </button>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword">确认新密码</Label>
+                    <Label htmlFor="confirmPassword">{t('resetPasswordPage.confirmPassword')}</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         id="confirmPassword"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="请再次输入新密码"
+                        placeholder={t('resetPasswordPage.confirmPlaceholder')}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         className="pl-10"
@@ -188,10 +190,10 @@ export function ResetPasswordPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {step === 'request' ? '发送中...' : '重置中...'}
+                    {step === 'request' ? t('resetPasswordPage.sending') : t('resetPasswordPage.resetting')}
                   </>
                 ) : (
-                  step === 'request' ? '发送重置链接' : '重置密码'
+                  step === 'request' ? t('resetPasswordPage.sendResetLink') : t('resetPasswordPage.resetPasswordButton')
                 )}
               </Button>
             </form>
@@ -204,7 +206,7 @@ export function ResetPasswordPage() {
               className="text-primary hover:underline focus:outline-none flex items-center justify-center mx-auto"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
-              返回登录
+              {t('resetPasswordPage.backToLogin')}
             </button>
           </div>
         </CardContent>

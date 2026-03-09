@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/hooks/useAuth';
+import { I18nProvider } from '@/lib/I18nContext';
 import { Layout } from '@/components/Layout';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { HomePage } from '@/pages/HomePage';
@@ -26,9 +27,10 @@ import { Toaster } from '@/components/ui/sonner';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Layout>
-          <Routes>
+      <I18nProvider>
+        <Router>
+          <Layout>
+            <Routes>
             {/* 公开路由 */}
             <Route path="/" element={<HomePage />} />
             <Route path="/post/:id" element={<PostDetailPage />} />
@@ -150,6 +152,7 @@ function App() {
         </Layout>
       </Router>
       <Toaster />
+    </I18nProvider>
     </AuthProvider>
   );
 }

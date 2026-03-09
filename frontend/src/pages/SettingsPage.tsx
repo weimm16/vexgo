@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/lib/I18nContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -10,6 +11,7 @@ import { Check, Bell, Palette, Globe, Shield } from 'lucide-react';
 
 export function SettingsPage() {
   const { user } = useAuth();
+  const { locale, setLocale: setI18nLocale, t } = useTranslation();
   
   // Retrieve saved settings from localStorage or use default values
   const getSavedSetting = <T,>(key: string, defaultValue: T): T => {
@@ -38,7 +40,7 @@ export function SettingsPage() {
     getSavedSetting('theme', 'light')
   );
   const [language, setLanguage] = useState(() =>
-    getSavedSetting('language', 'zh-CN')
+    getSavedSetting('language', locale)
   );
   
   // Privacy settings
@@ -56,6 +58,11 @@ export function SettingsPage() {
   );
   
   const [success, setSuccess] = useState('');
+
+  // Sync language with i18n when language changes
+  useEffect(() => {
+    setI18nLocale(language);
+  }, [language, setI18nLocale]);
 
   const handleSave = () => {
     // Save settings to localStorage
@@ -88,15 +95,15 @@ export function SettingsPage() {
       }
     }
     
-    setSuccess('设置已保存');
+    setSuccess(t('settings.saveSuccess'));
     setTimeout(() => setSuccess(''), 3000);
   };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">设置</h1>
-        <p className="text-muted-foreground">管理您的账户设置和偏好</p>
+        <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
+        <p className="text-muted-foreground">{t('settings.accountInfo')} / {t('settings.notificationSettings')}</p>
       </div>
 
       {success && (
@@ -112,15 +119,15 @@ export function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5" />
-              通知设置
+              {t('settings.notificationSettings')}
             </CardTitle>
-            <CardDescription>选择您希望接收的通知类型</CardDescription>
+            <CardDescription>{t('settings.notificationSettings')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label>邮件通知</Label>
-                <p className="text-sm text-muted-foreground">通过电子邮件接收重要更新</p>
+                <Label>{t('settings.emailNotifications')}</Label>
+                <p className="text-sm text-muted-foreground">{t('settings.emailNotificationsDesc')}</p>
               </div>
               <Switch
                 checked={emailNotifications}
@@ -130,8 +137,8 @@ export function SettingsPage() {
             
             <div className="flex items-center justify-between">
               <div>
-                <Label>推送通知</Label>
-                <p className="text-sm text-muted-foreground">在设备上接收推送通知</p>
+                <Label>{t('settings.pushNotifications')}</Label>
+                <p className="text-sm text-muted-foreground">{t('settings.pushNotificationsDesc')}</p>
               </div>
               <Switch
                 checked={pushNotifications}
@@ -146,30 +153,30 @@ export function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="w-5 h-5" />
-              显示设置
+              {t('settings.displaySettings')}
             </CardTitle>
-            <CardDescription>自定义界面外观和语言</CardDescription>
+            <CardDescription>{t('settings.displaySettings')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>主题</Label>
+              <Label>{t('settings.theme')}</Label>
               <Select value={theme} onValueChange={(value: 'light' | 'dark' | 'system') => setTheme(value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择主题" />
+                  <SelectValue placeholder={t('settings.theme')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="light">浅色</SelectItem>
-                  <SelectItem value="dark">深色</SelectItem>
-                  <SelectItem value="system">跟随系统</SelectItem>
+                  <SelectItem value="light">{t('settings.light')}</SelectItem>
+                  <SelectItem value="dark">{t('settings.dark')}</SelectItem>
+                  <SelectItem value="system">{t('settings.system')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             
             <div className="space-y-2">
-              <Label>语言</Label>
+              <Label>{t('settings.language')}</Label>
               <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择语言" />
+                  <SelectValue placeholder={t('settings.language')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="zh-CN">简体中文</SelectItem>
@@ -185,36 +192,36 @@ export function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="w-5 h-5" />
-              隐私设置
+              {t('settings.privacySettings')}
             </CardTitle>
-            <CardDescription>控制谁可以看到您的信息</CardDescription>
+            <CardDescription>{t('settings.privacySettings')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>个人资料可见性</Label>
+              <Label>{t('settings.profileVisibility')}</Label>
               <Select value={profileVisibility} onValueChange={(value: 'public' | 'private') => setProfileVisibility(value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="选择可见性" />
+                  <SelectValue placeholder={t('settings.profileVisibility')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="public">公开</SelectItem>
-                  <SelectItem value="private">仅自己可见</SelectItem>
+                  <SelectItem value="public">{t('settings.public')}</SelectItem>
+                  <SelectItem value="private">{t('settings.private')}</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-sm text-muted-foreground">
-                {profileVisibility === 'public' 
-                  ? '您的个人资料对所有人可见' 
-                  : '只有您自己可以看到您的个人资料'}
+                {profileVisibility === 'public'
+                  ? t('settings.publicDesc')
+                  : t('settings.privateDesc')}
               </p>
             </div>
             
             <div className="space-y-4 pt-2">
-              <h3 className="text-sm font-medium">个人信息可见性</h3>
+              <h3 className="text-sm font-medium">{t('settings.accountInfo')}</h3>
               
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>隐藏邮箱</Label>
-                  <p className="text-sm text-muted-foreground">在个人资料中隐藏您的邮箱地址</p>
+                  <Label>{t('profile.email')}</Label>
+                  <p className="text-sm text-muted-foreground">{t('profile.avatar')} / {t('profile.email')}</p>
                 </div>
                 <Switch
                   checked={hideEmail}
@@ -224,8 +231,8 @@ export function SettingsPage() {
               
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>隐藏生日</Label>
-                  <p className="text-sm text-muted-foreground">在个人资料中隐藏您的生日</p>
+                  <Label>{t('profile.title')}</Label>
+                  <p className="text-sm text-muted-foreground">{t('profile.avatar')}</p>
                 </div>
                 <Switch
                   checked={hideBirthday}
@@ -235,8 +242,8 @@ export function SettingsPage() {
               
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>隐藏个性签名</Label>
-                  <p className="text-sm text-muted-foreground">在个人资料中隐藏您的个性签名</p>
+                  <Label>{t('profile.updateProfile')}</Label>
+                  <p className="text-sm text-muted-foreground">{t('profile.avatar')}</p>
                 </div>
                 <Switch
                   checked={hideBio}
@@ -252,29 +259,29 @@ export function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Globe className="w-5 h-5" />
-              账户信息
+              {t('settings.accountInfo')}
             </CardTitle>
-            <CardDescription>您的账户基本信息</CardDescription>
+            <CardDescription>{t('settings.accountInfo')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>用户名</Label>
+              <Label>{t('settings.username')}</Label>
               <div className="p-2 bg-muted rounded-md">{user?.username}</div>
             </div>
             
             <div className="space-y-2">
-              <Label>邮箱地址</Label>
+              <Label>{t('settings.email')}</Label>
               <div className="p-2 bg-muted rounded-md">{user?.email}</div>
             </div>
             
             <div className="space-y-2">
-              <Label>账户角色</Label>
+              <Label>{t('settings.role')}</Label>
               <div className="p-2 bg-muted rounded-md">
-                {user?.role === 'super_admin' ? '超级管理员' :
-                 user?.role === 'admin' ? '管理员' :
-                 user?.role === 'author' ? '作者' :
-                 user?.role === 'contributor' ? '贡献者' :
-                 '访客'}
+                {user?.role === 'super_admin' ? t('roles.super_admin') :
+                 user?.role === 'admin' ? t('roles.admin') :
+                 user?.role === 'author' ? t('roles.author') :
+                 user?.role === 'contributor' ? t('roles.contributor') :
+                 t('roles.guest')}
               </div>
             </div>
           </CardContent>
@@ -282,7 +289,7 @@ export function SettingsPage() {
       </div>
 
       <div className="mt-8 flex justify-end">
-        <Button onClick={handleSave}>保存设置</Button>
+        <Button onClick={handleSave}>{t('settings.save')}</Button>
       </div>
     </div>
   );

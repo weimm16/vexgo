@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/I18nContext';
 import { configApi } from '@/lib/api';
 import type { AIConfig, AIModel } from '@/types';
 import type { AxiosError } from 'axios';
@@ -18,6 +19,7 @@ interface ApiErrorResponse {
 
 export function AISettingsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -44,7 +46,7 @@ export function AISettingsPage() {
       setConfig(response.data);
     } catch (error: unknown) {
       console.error('加载 AI 配置失败:', error);
-      toast.error('加载配置失败');
+      toast.error(t('aiSettings.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -52,7 +54,7 @@ export function AISettingsPage() {
 
   const fetchModels = async () => {
     if (!config.apiKey || !config.apiEndpoint) {
-      toast.warning('请先填写 API 密钥和端点');
+      toast.warning(t('aiSettings.configRequired'));
       return;
     }
 
@@ -60,12 +62,12 @@ export function AISettingsPage() {
     try {
       const response = await configApi.getAIModels();
       setModels(response.data.models);
-      toast.success(`成功获取 ${response.data.models.length} 个可用模型`);
+      toast.success(t('aiSettings.testSuccess'));
     } catch (error: unknown) {
       console.error('获取模型列表失败:', error);
       const axiosError = error as AxiosError<ApiErrorResponse>;
-      const errorMessage = axiosError.response?.data?.error || '未知错误';
-      toast.error('获取模型列表失败: ' + errorMessage);
+      const errorMessage = axiosError.response?.data?.error || t('common.unknownError');
+      toast.error(t('aiSettings.testFailed') + ': ' + errorMessage);
       setModels([]);
     } finally {
       setFetchingModels(false);
@@ -74,27 +76,27 @@ export function AISettingsPage() {
 
   const handleSave = async () => {
     if (!config.apiEndpoint.trim()) {
-      toast.error('请输入 API 端点');
+      toast.error(t('aiSettings.apiEndpoint') + t('common.required'));
       return;
     }
     if (!config.apiKey.trim()) {
-      toast.error('请输入 API 密钥');
+      toast.error(t('aiSettings.apiKey') + t('common.required'));
       return;
     }
     if (!config.modelName.trim()) {
-      toast.error('请选择或输入模型名称');
+      toast.error(t('aiSettings.selectModel'));
       return;
     }
 
     setSaving(true);
     try {
       await configApi.updateAIConfig(config);
-      toast.success('AI 配置已保存');
+      toast.success(t('aiSettings.saveSuccess'));
     } catch (error: unknown) {
       console.error('保存 AI 配置失败:', error);
       const axiosError = error as AxiosError<ApiErrorResponse>;
-      const errorMessage = axiosError.response?.data?.error || '未知错误';
-      toast.error('保存失败: ' + errorMessage);
+      const errorMessage = axiosError.response?.data?.error || t('common.unknownError');
+      toast.error(t('aiSettings.saveFailed') + ': ' + errorMessage);
     } finally {
       setSaving(false);
     }
@@ -102,24 +104,24 @@ export function AISettingsPage() {
 
   const handleTest = async () => {
     if (!config.enabled) {
-      toast.error('请先启用 AI');
+      toast.error(t('aiSettings.enableAI'));
       return;
     }
     if (!config.apiKey.trim()) {
-      toast.error('请先保存 API 密钥');
+      toast.error(t('common.save') + ' ' + t('aiSettings.apiKey'));
       return;
     }
 
     setTesting(true);
     try {
       const response = await configApi.testAI();
-      toast.success('AI 连接测试成功！');
-      console.log('AI 回复:', response.data.response);
+      toast.success(t('aiSettings.testSuccess') + '!');
+      console.log('AI Response:', response.data.response);
     } catch (error: unknown) {
       console.error('测试 AI 连接失败:', error);
       const axiosError = error as AxiosError<ApiErrorResponse>;
-      const errorMessage = axiosError.response?.data?.error || '未知错误';
-      toast.error('测试失败: ' + errorMessage);
+      const errorMessage = axiosError.response?.data?.error || t('common.unknownError');
+      toast.error(t('aiSettings.testFailed') + ': ' + errorMessage);
     } finally {
       setTesting(false);
     }
@@ -148,7 +150,7 @@ export function AISettingsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* 头部 */}
+      {/* Header */}
       <div className="mb-6">
         <Button 
           variant="ghost" 
@@ -157,31 +159,31 @@ export function AISettingsPage() {
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          返回管理后台
+          {t('aiSettings.backToAdmin')}
         </Button>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Cpu className="w-8 h-8" />
-          大模型设置
+          {t('aiSettings.title')}
         </h1>
         <p className="text-muted-foreground mt-2">
-          配置大模型 API，用于 AI 辅助功能
+          {t('aiSettings.description')}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>大模型配置</CardTitle>
+          <CardTitle>{t('aiSettings.baseSettings')}</CardTitle>
           <CardDescription>
-            填写 OpenAI 兼容的大模型 API 信息以启用 AI 功能
+            {t('commentConfig.apiConfigDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* 启用开关 */}
+          {/* Enable Switch */}
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <Label htmlFor="enabled">启用大模型</Label>
+              <Label htmlFor="enabled">{t('aiSettings.enableAI')}</Label>
               <p className="text-sm text-muted-foreground">
-                开启后系统将使用大模型 API 进行 AI 辅助功能
+                {t('aiSettings.enableAIDesc')}
               </p>
             </div>
             <Switch
@@ -191,61 +193,61 @@ export function AISettingsPage() {
             />
           </div>
 
-          {/* 提供商 */}
+          {/* Provider */}
           <div className="space-y-2">
-            <Label htmlFor="provider">大模型提供商</Label>
+            <Label htmlFor="provider">{t('aiSettings.provider')}</Label>
             <Select
               value={config.provider}
               onValueChange={(value) => setConfig({ ...config, provider: value })}
               disabled={saving}
             >
               <SelectTrigger>
-                <SelectValue placeholder="选择提供商" />
+                <SelectValue placeholder={t('aiSettings.selectProvider')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="openai">OpenAI</SelectItem>
-                <SelectItem value="custom">自定义 (OpenAI 兼容)</SelectItem>
+                <SelectItem value="custom">{t('common.custom')} (OpenAI {t('common.compatible')})</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              目前支持 OpenAI 及兼容接口
+              {t('aiSettings.supportedProviders')}
             </p>
           </div>
 
-          {/* API 端点 */}
+          {/* API Endpoint */}
           <div className="space-y-2">
-            <Label htmlFor="apiEndpoint">API 端点 URL *</Label>
+            <Label htmlFor="apiEndpoint">{t('aiSettings.apiEndpoint')} *</Label>
             <Input
               id="apiEndpoint"
               value={config.apiEndpoint}
               onChange={(e) => setConfig({ ...config, apiEndpoint: e.target.value })}
-              placeholder="例如: https://api.openai.com/v1/chat/completions"
+              placeholder={t('aiSettings.apiEndpointPlaceholder')}
               disabled={saving}
             />
             <p className="text-xs text-muted-foreground">
-              OpenAI 官方 Base Url: https://api.openai.com/v1
+              {t('aiSettings.apiBaseUrlExample')}
             </p>
           </div>
 
-          {/* API 密钥 */}
+          {/* API Key */}
           <div className="space-y-2">
             <Label htmlFor="apiKey">
-              API 密钥 {config.enabled && <span className="text-red-500">*</span>}
+              {t('aiSettings.apiKey')} {config.enabled && <span className="text-red-500">*</span>}
             </Label>
             <Input
               id="apiKey"
               type="password"
               value={config.apiKey}
               onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-              placeholder={config.enabled ? "请输入 API 密钥" : "如需启用请填写"}
+              placeholder={config.enabled ? t('aiSettings.apiKeyPlaceholder') : t('common.optional')}
               disabled={saving}
             />
             <p className="text-xs text-muted-foreground">
-              注意: API 密钥仅用于认证，请妥善保管
+              {t('aiSettings.apiKeyNote')}
             </p>
           </div>
 
-          {/* 模型名称 */}
+          {/* Model Name */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="modelName">

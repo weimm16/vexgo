@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from '@/lib/I18nContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { postsApi } from '@/lib/api';
 import type { Post, User } from '@/types';
 
 export function UserPostsPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const [posts, setPosts] = useState<Post[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -55,7 +57,7 @@ export function UserPostsPage() {
         <Button variant="ghost" size="sm" asChild className="mb-6">
           <Link to="/" className="flex items-center gap-2">
             <ArrowLeft className="w-4 h-4" />
-            返回首页
+            {t('userPostsPage.backToHome')}
           </Link>
         </Button>
 
@@ -100,7 +102,7 @@ export function UserPostsPage() {
       <Button variant="ghost" size="sm" asChild className="mb-6">
         <Link to="/" className="flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" />
-          返回首页
+          {t('userPostsPage.backToHome')}
         </Link>
       </Button>
 
@@ -119,27 +121,27 @@ export function UserPostsPage() {
                     </AvatarFallback>
                   )}
                 </Avatar>
-                <h2 className="text-xl font-bold mb-2">{user?.username || '未知用户'}</h2>
+                <h2 className="text-xl font-bold mb-2">{user?.username || t('userPostsPage.unknownUser')}</h2>
                 {!JSON.parse(localStorage.getItem('userSettings') || '{}').hideEmail && (
                   <p className="text-sm text-muted-foreground mb-2">{user?.email || ''}</p>
                 )}
-                
+
                 {/* 生日和个性签名 */}
                 <div className="flex flex-col gap-1 mb-4 text-sm text-muted-foreground">
                   {user?.birthday && !JSON.parse(localStorage.getItem('userSettings') || '{}').hideBirthday && (
                     <div className="flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      <span>生日: {new Date(user.birthday).toLocaleDateString('zh-CN')}</span>
+                      <span>{t('profilePage.birthday')}: {new Date(user.birthday).toLocaleDateString('zh-CN')}</span>
                     </div>
                   )}
                   {user?.bio && !JSON.parse(localStorage.getItem('userSettings') || '{}').hideBio && (
                     <p className="text-sm text-muted-foreground">{user.bio}</p>
                   )}
                 </div>
-                
+
                 <Separator className="my-4" />
                 <div className="w-full">
-                  <p className="text-sm text-muted-foreground mb-2">文章总数</p>
+                  <p className="text-sm text-muted-foreground mb-2">{t('userPostsPage.totalPosts')}</p>
                   <p className="text-2xl font-bold">{posts.length > 0 ? posts.length : 0}</p>
                 </div>
               </div>
@@ -149,13 +151,15 @@ export function UserPostsPage() {
 
         {/* 文章列表 */}
         <div className="flex-1">
-          <h1 className="text-2xl font-bold mb-6">{user?.username || '未知用户'}的文章</h1>
-          
+          <h1 className="text-2xl font-bold mb-6">
+            {t('userPostsPage.userPosts', { username: user?.username || t('userPostsPage.unknownUser') })}
+          </h1>
+
           {posts.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">
-                <h3 className="text-lg font-semibold mb-2">还没有文章</h3>
-                <p className="text-muted-foreground">该用户还没有发表任何文章</p>
+                <h3 className="text-lg font-semibold mb-2">{t('userPostsPage.noPosts')}</h3>
+                <p className="text-muted-foreground">{t('userPostsPage.noPostsDesc')}</p>
               </CardContent>
             </Card>
           ) : (
@@ -171,7 +175,7 @@ export function UserPostsPage() {
                         {post.excerpt || post.content.substring(0, 100) + '...'}
                       </p>
                     </Link>
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="w-8 h-8">
@@ -192,7 +196,7 @@ export function UserPostsPage() {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
                         <Badge variant="outline">{post.category}</Badge>
                         <span className="flex items-center gap-1">
@@ -215,7 +219,7 @@ export function UserPostsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <div className="text-sm text-muted-foreground">
-                第 {currentPage} 页，共 {totalPages} 页
+                {t('userPostsPage.pageInfo', { page: currentPage, totalPages })}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -224,7 +228,7 @@ export function UserPostsPage() {
                   onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                   disabled={currentPage === 1}
                 >
-                  上一页
+                  {t('userPostsPage.previousPage')}
                 </Button>
                 <Button
                   variant="outline"
@@ -232,7 +236,7 @@ export function UserPostsPage() {
                   onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  下一页
+                  {t('userPostsPage.nextPage')}
                 </Button>
               </div>
             </div>

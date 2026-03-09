@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/lib/I18nContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ interface RejectedCommentsResponse {
 }
 
 export function CommentModerationPage() {
+  const { t } = useTranslation();
   const [pendingComments, setPendingComments] = useState<Comment[]>([]);
   const [approvedComments, setApprovedComments] = useState<Comment[]>([]);
   const [rejectedComments, setRejectedComments] = useState<Comment[]>([]);
@@ -51,7 +53,7 @@ export function CommentModerationPage() {
       }
     } catch (error) {
       console.error('加载评论失败:', error);
-      toast.error('加载评论失败');
+      toast.error(t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -60,22 +62,22 @@ export function CommentModerationPage() {
   const handleApproveComment = async (commentId: string) => {
     try {
       await api.put(`/moderation/comments/approve/${commentId}`);
-      toast.success('评论审核通过');
+      toast.success(t('moderation.approveSuccess'));
       loadData();
     } catch (error) {
       console.error('审核通过失败:', error);
-      toast.error('审核通过失败');
+      toast.error(t('moderation.approveFailed'));
     }
   };
 
   const handleRejectComment = async (commentId: string) => {
     try {
       await api.put(`/moderation/comments/reject/${commentId}`);
-      toast.success('评论已拒绝');
+      toast.success(t('moderation.rejectSuccess'));
       loadData();
     } catch (error) {
       console.error('拒绝评论失败:', error);
-      toast.error('拒绝评论失败');
+      toast.error(t('moderation.rejectFailed'));
     }
   };
 
@@ -98,8 +100,8 @@ export function CommentModerationPage() {
     <div className="container mx-auto py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">评论审核</h1>
-          <p className="text-muted-foreground">管理用户提交的评论</p>
+          <h1 className="text-2xl font-bold">{t('commentModeration.title')}</h1>
+          <p className="text-muted-foreground">{t('adminData.manageComments')}</p>
         </div>
       </div>
 
@@ -107,34 +109,34 @@ export function CommentModerationPage() {
         <TabsList className="mb-4">
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            待审核
+            {t('moderation.pending')}
             <Badge variant="secondary" className="ml-1">
               {pendingComments.length}
             </Badge>
           </TabsTrigger>
           <TabsTrigger value="approved" className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4" />
-            已通过
+            {t('moderation.approved')}
           </TabsTrigger>
           <TabsTrigger value="rejected" className="flex items-center gap-2">
             <XCircle className="h-4 w-4" />
-            已拒绝
+            {t('moderation.rejected')}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending">
           <Card>
             <CardHeader>
-              <CardTitle>待审核评论</CardTitle>
+              <CardTitle>{t('commentModeration.pending')}</CardTitle>
               <CardDescription>
-                以下评论需要人工审核
+                {t('commentModeration.reviewNeeded')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">加载中...</div>
+                <div className="text-center py-8 text-muted-foreground">{t('common.loading')}</div>
               ) : comments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">暂无待审核评论</div>
+                <div className="text-center py-8 text-muted-foreground">{t('commentModeration.noPendingComments')}</div>
               ) : (
                 <div className="space-y-4">
                   {comments.map((comment) => (
@@ -142,7 +144,7 @@ export function CommentModerationPage() {
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2 mb-2">
                           <User className="h-4 w-4" />
-                          <span className="font-medium">{comment.author?.username || '匿名用户'}</span>
+                          <span className="font-medium">{comment.author?.username || t('commentModeration.anonymous')}</span>
                           <span className="text-muted-foreground text-sm">
                             {new Date(comment.createdAt).toLocaleString('zh-CN')}
                           </span>
@@ -154,7 +156,7 @@ export function CommentModerationPage() {
                             onClick={() => handleApproveComment(comment.id)}
                           >
                             <CheckCircle className="h-4 w-4 mr-1" />
-                            通过
+                            {t('moderation.approve')}
                           </Button>
                           <Button
                             size="sm"
@@ -162,7 +164,7 @@ export function CommentModerationPage() {
                             onClick={() => handleRejectComment(comment.id)}
                           >
                             <XCircle className="h-4 w-4 mr-1" />
-                            拒绝
+                            {t('moderation.reject')}
                           </Button>
                         </div>
                       </div>
@@ -180,27 +182,27 @@ export function CommentModerationPage() {
         <TabsContent value="approved">
           <Card>
             <CardHeader>
-              <CardTitle>已通过评论</CardTitle>
+              <CardTitle>{t('moderation.approved')}</CardTitle>
               <CardDescription>
-                已审核通过并公开显示的评论
+                {t('commentModeration.approvedDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">加载中...</div>
+                <div className="text-center py-8 text-muted-foreground">{t('common.loading')}</div>
               ) : comments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">暂无已通过评论</div>
+                <div className="text-center py-8 text-muted-foreground">{t('commentModeration.noApprovedComments')}</div>
               ) : (
                 <div className="space-y-4">
                   {comments.map((comment) => (
                     <div key={comment.id} className="border rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <User className="h-4 w-4" />
-                        <span className="font-medium">{comment.author?.username || '匿名用户'}</span>
+                        <span className="font-medium">{comment.author?.username || t('commentModeration.anonymous')}</span>
                         <span className="text-muted-foreground text-sm">
                           {new Date(comment.createdAt).toLocaleString('zh-CN')}
                         </span>
-                        <Badge variant="default" className="ml-auto">已通过</Badge>
+                        <Badge variant="default" className="ml-auto">{t('moderation.approved')}</Badge>
                       </div>
                       <div className="bg-muted/50 rounded p-3 mt-2">
                         <p className="text-sm">{comment.content}</p>
@@ -216,27 +218,27 @@ export function CommentModerationPage() {
         <TabsContent value="rejected">
           <Card>
             <CardHeader>
-              <CardTitle>已拒绝评论</CardTitle>
+              <CardTitle>{t('moderation.rejected')}</CardTitle>
               <CardDescription>
-                已被拒绝的评论，不会公开显示
+                {t('commentModeration.rejectedDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="text-center py-8 text-muted-foreground">加载中...</div>
+                <div className="text-center py-8 text-muted-foreground">{t('common.loading')}</div>
               ) : comments.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">暂无已拒绝评论</div>
+                <div className="text-center py-8 text-muted-foreground">{t('commentModeration.noRejectedComments')}</div>
               ) : (
                 <div className="space-y-4">
                   {comments.map((comment) => (
                     <div key={comment.id} className="border rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <User className="h-4 w-4" />
-                        <span className="font-medium">{comment.author?.username || '匿名用户'}</span>
+                        <span className="font-medium">{comment.author?.username || t('commentModeration.anonymous')}</span>
                         <span className="text-muted-foreground text-sm">
                           {new Date(comment.createdAt).toLocaleString('zh-CN')}
                         </span>
-                        <Badge variant="destructive" className="ml-auto">已拒绝</Badge>
+                        <Badge variant="destructive" className="ml-auto">{t('moderation.rejected')}</Badge>
                       </div>
                       <div className="bg-muted/50 rounded p-3 mt-2">
                         <p className="text-sm">{comment.content}</p>

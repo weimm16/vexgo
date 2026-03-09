@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/lib/I18nContext';
 import { getUsers, updateUserRole } from '@/lib/userApi';
 import type { User } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
@@ -19,6 +20,7 @@ import {
 
 export function UserManagementPage() {
   const { user: currentUser } = useAuth();
+  const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -26,27 +28,27 @@ export function UserManagementPage() {
 
   // 角色显示映射
   const roleDisplayMap: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    'super_admin': { label: '超级管理员', variant: 'destructive' },
-    'admin': { label: '管理员', variant: 'default' },
-    'author': { label: '作者', variant: 'secondary' },
-    'contributor': { label: '投稿者', variant: 'outline' },
-    'guest': { label: '访客', variant: 'outline' }
+    'super_admin': { label: t('roles.super_admin'), variant: 'destructive' },
+    'admin': { label: t('roles.admin'), variant: 'default' },
+    'author': { label: t('roles.author'), variant: 'secondary' },
+    'contributor': { label: t('roles.contributor'), variant: 'outline' },
+    'guest': { label: t('roles.guest'), variant: 'outline' }
   };
 
   // 可分配的角色选项（根据当前用户角色确定）
   const getAssignableRoles = () => {
     if (currentUser?.role === 'super_admin') {
       return [
-        { value: 'admin', label: '管理员' },
-        { value: 'author', label: '作者' },
-        { value: 'contributor', label: '投稿者' },
-        { value: 'guest', label: '访客' }
+        { value: 'admin', label: t('roles.admin') },
+        { value: 'author', label: t('roles.author') },
+        { value: 'contributor', label: t('roles.contributor') },
+        { value: 'guest', label: t('roles.guest') }
       ];
     } else if (currentUser?.role === 'admin') {
       return [
-        { value: 'author', label: '作者' },
-        { value: 'contributor', label: '投稿者' },
-        { value: 'guest', label: '访客' }
+        { value: 'author', label: t('roles.author') },
+        { value: 'contributor', label: t('roles.contributor') },
+        { value: 'guest', label: t('roles.guest') }
       ];
     }
     return [];
@@ -64,7 +66,7 @@ export function UserManagementPage() {
       setTotalPages(response.data.pagination.totalPages);
     } catch (error) {
       console.error('加载用户列表失败:', error);
-      toast.error('加载用户列表失败');
+      toast.error(t('userManagement.loadingUsers'));
     } finally {
       setLoading(false);
     }
@@ -74,7 +76,7 @@ export function UserManagementPage() {
     try {
       const response = await updateUserRole(userId, newRole);
       toast.success(response.data.message);
-      
+
       // 更新本地用户列表
       setUsers(prevUsers =>
         prevUsers.map(user =>
@@ -83,7 +85,7 @@ export function UserManagementPage() {
       );
     } catch (error) {
       console.error('更新用户角色失败:', error);
-      toast.error('更新用户角色失败');
+      toast.error(t('userManagement.updateRoleFailed'));
     }
   };
 
@@ -101,7 +103,7 @@ export function UserManagementPage() {
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Users className="w-6 h-6" />
-            用户管理
+            {t('userManagement.title')}
           </h1>
         </div>
         <div className="space-y-4">
@@ -126,7 +128,7 @@ export function UserManagementPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Users className="w-6 h-6" />
-          用户管理
+          {t('userManagement.title')}
         </h1>
       </div>
 
@@ -134,7 +136,7 @@ export function UserManagementPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserCheck className="w-5 h-5" />
-            用户列表
+            {t('userManagement.userList')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -157,7 +159,7 @@ export function UserManagementPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span>注册时间: {user.createdAt ? formatDate(user.createdAt) : '未知'}</span>
+                    <span>{t('userManagement.registered')}: {user.createdAt ? formatDate(user.createdAt) : t('userManagement.unknown')}</span>
                   </div>
                 </div>
                 
@@ -187,11 +189,11 @@ export function UserManagementPage() {
                   )}
                   
                   {currentUser?.id !== user.id && currentUser?.role === 'admin' && user.role === 'admin' && (
-                    <Badge variant="secondary">同等级</Badge>
+                    <Badge variant="secondary">{t('userManagement.sameLevel')}</Badge>
                   )}
-                  
+
                   {currentUser?.id === user.id && (
-                    <Badge variant="secondary">当前用户</Badge>
+                    <Badge variant="secondary">{t('userManagement.currentUser')}</Badge>
                   )}
                 </div>
               </div>
@@ -202,26 +204,26 @@ export function UserManagementPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-6">
               <div className="text-sm text-muted-foreground">
-                第 {currentPage} 页，共 {totalPages} 页
+                {t('userManagement.page', { page: currentPage, totalPages })}
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  上一页
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  下一页
-                </Button>
-              </div>
+             <div className="flex gap-2">
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                 disabled={currentPage === 1}
+               >
+                 {t('userManagement.previousPage')}
+               </Button>
+               <Button
+                 variant="outline"
+                 size="sm"
+                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                 disabled={currentPage === totalPages}
+               >
+                 {t('userManagement.nextPage')}
+               </Button>
+             </div>
             </div>
           )}
         </CardContent>

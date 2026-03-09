@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { postsApi, categoriesApi, uploadApi } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/lib/I18nContext';
 import type { Category } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ import {
 } from 'lucide-react';
 
 export function WritePostPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -105,7 +107,7 @@ export function WritePostPage() {
       if (post.category) {
         const categoryStr = String(post.category);
         // 尝试在分类列表中找到对应的分类
-        const foundCategory = categories.find(cat => 
+        const foundCategory = categories.find(cat =>
           String(cat.id) === categoryStr || cat.name === categoryStr
         );
         // 如果找到对应的分类，使用分类的名称作为 value
@@ -172,7 +174,7 @@ export function WritePostPage() {
     if (!file) return;
 
     if (file.size > 10 * 1024 * 1024) {
-      alert('图片大小不能超过10MB');
+      alert(t('writePostPage.imageTooLarge'));
       return;
     }
 
@@ -189,7 +191,7 @@ export function WritePostPage() {
       setCoverImage(response.data.file!.url);
     } catch (err) {
       console.error('上传裁剪后图片失败:', err);
-      alert('上传裁剪后图片失败，请重试');
+      alert(t('writePostPage.uploadFailed'));
     } finally {
       setUploadingImage(false);
       setSelectedFile(null);
@@ -198,15 +200,15 @@ export function WritePostPage() {
 
   const handleSubmit = async (status: 'published' | 'draft' | 'pending') => {
     if (!title.trim()) {
-      alert('请输入文章标题');
+      alert(t('writePostPage.titleRequired'));
       return;
     }
     if (!content.trim()) {
-      alert('请输入文章内容');
+      alert(t('writePostPage.contentRequired'));
       return;
     }
     if (!category) {
-      alert('请选择文章分类');
+      alert(t('writePostPage.categoryRequired'));
       return;
     }
 
@@ -231,7 +233,7 @@ export function WritePostPage() {
       }
     } catch (error) {
       console.error('保存文章失败:', error);
-      alert('保存文章失败，请重试');
+      alert(t('writePostPage.writePostFailed'));
     } finally {
       setSaving(false);
     }
@@ -243,7 +245,7 @@ export function WritePostPage() {
       <div className="flex items-center justify-between mb-8">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          返回
+          {t('writePostPage.goBack')}
         </Button>
         <div className="flex items-center gap-2">
           <Button
@@ -252,7 +254,7 @@ export function WritePostPage() {
             disabled={saving}
           >
             <Save className="w-4 h-4 mr-2" />
-            保存草稿
+            {t('writePostPage.saveDraft')}
           </Button>
           {/* 投稿者只能提交待审核文章，不能直接发布 */}
           {isContributor ? (
@@ -265,7 +267,7 @@ export function WritePostPage() {
               ) : (
                 <Send className="w-4 h-4 mr-2" />
               )}
-              提交审核
+              {t('writePostPage.submitReview')}
             </Button>
           ) : (
             <Button
@@ -277,7 +279,7 @@ export function WritePostPage() {
               ) : (
                 <Send className="w-4 h-4 mr-2" />
               )}
-              {isEditMode ? '更新' : '发布'}
+              {isEditMode ? t('writePostPage.update') : t('writePostPage.publish')}
             </Button>
           )}
         </div>
@@ -288,7 +290,7 @@ export function WritePostPage() {
         {/* 标题 */}
         <div>
           <Input
-            placeholder="请输入文章标题..."
+            placeholder={t('writePostPage.titlePlaceholder')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             className="text-2xl font-bold border-0 border-b rounded-none px-0 focus-visible:ring-0"
@@ -298,7 +300,7 @@ export function WritePostPage() {
         {/* 封面图 */}
         <Card>
           <CardContent className="p-4">
-            <Label className="block mb-2">封面图</Label>
+            <Label className="block mb-2">{t('writePostPage.coverImage')}</Label>
             {coverImage ? (
               <div className="relative">
                 <img
@@ -334,10 +336,10 @@ export function WritePostPage() {
                     <ImageIcon className="w-8 h-8 text-gray-400 mb-2" />
                   )}
                   <span className="text-sm text-gray-500">
-                    {uploadingImage ? '上传中...' : '点击上传封面图'}
+                    {uploadingImage ? t('writePostPage.uploading') : t('writePostPage.uploadCover')}
                   </span>
                   <span className="text-xs text-gray-400 mt-1">
-                    支持 JPG、PNG、GIF，最大 10MB
+                    {t('writePostPage.imageFormat')}
                   </span>
                 </label>
               </div>
@@ -349,10 +351,10 @@ export function WritePostPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* 分类 */}
           <div>
-            <Label htmlFor="category" className="block mb-2">分类 *</Label>
+            <Label htmlFor="category" className="block mb-2">{t('writePostPage.categoryLabel')} *</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger>
-                <SelectValue placeholder="选择分类" />
+                <SelectValue placeholder={t('writePostPage.selectCategory')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (
@@ -366,11 +368,11 @@ export function WritePostPage() {
 
           {/* 标签 */}
           <div>
-            <Label htmlFor="tags" className="block mb-2">标签</Label>
+            <Label htmlFor="tags" className="block mb-2">{t('writePostPage.tagsLabel')}</Label>
             <div className="flex gap-2">
               <Input
                 id="tags"
-                placeholder="添加标签"
+                placeholder={t('writePostPage.tagsPlaceholder')}
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -409,10 +411,10 @@ export function WritePostPage() {
 
         {/* 摘要 */}
         <div>
-          <Label htmlFor="excerpt" className="block mb-2">摘要</Label>
+          <Label htmlFor="excerpt" className="block mb-2">{t('writePostPage.excerptLabel')}</Label>
           <Textarea
             id="excerpt"
-            placeholder="请输入文章摘要（可选，不填写将自动提取正文前200字）"
+            placeholder={t('writePostPage.excerptPlaceholder')}
             value={excerpt}
             onChange={(e) => setExcerpt(e.target.value)}
             rows={3}
@@ -421,11 +423,11 @@ export function WritePostPage() {
 
         {/* 富文本编辑器 */}
         <div>
-          <Label className="block mb-2">正文内容 *</Label>
+          <Label className="block mb-2">{t('writePostPage.contentLabel')} *</Label>
           <RichTextEditor
             content={content}
             onChange={setContent}
-            placeholder="开始写作..."
+            placeholder={t('writePostPage.contentPlaceholder')}
           />
         </div>
         {showCropper && selectedFile && (

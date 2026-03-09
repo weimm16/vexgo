@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { authApi, uploadApi } from '@/lib/api';
+import { useTranslation } from '@/lib/I18nContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,6 +25,7 @@ import { Badge } from '@/components/ui/badge';
 
 export function ProfilePage() {
   const { user, updateUser } = useAuth();
+  const { t } = useTranslation();
   const [username, setUsername] = useState(user?.username || '');
   const [birthday, setBirthday] = useState(user?.birthday || '');
   const [bio, setBio] = useState(user?.bio || '');
@@ -49,15 +51,15 @@ export function ProfilePage() {
     setLoading(true);
 
     try {
-      const response = await authApi.updateProfile({ 
-        username, 
-        birthday, 
+      const response = await authApi.updateProfile({
+        username,
+        birthday,
         bio
       });
       updateUser(response.data.user);
-      setSuccess('个人信息更新成功');
+      setSuccess(t('profilePage.updateSuccess'));
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '更新失败';
+      const errorMessage = err instanceof Error ? err.message : t('profilePage.updateFailed');
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -70,12 +72,12 @@ export function ProfilePage() {
     setSuccess('');
 
     if (newPassword !== confirmPassword) {
-      setError('两次输入的密码不一致');
+      setError(t('profilePage.passwordMismatch'));
       return;
     }
 
     if (newPassword.length < 6) {
-      setError('新密码至少需要6个字符');
+      setError(t('profilePage.passwordTooShort'));
       return;
     }
 
@@ -83,12 +85,12 @@ export function ProfilePage() {
 
     try {
       await authApi.changePassword({ oldPassword, newPassword });
-      setSuccess('密码修改成功');
+      setSuccess(t('profilePage.passwordChangeSuccess'));
       setOldPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '密码修改失败';
+      const errorMessage = err instanceof Error ? err.message : t('profilePage.passwordChangeFailed');
       setError(errorMessage);
     } finally {
       setPasswordLoading(false);
@@ -102,12 +104,12 @@ export function ProfilePage() {
     setShowEmailDialog(false);
 
     if (!newEmail) {
-      setError('请输入新邮箱地址');
+      setError(t('profilePage.enterNewEmail'));
       return;
     }
 
     if (newEmail === user?.email) {
-      setError('新邮箱不能与当前邮箱相同');
+      setError(t('profilePage.emailSameAsCurrent'));
       return;
     }
 
@@ -130,7 +132,7 @@ export function ProfilePage() {
         }
       }
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '邮箱修改失败';
+      const errorMessage = err instanceof Error ? err.message : t('profilePage.emailChangeFailed');
       setError(errorMessage);
     } finally {
       setEmailLoading(false);
@@ -160,13 +162,28 @@ export function ProfilePage() {
         // 更新用户头像
         const updateResponse = await authApi.updateProfile({ avatar: uploadResponse.data.file.url });
         updateUser(updateResponse.data.user);
-        setSuccess('头像更新成功');
+        setSuccess(t('profilePage.updateAvatar'));
       }
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : '头像更新失败';
+      const errorMessage = err instanceof Error ? err.message : t('profilePage.avatarUpdateFailed');
       setError(errorMessage);
     } finally {
       setAvatarLoading(false);
+    }
+  };
+
+  const getRoleLabel = (role?: string) => {
+    switch (role) {
+      case 'super_admin':
+        return t('profilePage.roleSuperAdmin');
+      case 'admin':
+        return t('profilePage.roleAdmin');
+      case 'author':
+        return t('profilePage.roleAuthor');
+      case 'contributor':
+        return t('profilePage.roleContributor');
+      default:
+        return t('profilePage.roleGuest');
     }
   };
 
@@ -204,22 +221,14 @@ export function ProfilePage() {
           <CardTitle className="text-2xl">{user?.username}</CardTitle>
           <CardDescription>{user?.email}</CardDescription>
           <Badge variant={user?.role === 'admin' || user?.role === 'super_admin' ? 'default' : 'secondary'} className="mt-2">
-            {user?.role === 'super_admin'
-              ? '超级管理员'
-              : user?.role === 'admin'
-              ? '管理员'
-              : user?.role === 'author'
-              ? '作者'
-              : user?.role === 'contributor'
-              ? '贡献者'
-              : '访客'}
+            {getRoleLabel(user?.role)}
           </Badge>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="profile">个人信息</TabsTrigger>
-              <TabsTrigger value="password">修改密码</TabsTrigger>
+              <TabsTrigger value="profile">{t('profilePage.profileInfo')}</TabsTrigger>
+              <TabsTrigger value="password">{t('profilePage.changePassword')}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="profile">
@@ -237,7 +246,7 @@ export function ProfilePage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">邮箱</Label>
+                  <Label htmlFor="email">{t('profilePage.emailLabel')}</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
@@ -249,7 +258,7 @@ export function ProfilePage() {
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    如需修改邮箱，请点击下方"修改邮箱"按钮
+                    {t('profilePage.changeEmailTip')}
                   </p>
                   <Button
                     type="button"
@@ -257,12 +266,12 @@ export function ProfilePage() {
                     className="w-full"
                     onClick={openEmailChangeDialog}
                   >
-                    修改邮箱
+                    {t('profilePage.changeEmailButton')}
                   </Button>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="username">用户名</Label>
+                  <Label htmlFor="username">{t('profilePage.usernameLabel')}</Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
@@ -277,7 +286,7 @@ export function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="birthday">生日</Label>
+                  <Label htmlFor="birthday">{t('profilePage.birthdayLabel')}</Label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
@@ -291,30 +300,28 @@ export function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="bio">个性签名</Label>
+                  <Label htmlFor="bio">{t('profilePage.bioLabel')}</Label>
                   <div className="relative">
                     <UserPlus className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
                     <Textarea
                       id="bio"
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
-                      placeholder="请输入个性签名"
+                      placeholder={t('profilePage.bioPlaceholder')}
                       className="pl-10"
                       rows={3}
                     />
                   </div>
                 </div>
 
-
-
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      保存中...
+                      {t('profilePage.saving')}
                     </>
                   ) : (
-                    '保存修改'
+                    t('profilePage.saveChanges')
                   )}
                 </Button>
               </form>
@@ -335,7 +342,7 @@ export function ProfilePage() {
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="oldPassword">当前密码</Label>
+                  <Label htmlFor="oldPassword">{t('profilePage.currentPassword')}</Label>
                   <div className="relative">
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
@@ -357,7 +364,7 @@ export function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">新密码</Label>
+                  <Label htmlFor="newPassword">{t('profilePage.newPassword')}</Label>
                   <div className="relative">
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
@@ -380,7 +387,7 @@ export function ProfilePage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">确认新密码</Label>
+                  <Label htmlFor="confirmPassword">{t('profilePage.confirmPassword')}</Label>
                   <div className="relative">
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
@@ -405,10 +412,10 @@ export function ProfilePage() {
                   {passwordLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      修改中...
+                      {t('profilePage.saving')}
                     </>
                   ) : (
-                    '修改密码'
+                    t('profilePage.changePassword')
                   )}
                 </Button>
               </form>
@@ -421,20 +428,20 @@ export function ProfilePage() {
       <AlertDialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>修改邮箱地址</AlertDialogTitle>
+            <AlertDialogTitle>{t('profilePage.changeEmailDialog')}</AlertDialogTitle>
             <AlertDialogDescription>
-              请输入新的邮箱地址。{user?.emailVerified ? '由于您已启用邮件验证，系统将发送一封确认邮件到您的新邮箱，请点击邮件中的链接完成验证。' : '由于未启用SMTP，邮箱将直接更新。'}
+              {t('profilePage.changeEmailDescription', { smtpEnabled: user?.emailVerified ? t('profilePage.smtpEnabled') : t('profilePage.smtpDisabled') })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="py-4">
             <div className="space-y-2">
-              <Label htmlFor="newEmailInput">新邮箱</Label>
+              <Label htmlFor="newEmailInput">{t('profilePage.newEmail')}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="newEmailInput"
                   type="email"
-                  placeholder="请输入新邮箱地址"
+                  placeholder={t('profilePage.enterNewEmail')}
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                   className="pl-10"
@@ -443,7 +450,7 @@ export function ProfilePage() {
             </div>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={emailLoading}>取消</AlertDialogCancel>
+            <AlertDialogCancel disabled={emailLoading}>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
@@ -454,10 +461,10 @@ export function ProfilePage() {
               {emailLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  处理中...
+                  {t('profilePage.saving')}
                 </>
               ) : (
-                '确认修改'
+                t('profilePage.confirmChange')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

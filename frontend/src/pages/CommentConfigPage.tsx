@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from '@/lib/I18nContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ import type { CommentModerationConfig } from '@/types';
 
 export function CommentConfigPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<CommentModerationConfig>({
@@ -23,7 +25,7 @@ export function CommentConfigPage() {
     apiKey: '',
     apiEndpoint: '',
     modelName: 'gpt-3.5-turbo',
-    moderationPrompt: '请审核以下评论内容是否合规。如果评论包含违法不良信息、人身攻击、色情低俗等内容，请返回 \'REJECT\'；如果评论合规，请返回 \'APPROVE\'。只需返回结果，不要解释。\n\n评论内容：\n{{content}}',
+    moderationPrompt: t('commentConfig.moderationPromptPlaceholder'),
     blockKeywords: '',
     autoApproveEnabled: true,
     minScoreThreshold: 0.5,
@@ -41,7 +43,7 @@ export function CommentConfigPage() {
       setConfig(response.data);
     } catch (error: any) {
       console.error('加载评论审核配置失败:', error);
-      toast.error('加载配置失败');
+      toast.error(t('commentConfig.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -51,10 +53,10 @@ export function CommentConfigPage() {
     setSaving(true);
     try {
       await configApi.updateCommentModerationConfig(config);
-      toast.success('保存成功');
+      toast.success(t('commentConfig.saveSuccess'));
     } catch (error: any) {
       console.error('保存配置失败:', error);
-      toast.error(error.response?.data?.error || '保存配置失败');
+      toast.error(error.response?.data?.error || t('commentConfig.saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -63,7 +65,7 @@ export function CommentConfigPage() {
   if (loading) {
     return (
       <div className="container mx-auto py-6">
-        <div className="text-center py-8 text-muted-foreground">加载中...</div>
+        <div className="text-center py-8 text-muted-foreground">{t('common.loading')}</div>
       </div>
     );
   }
@@ -76,13 +78,13 @@ export function CommentConfigPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">评论审核配置</h1>
-            <p className="text-muted-foreground">配置AI评论审核规则和参数</p>
+            <h1 className="text-2xl font-bold">{t('commentConfig.title')}</h1>
+            <p className="text-muted-foreground">{t('commentConfig.description')}</p>
           </div>
         </div>
         <Button onClick={handleSave} disabled={saving}>
           <Save className="h-4 w-4 mr-2" />
-          {saving ? '保存中...' : '保存配置'}
+          {saving ? t('commentConfig.saving') : t('commentConfig.saveConfig')}
         </Button>
       </div>
 
@@ -91,18 +93,18 @@ export function CommentConfigPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              基础设置
+              {t('commentConfig.basicSettings')}
             </CardTitle>
             <CardDescription>
-              配置评论审核的开关和基本参数
+              {t('commentConfig.basicSettingsDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>启用AI评论审核</Label>
+                <Label>{t('commentConfig.enableAIModeration')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  开启后，新评论将经过AI审核后才会显示
+                  {t('commentConfig.enableAIModerationDesc')}
                 </p>
               </div>
               <Switch
@@ -112,9 +114,9 @@ export function CommentConfigPage() {
             </div>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>自动批准低风险评论</Label>
+                <Label>{t('commentConfig.autoApproveLowRisk')}</Label>
                 <p className="text-sm text-muted-foreground">
-                  开启后，风险分数低于阈值的评论将自动通过
+                  {t('commentConfig.autoApproveLowRiskDesc')}
                 </p>
               </div>
               <Switch
@@ -123,7 +125,7 @@ export function CommentConfigPage() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="minScore">最低分数阈值</Label>
+              <Label htmlFor="minScore">{t('commentConfig.minScoreThreshold')}</Label>
               <Input
                 id="minScore"
                 type="number"
@@ -134,7 +136,7 @@ export function CommentConfigPage() {
                 onChange={(e) => setConfig({ ...config, minScoreThreshold: parseFloat(e.target.value) })}
               />
               <p className="text-sm text-muted-foreground">
-                低于此分数的评论将被拒绝（0-1之间）
+                {t('commentConfig.minScoreThresholdDesc')}
               </p>
             </div>
           </CardContent>
@@ -144,56 +146,56 @@ export function CommentConfigPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Key className="h-5 w-5" />
-              API配置
+              {t('commentConfig.apiConfig')}
             </CardTitle>
             <CardDescription>
-              配置AI服务提供商的API密钥和端点
+              {t('commentConfig.apiConfigDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
-              <Label htmlFor="modelProvider">模型提供商</Label>
+              <Label htmlFor="modelProvider">{t('commentConfig.modelProvider')}</Label>
               <Select
                 value={config.modelProvider}
                 onValueChange={(value) => setConfig({ ...config, modelProvider: value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="选择AI模型提供商" />
+                  <SelectValue placeholder={t('commentConfig.selectModelProvider')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="openai">OpenAI</SelectItem>
                   <SelectItem value="azure">Azure OpenAI</SelectItem>
                   <SelectItem value="anthropic">Anthropic</SelectItem>
-                  <SelectItem value="custom">自定义API</SelectItem>
+                  <SelectItem value="custom">{t('common.custom')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="modelName">模型名称</Label>
+              <Label htmlFor="modelName">{t('commentConfig.modelName')}</Label>
               <Input
                 id="modelName"
                 value={config.modelName}
                 onChange={(e) => setConfig({ ...config, modelName: e.target.value })}
-                placeholder="如: gpt-3.5-turbo"
+                placeholder={t('commentConfig.modelNamePlaceholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="apiKey">API密钥</Label>
+              <Label htmlFor="apiKey">{t('commentConfig.apiKey')}</Label>
               <Input
                 id="apiKey"
                 type="password"
                 value={config.apiKey}
                 onChange={(e) => setConfig({ ...config, apiKey: e.target.value })}
-                placeholder="留空则不更新密钥"
+                placeholder={t('commentConfig.apiKeyPlaceholder')}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="apiEndpoint">API端点（可选）</Label>
+              <Label htmlFor="apiEndpoint">{t('commentConfig.apiEndpoint')}</Label>
               <Input
                 id="apiEndpoint"
                 value={config.apiEndpoint}
                 onChange={(e) => setConfig({ ...config, apiEndpoint: e.target.value })}
-                placeholder="如使用代理或自定义端点"
+                placeholder={t('commentConfig.apiEndpointPlaceholder')}
               />
             </div>
           </CardContent>
@@ -203,37 +205,37 @@ export function CommentConfigPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bot className="h-5 w-5" />
-              审核规则
+              {t('commentConfig.moderationRules')}
             </CardTitle>
             <CardDescription>
-              配置AI审核的提示词和关键词过滤
+              {t('commentConfig.moderationRulesDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
-              <Label htmlFor="moderationPrompt">审核提示词</Label>
+              <Label htmlFor="moderationPrompt">{t('commentConfig.moderationPrompt')}</Label>
               <Textarea
                 id="moderationPrompt"
                 value={config.moderationPrompt}
                 onChange={(e) => setConfig({ ...config, moderationPrompt: e.target.value })}
                 rows={6}
-                placeholder="输入AI审核时使用的提示词"
+                placeholder={t('commentConfig.moderationPromptPlaceholder')}
               />
               <p className="text-sm text-muted-foreground">
-                可使用 {'{{content}}'} 占位符代表评论内容
+                {t('commentConfig.placeholderHint')}
               </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="blockKeywords">屏蔽关键词</Label>
+              <Label htmlFor="blockKeywords">{t('commentConfig.blockKeywords')}</Label>
               <Textarea
                 id="blockKeywords"
                 value={config.blockKeywords}
                 onChange={(e) => setConfig({ ...config, blockKeywords: e.target.value })}
                 rows={3}
-                placeholder="输入需要屏蔽的关键词，多个关键词用逗号分隔"
+                placeholder={t('commentConfig.blockKeywordsPlaceholder')}
               />
               <p className="text-sm text-muted-foreground">
-                包含这些关键词的评论将被自动拒绝
+                {t('commentConfig.blockKeywordsDesc')}
               </p>
             </div>
           </CardContent>

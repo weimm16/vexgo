@@ -1,6 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { configApi } from '@/lib/api';
+import { useTranslation } from '@/lib/I18nContext';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -22,6 +23,7 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
+  const { t } = useTranslation();
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,7 +41,7 @@ export function Layout({ children }: LayoutProps) {
           document.title = response.data.siteName;
         }
       } catch (error) {
-        console.error('加载网站名称失败:', error);
+        console.error(t('common.error'), error);
       }
     };
     loadSiteName();
@@ -58,10 +60,10 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const navItems = [
-    { path: '/', label: '首页', icon: Home },
-    ...(isAuthenticated ? [{ path: '/write', label: '写文章', icon: PenLine }] : []),
-    ...(isAuthenticated ? [{ path: '/my-posts', label: '我的文章', icon: FileText }] : []),
-    ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/admin', label: '管理后台', icon: BarChart3 }] : []),
+    { path: '/', label: t('layout.home'), icon: Home },
+    ...(isAuthenticated ? [{ path: '/write', label: t('layout.writePost'), icon: PenLine }] : []),
+    ...(isAuthenticated ? [{ path: '/my-posts', label: t('layout.myPosts'), icon: FileText }] : []),
+    ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/admin', label: t('layout.adminPanel'), icon: BarChart3 }] : []),
   ];
 
   const isActive = (path: string) => {
@@ -95,7 +97,7 @@ export function Layout({ children }: LayoutProps) {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="搜索文章..."
+                  placeholder={t('layout.searchPlaceholder')}
                   className="pl-10 w-full"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -156,26 +158,26 @@ export function Layout({ children }: LayoutProps) {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => navigate('/profile')}>
                       <User className="mr-2 h-4 w-4" />
-                      个人中心
+                      {t('layout.profile')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/settings')}>
                       <Settings className="mr-2 h-4 w-4" />
-                      设置
+                      {t('layout.settings')}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                       <LogOut className="mr-2 h-4 w-4" />
-                      退出登录
+                      {t('layout.logout')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" asChild>
-                    <Link to="/login">登录</Link>
+                    <Link to="/login">{t('layout.login')}</Link>
                   </Button>
                   <Button size="sm" asChild>
-                    <Link to="/register">注册</Link>
+                    <Link to="/register">{t('layout.registerText')}</Link>
                   </Button>
                 </div>
               )}
@@ -201,7 +203,7 @@ export function Layout({ children }: LayoutProps) {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="搜索文章..."
+                    placeholder={t('layout.searchPlaceholder')}
                     className="pl-10 w-full"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -247,14 +249,14 @@ export function Layout({ children }: LayoutProps) {
               <span className="font-semibold">{siteName}</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2026 {siteName}. All rights reserved.
+              {t('layout.allRightsReserved', { siteName })}
             </p>
             <div className="flex gap-4">
               <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
-                首页
+                {t('layout.home')}
               </Link>
               <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground">
-                关于
+                {t('layout.about')}
               </Link>
             </div>
           </div>

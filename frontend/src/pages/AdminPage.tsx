@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/lib/I18nContext';
 import { statsApi, postsApi, categoriesApi } from '@/lib/api';
 import type { Post, Category } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +20,7 @@ import {
 export function AdminPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [stats, setStats] = useState({
     posts: 0,
     users: 0,
@@ -35,14 +37,14 @@ export function AdminPage() {
   const [activeTab, setActiveTab] = useState<'overview'|'posts'|'drafts'|'categories'>('overview');
 
   useEffect(() => {
-    // 检查是否为管理员或超级管理员
+    // Check if user is admin or super admin
     if (user && user.role !== 'admin' && user.role !== 'super_admin') {
       navigate('/');
       return;
     }
 
     loadData();
-  }, [user]);
+  }, [user, navigate]);
 
   const loadData = async () => {
     setLoading(true);
@@ -105,43 +107,35 @@ export function AdminPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'published':
-        return {
-          variant: 'default' as const,
-          label: '已发布',
-          icon: CheckCircle,
-          className: 'bg-green-600 hover:bg-green-700'
-        };
-      case 'draft':
-        return {
-          variant: 'secondary' as const,
-          label: '草稿',
-          icon: FileX,
-          className: ''
-        };
-      case 'pending':
-        return {
-          variant: 'outline' as const,
-          label: '待审核',
-          icon: Clock,
-          className: 'text-yellow-600 border-yellow-600'
-        };
-      case 'rejected':
-        return {
-          variant: 'destructive' as const,
-          label: '已拒绝',
-          icon: XCircle,
-          className: ''
-        };
-      default:
-        return {
-          variant: 'secondary' as const,
-          label: status,
-          icon: AlertCircle,
-          className: ''
-        };
-    }
+    type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+    type IconComponent = typeof CheckCircle;
+    const statusMap: Record<string, { label: string; variant: BadgeVariant; icon: IconComponent; className: string }> = {
+      published: {
+        label: t('posts.published'),
+        variant: 'default',
+        icon: CheckCircle,
+        className: 'bg-green-600 hover:bg-green-700'
+      },
+      draft: {
+        label: t('posts.draft'),
+        variant: 'secondary',
+        icon: FileX,
+        className: ''
+      },
+      pending: {
+        label: t('posts.pending'),
+        variant: 'outline',
+        icon: Clock,
+        className: 'text-yellow-600 border-yellow-600'
+      },
+      rejected: {
+        label: t('posts.rejected'),
+        variant: 'destructive',
+        icon: XCircle,
+        className: ''
+      }
+    };
+    return statusMap[status] || { variant: 'secondary' as BadgeVariant, label: status, icon: AlertCircle, className: '' };
   };
 
   if (loading) {
@@ -165,7 +159,7 @@ export function AdminPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <BarChart3 className="w-6 h-6" />
-          管理后台
+          {t('admin.title')}
         </h1>
       </div>
 
@@ -175,7 +169,7 @@ export function AdminPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">文章总数</p>
+                <p className="text-sm text-muted-foreground">{t('admin.totalPosts')}</p>
                 <p className="text-3xl font-bold">{stats.posts}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -189,7 +183,7 @@ export function AdminPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">用户总数</p>
+                <p className="text-sm text-muted-foreground">{t('admin.totalUsers')}</p>
                 <p className="text-3xl font-bold">{stats.users}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -203,7 +197,7 @@ export function AdminPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">评论总数</p>
+                <p className="text-sm text-muted-foreground">{t('admin.pendingPosts')}</p>
                 <p className="text-3xl font-bold">{stats.comments}</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
@@ -217,7 +211,7 @@ export function AdminPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">分类/标签</p>
+                <p className="text-sm text-muted-foreground">{t('admin.quickStats')}</p>
                 <p className="text-3xl font-bold">{stats.categories}/{stats.tags}</p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -228,13 +222,13 @@ export function AdminPage() {
         </Card>
       </div>
 
-      {/* 管理标签页 */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+      {/* Management Tabs */}
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'overview'|'posts'|'drafts'|'categories')} className="w-full">
         <TabsList className="grid w-full grid-cols-4 max-w-md">
-          <TabsTrigger value="overview">概览</TabsTrigger>
-          <TabsTrigger value="posts">文章管理</TabsTrigger>
-          <TabsTrigger value="drafts">草稿管理</TabsTrigger>
-          <TabsTrigger value="categories">分类管理</TabsTrigger>
+          <TabsTrigger value="overview">{t('adminData.overview')}</TabsTrigger>
+          <TabsTrigger value="posts">{t('adminData.posts')}</TabsTrigger>
+          <TabsTrigger value="drafts">{t('adminData.draftPosts')}</TabsTrigger>
+          <TabsTrigger value="categories">{t('adminData.allCategories')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="mt-6">
@@ -243,11 +237,11 @@ export function AdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="w-5 h-5" />
-                  通用设置
+                  {t('generalSettings.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">管理系统基本配置和验证设置</p>
+                <p className="text-muted-foreground">{t('adminData.configGeneralSettings')}</p>
               </CardContent>
             </Card>
             
@@ -255,11 +249,11 @@ export function AdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="w-5 h-5" />
-                  文章审核
+                  {t('moderation.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">管理待审核的文章内容</p>
+                <p className="text-muted-foreground">{t('adminData.manageModeration')}</p>
               </CardContent>
             </Card>
             
@@ -267,11 +261,11 @@ export function AdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="w-5 h-5" />
-                  评论审核
+                  {t('commentModeration.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">管理待审核的评论内容</p>
+                <p className="text-muted-foreground">{t('adminData.manageComments')}</p>
               </CardContent>
             </Card>
             
@@ -279,11 +273,11 @@ export function AdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  用户管理
+                  {t('userManagement.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">管理系统用户和权限</p>
+                <p className="text-muted-foreground">{t('adminData.manageUsers')}</p>
               </CardContent>
             </Card>
 
@@ -291,11 +285,11 @@ export function AdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Mail className="w-5 h-5" />
-                  SMTP 设置
+                  {t('smtpSettings.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">配置邮件服务器，启用注册验证</p>
+                <p className="text-muted-foreground">{t('adminData.configEmail')}</p>
               </CardContent>
             </Card>
 
@@ -303,11 +297,11 @@ export function AdminPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Cpu className="w-5 h-5" />
-                  大模型设置
+                  {t('aiSettings.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">配置 AI 大模型 API，启用智能功能</p>
+                <p className="text-muted-foreground">{t('adminData.configAI')}</p>
               </CardContent>
             </Card>
           </div>
@@ -316,7 +310,7 @@ export function AdminPage() {
         <TabsContent value="posts" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>最近文章</CardTitle>
+              <CardTitle>{t('adminData.recentPosts')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -343,7 +337,7 @@ export function AdminPage() {
                       </div>
                       <h3 className="font-medium">{post.title}</h3>
                       <p className="text-sm text-muted-foreground">
-                        作者: {post.author?.username}
+                        {t('posts.author')}: {post.author?.username}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -372,12 +366,12 @@ export function AdminPage() {
         <TabsContent value="drafts" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>草稿文章</CardTitle>
+              <CardTitle>{t('adminData.draftPosts')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {draftPosts.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-4">暂无草稿文章</p>
+                  <p className="text-center text-muted-foreground py-4">{t('adminData.noRecords')}</p>
                 ) : (
                   draftPosts.map((post) => (
                     <div 
@@ -386,14 +380,14 @@ export function AdminPage() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="secondary">草稿</Badge>
+                          <Badge variant="secondary">{t('posts.draft')}</Badge>
                           <span className="text-sm text-muted-foreground">
                             {formatDate(post.createdAt)}
                           </span>
                         </div>
                         <h3 className="font-medium">{post.title}</h3>
                         <p className="text-sm text-muted-foreground">
-                          作者: {post.author?.username}
+                          {t('posts.author')}: {post.author?.username}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -423,32 +417,32 @@ export function AdminPage() {
         <TabsContent value="categories" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>分类管理</CardTitle>
+              <CardTitle>{t('adminData.allCategories')}</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* 添加新分类 */}
+              {/* Add New Category */}
               <div className="flex gap-4 mb-6">
                 <div className="flex-1">
                   <Input
-                    placeholder="分类名称"
+                    placeholder={t('adminData.categoryName')}
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                   />
                 </div>
                 <div className="flex-1">
                   <Input
-                    placeholder="分类描述（可选）"
+                    placeholder={t('adminData.categoryDescription')}
                     value={newCategoryDesc}
                     onChange={(e) => setNewCategoryDesc(e.target.value)}
                   />
                 </div>
                 <Button onClick={handleCreateCategory}>
                   <Plus className="w-4 h-4 mr-2" />
-                  添加
+                  {t('adminData.add')}
                 </Button>
               </div>
 
-              {/* 分类列表 */}
+              {/* Category List */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {categories.map((category) => (
                   <div 
@@ -457,7 +451,7 @@ export function AdminPage() {
                   >
                     <h3 className="font-medium">{category.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {category.description || '暂无描述'}
+                      {category.description || t('common.noDescription')}
                     </p>
                   </div>
                 ))}

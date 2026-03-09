@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/I18nContext';
 import { getPendingPosts, getApprovedPosts, getRejectedPosts, approvePost, rejectPost, resubmitPost } from '@/lib/moderationApi';
 import type { Post } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ import { toast } from 'sonner';
 
 export function ModerationPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [pendingPosts, setPendingPosts] = useState<Post[]>([]);
   const [approvedPosts, setApprovedPosts] = useState<Post[]>([]);
   const [rejectedPosts, setRejectedPosts] = useState<Post[]>([]);
@@ -44,7 +46,7 @@ export function ModerationPage() {
       }
     } catch (error) {
       console.error('加载数据失败:', error);
-      toast.error('加载数据失败');
+      toast.error(t('moderation.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -53,11 +55,11 @@ export function ModerationPage() {
   const handleApprovePost = async (postId: string) => {
     try {
       await approvePost(postId);
-      toast.success('文章审核通过');
+      toast.success(t('moderation.approveSuccess'));
       loadData();
     } catch (error) {
       console.error('审核通过失败:', error);
-      toast.error('审核通过失败');
+      toast.error(t('moderation.approveFailed'));
     }
   };
 
@@ -69,17 +71,17 @@ export function ModerationPage() {
 
   const confirmRejectPost = async () => {
     if (!rejectingPostId) return;
-    
+
     try {
       await rejectPost(rejectingPostId, rejectionReason);
-      toast.success('文章已拒绝');
+      toast.success(t('moderation.rejectSuccess'));
       setShowRejectDialog(false);
       setRejectingPostId(null);
       setRejectionReason('');
       loadData();
     } catch (error) {
       console.error('拒绝文章失败:', error);
-      toast.error('拒绝文章失败');
+      toast.error(t('moderation.rejectFailed'));
     }
   };
 
@@ -92,11 +94,11 @@ export function ModerationPage() {
   const handleResubmitPost = async (postId: string) => {
     try {
       await resubmitPost(postId);
-      toast.success('文章已重新提交审核');
+      toast.success(t('moderation.resubmitSuccess'));
       loadData();
     } catch (error) {
       console.error('重新提交审核失败:', error);
-      toast.error('重新提交审核失败');
+      toast.error(t('moderation.resubmitFailed'));
     }
   };
 
@@ -122,7 +124,7 @@ export function ModerationPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold">内容审核</h1>
+          <h1 className="text-2xl font-bold">{t('moderation.title')}</h1>
         </div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -144,22 +146,22 @@ export function ModerationPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">内容审核</h1>
+        <h1 className="text-2xl font-bold">{t('moderation.title')}</h1>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 max-w-md">
           <TabsTrigger value="pending" className="flex items-center gap-2">
             <Clock className="w-4 h-4" />
-            待审核 ({pendingPosts.length})
+            {t('moderation.pending')} ({pendingPosts.length})
           </TabsTrigger>
           <TabsTrigger value="approved" className="flex items-center gap-2">
             <CheckCircle className="w-4 h-4" />
-            已通过
+            {t('moderation.approved')}
           </TabsTrigger>
           <TabsTrigger value="rejected" className="flex items-center gap-2">
             <XCircle className="w-4 h-4" />
-            已拒绝
+            {t('moderation.rejected')}
           </TabsTrigger>
         </TabsList>
 
@@ -168,32 +170,32 @@ export function ModerationPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-yellow-500" />
-                待审核文章
+                {t('moderation.pendingPosts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {pendingPosts.length === 0 ? (
                 <div className="text-center py-12">
                   <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">暂无待审核的文章</p>
+                  <p className="text-muted-foreground">{t('moderation.noPendingPosts')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {pendingPosts.map((post) => (
-                    <div 
-                      key={post.id} 
+                    <div
+                      key={post.id}
                       className="flex items-start justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="secondary">待审核</Badge>
+                          <Badge variant="secondary">{t('moderation.pending')}</Badge>
                           <span className="text-sm text-muted-foreground">
                             {formatDate(post.createdAt)}
                           </span>
                         </div>
                         <h3 className="font-medium text-lg mb-1">{post.title}</h3>
                         <p className="text-sm text-muted-foreground mb-2">
-                          作者: {post.author?.username}
+                          {t('moderation.author')}: {post.author?.username}
                         </p>
                         {post.excerpt && (
                           <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
@@ -203,7 +205,7 @@ export function ModerationPage() {
                         {post.rejectionReason && (
                           <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded">
                             <p className="text-sm text-red-800">
-                              <span className="font-medium">拒绝原因：</span>
+                              <span className="font-medium">{t('moderation.rejectionReasonInPost')}</span>
                               {post.rejectionReason}
                             </p>
                           </div>
@@ -215,7 +217,7 @@ export function ModerationPage() {
                           onClick={() => handleViewPost(post.id)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          查看
+                          {t('moderation.view')}
                         </Button>
                         <Button
                           size="sm"
@@ -223,7 +225,7 @@ export function ModerationPage() {
                           onClick={() => handleEditPost(post.id)}
                         >
                           <Edit className="w-4 h-4 mr-1" />
-                          编辑
+                          {t('moderation.edit')}
                         </Button>
                         <div className="flex gap-1">
                           <Button
@@ -233,7 +235,7 @@ export function ModerationPage() {
                             onClick={() => handleApprovePost(post.id)}
                           >
                             <CheckCircle className="w-4 h-4 mr-1" />
-                            通过
+                            {t('moderation.approve')}
                           </Button>
                           <Button
                             size="sm"
@@ -241,7 +243,7 @@ export function ModerationPage() {
                             onClick={() => handleRejectPost(post.id)}
                           >
                             <XCircle className="w-4 h-4 mr-1" />
-                            拒绝
+                            {t('moderation.reject')}
                           </Button>
                         </div>
                       </div>
@@ -258,14 +260,14 @@ export function ModerationPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-500" />
-                已通过文章
+                {t('moderation.approvedPosts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {approvedPosts.length === 0 ? (
                 <div className="text-center py-12">
                   <CheckCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">暂无已通过的文章</p>
+                  <p className="text-muted-foreground">{t('moderation.noApprovedPosts')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -276,14 +278,14 @@ export function ModerationPage() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="default" className="bg-green-500">已通过</Badge>
+                          <Badge variant="default" className="bg-green-500">{t('moderation.approved')}</Badge>
                           <span className="text-sm text-muted-foreground">
                             {formatDate(post.createdAt)}
                           </span>
                         </div>
                         <h3 className="font-medium text-lg mb-1">{post.title}</h3>
                         <p className="text-sm text-muted-foreground mb-2">
-                          作者: {post.author?.username}
+                          {t('moderation.author')}: {post.author?.username}
                         </p>
                         {post.excerpt && (
                           <p className="text-sm text-muted-foreground line-clamp-2">
@@ -297,7 +299,7 @@ export function ModerationPage() {
                           onClick={() => handleViewPost(post.id)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          查看
+                          {t('moderation.view')}
                         </Button>
                       </div>
                     </div>
@@ -313,14 +315,14 @@ export function ModerationPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <XCircle className="w-5 h-5 text-red-500" />
-                已拒绝文章
+                {t('moderation.rejectedPosts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {rejectedPosts.length === 0 ? (
                 <div className="text-center py-12">
                   <XCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">暂无已拒绝的文章</p>
+                  <p className="text-muted-foreground">{t('moderation.noRejectedPosts')}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -331,14 +333,14 @@ export function ModerationPage() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="destructive">已拒绝</Badge>
+                          <Badge variant="destructive">{t('moderation.rejected')}</Badge>
                           <span className="text-sm text-muted-foreground">
                             {formatDate(post.createdAt)}
                           </span>
                         </div>
                         <h3 className="font-medium text-lg mb-1">{post.title}</h3>
                         <p className="text-sm text-muted-foreground mb-2">
-                          作者: {post.author?.username}
+                          {t('moderation.author')}: {post.author?.username}
                         </p>
                         {post.excerpt && (
                           <p className="text-sm text-muted-foreground line-clamp-2">
@@ -353,14 +355,14 @@ export function ModerationPage() {
                           onClick={() => handleEditPost(post.id)}
                         >
                           <Edit className="w-4 h-4 mr-1" />
-                          编辑
+                          {t('moderation.edit')}
                         </Button>
                         <Button
                           size="sm"
                           onClick={() => handleViewPost(post.id)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          查看
+                          {t('moderation.view')}
                         </Button>
                         <Button
                           size="sm"
@@ -369,7 +371,7 @@ export function ModerationPage() {
                           onClick={() => handleResubmitPost(post.id)}
                         >
                           <Send className="w-4 h-4 mr-1" />
-                          重新提交
+                          {t('moderation.resubmit')}
                         </Button>
                       </div>
                     </div>
@@ -387,27 +389,27 @@ export function ModerationPage() {
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <MessageSquare className="w-5 h-5 text-red-500" />
-              拒绝文章
+              {t('moderation.rejectPost')}
             </h2>
             <div className="mb-4">
               <Label htmlFor="rejectionReason" className="block text-sm font-medium mb-2">
-                拒绝原因
+                {t('moderation.rejectionReasonLabel')}
               </Label>
               <Textarea
                 id="rejectionReason"
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="请输入拒绝此文章的原因..."
+                placeholder={t('moderation.rejectionReasonPlaceholder')}
                 rows={4}
                 className="w-full"
               />
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={cancelRejectPost}>
-                取消
+                {t('moderation.cancel')}
               </Button>
               <Button variant="destructive" onClick={confirmRejectPost}>
-                确认拒绝
+                {t('moderation.confirmReject')}
               </Button>
             </div>
           </div>

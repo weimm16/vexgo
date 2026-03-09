@@ -2,26 +2,28 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { postsApi, categoriesApi, statsApi, likesApi } from '@/lib/api';
 import type { Post, Category } from '@/types';
+import { useTranslation } from '@/lib/I18nContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
 } from '@/components/ui/pagination';
-import { 
-  Heart, MessageCircle, Calendar, 
-  TrendingUp, Clock, Tag, SearchX, Eye 
+import {
+  Heart, MessageCircle, Calendar,
+  TrendingUp, Clock, Tag, SearchX, Eye
 } from 'lucide-react';
 import { normalizeTagsArray } from '@/lib/utils';
 
 export function HomePage() {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<Post[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -111,7 +113,7 @@ export function HomePage() {
       // 获取足够多的文章来统计标签
       const response = await postsApi.getPosts({ page: 1, limit: 200 });
       const allPosts = response.data.posts.map((p: any) => normalizePost(p));
-      
+
       // 统计每个标签的出现次数
       const tagCounts: Record<string, number> = {};
       allPosts.forEach((post) => {
@@ -121,13 +123,13 @@ export function HomePage() {
           }
         });
       });
-      
+
       // 转换为数组并按出现次数排序
       const sortedTags = Object.entries(tagCounts)
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 10); // 取前10个
-      
+
       setPopularTags(sortedTags);
     } catch (error) {
       console.error('加载热门标签失败:', error);
@@ -247,18 +249,18 @@ export function HomePage() {
         <div className="mb-6 flex items-center gap-2">
           <SearchX className="w-5 h-5 text-muted-foreground" />
           <span className="text-muted-foreground">
-            搜索 &quot;{searchQuery}&quot; 的结果
+            {t('homePage.searchResultsFor', { query: searchQuery })}
           </span>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => {
               const newParams = new URLSearchParams(searchParams);
               newParams.delete('search');
               setSearchParams(newParams);
             }}
           >
-            清除搜索
+            {t('homePage.clearSearch')}
           </Button>
         </div>
       )}
@@ -272,9 +274,9 @@ export function HomePage() {
                 <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                   <SearchX className="w-8 h-8 text-muted-foreground" />
                 </div>
-                <h3 className="text-lg font-semibold mb-2">没有找到文章</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('homePage.noPostsFound')}</h3>
                 <p className="text-muted-foreground">
-                  {searchQuery ? '尝试使用其他关键词搜索' : '暂无文章，快来发布第一篇吧！'}
+                  {searchQuery ? t('homePage.tryDifferentKeywords') : t('homePage.noPostsAvailable')}
                 </p>
               </CardContent>
             </Card>
@@ -398,9 +400,9 @@ export function HomePage() {
                     </PaginationItem>
 
                     {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
-                      .filter(page => 
-                        page === 1 || 
-                        page === pagination.totalPages || 
+                      .filter(page =>
+                        page === 1 ||
+                        page === pagination.totalPages ||
                         Math.abs(page - currentPage) <= 1
                       )
                       .map((page, index, array) => (
@@ -439,7 +441,7 @@ export function HomePage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Tag className="w-4 h-4" />
-                分类
+                {t('homePage.categories')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -463,7 +465,7 @@ export function HomePage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Tag className="w-4 h-4" />
-                热门标签
+                {t('homePage.popularTags')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -487,14 +489,14 @@ export function HomePage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
-                热门文章
+                {t('homePage.popularPosts')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {popularPosts.map((post, index) => (
-                  <Link 
-                    key={post.id} 
+                  <Link
+                    key={post.id}
                     to={`/post/${post.id}`}
                     className="flex items-start gap-3 group"
                   >
@@ -527,13 +529,12 @@ export function HomePage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                关于 VexGo
+                {t('homePage.aboutVexgo')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                VexGo 是一个现代化的博客平台，支持富文本编辑、图片视频上传、评论互动等功能。
-                快来分享你的故事吧！
+                {t('homePage.aboutVexgoDesc')}
               </p>
             </CardContent>
           </Card>

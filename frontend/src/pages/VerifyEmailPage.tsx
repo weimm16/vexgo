@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/I18nContext';
 import { authApi } from '@/lib/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,10 @@ export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>(token ? 'loading' : 'error');
-  const [message, setMessage] = useState(token ? '' : '验证令牌不能为空');
+  const [message, setMessage] = useState(token ? '' : t('verifyEmail.tokenEmpty'));
   const [requireRelogin, setRequireRelogin] = useState(false);
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export function VerifyEmailPage() {
         }
       } catch (err: unknown) {
         setStatus('error');
-        const errorMessage = err instanceof Error ? err.message : '验证失败，请检查链接是否正确';
+        const errorMessage = err instanceof Error ? err.message : t('verifyEmail.failed');
         setMessage(errorMessage);
       }
     };
@@ -50,33 +52,33 @@ export function VerifyEmailPage() {
             {status === 'loading' && <Loader2 className="w-6 h-6 animate-spin" />}
             {status === 'success' && <CheckCircle className="w-6 h-6 text-green-500" />}
             {status === 'error' && <XCircle className="w-6 h-6 text-red-500" />}
-            邮箱验证
+            {t('verifyEmail.title')}
           </CardTitle>
           <CardDescription>
-            {status === 'loading' && '正在验证您的邮箱...'}
-            {status === 'success' && '验证完成'}
-            {status === 'error' && '验证失败'}
+            {status === 'loading' && t('verifyEmail.verifying')}
+            {status === 'success' && t('verifyEmail.success')}
+            {status === 'error' && t('verifyEmail.failed')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-center text-muted-foreground">{message}</p>
-          
+
           <div className="flex gap-3">
             {requireRelogin ? (
               <Button asChild className="flex-1" onClick={() => navigate('/login')}>
-                前往登录
+                {t('verifyEmail.goToLogin')}
               </Button>
             ) : (
               <>
                 <Button asChild className="flex-1">
                   <Link to="/login">
-                    前往登录
+                    {t('verifyEmail.goToLogin')}
                   </Link>
                 </Button>
                 {status === 'error' && (
                   <Button variant="outline" asChild className="flex-1">
                     <Link to="/">
-                      返回首页
+                      {t('verifyEmail.backToHome')}
                     </Link>
                   </Button>
                 )}

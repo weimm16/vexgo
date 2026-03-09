@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/lib/I18nContext';
 import { authApi, configApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,7 @@ import { SliderCaptcha } from '@/components/ui/slider-captcha';
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, CheckCircle } from 'lucide-react';
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -29,19 +31,18 @@ export function LoginPage() {
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
 
   useEffect(() => {
+    const loadCaptchaSettings = async () => {
+      try {
+        const response = await configApi.getGeneralSettings();
+        setCaptchaEnabled(response.data.captchaEnabled);
+      } catch (error) {
+        console.error(t('common.error'), error);
+        // 如果加载失败，默认不启用滑块验证
+        setCaptchaEnabled(false);
+      }
+    };
     loadCaptchaSettings();
-  }, []);
-
-  const loadCaptchaSettings = async () => {
-    try {
-      const response = await configApi.getGeneralSettings();
-      setCaptchaEnabled(response.data.captchaEnabled);
-    } catch (error) {
-      console.error('加载验证设置失败:', error);
-      // 如果加载失败，默认不启用滑块验证
-      setCaptchaEnabled(false);
-    }
-  };
+  }, [t]);
 
   // 验证码验证成功回调
   const handleCaptchaSuccess = async (data: { id: string; token: string; x: number }) => {
@@ -82,7 +83,7 @@ export function LoginPage() {
       // 如果启用了滑块验证，传递验证码数据
       if (captchaEnabled) {
         if (!captchaData) {
-          setError('请先完成滑块验证');
+          setError(t('loginPage.completeCaptcha'));
           setIsCaptchaModalOpen(true);
           return;
         }
@@ -121,14 +122,14 @@ export function LoginPage() {
     
     // 表单验证
     if (!email || !password) {
-      setError('请填写所有必填字段');
+      setError(t('loginPage.fillRequired'));
       return;
     }
     
     // 如果启用了滑块验证，检查是否已完成验证
     if (captchaEnabled) {
       if (!isCaptchaVerified || !captchaData) {
-        setError('请先完成滑块验证');
+        setError(t('loginPage.completeCaptcha'));
         setIsCaptchaModalOpen(true);
         return;
       }
@@ -140,7 +141,7 @@ export function LoginPage() {
 
   const handleResendVerification = async () => {
     if (!email) {
-      setError('请先输入邮箱地址');
+      setError(t('auth.email') + ' ' + t('common.required'));
       return;
     }
     
@@ -148,10 +149,10 @@ export function LoginPage() {
     try {
       await authApi.resendVerificationEmail();
       setError('');
-      alert('验证邮件已重新发送，请检查您的邮箱');
+      alert(t('loginPage.verificationSent'));
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
-      setError(error.response?.data?.message || '重新发送失败，请重试');
+      setError(error.response?.data?.message || t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -161,9 +162,9 @@ export function LoginPage() {
     <div className="container mx-auto px-4 py-16 flex justify-center">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">欢迎回来</CardTitle>
+          <CardTitle className="text-2xl">{t('loginPage.welcomeBack')}</CardTitle>
           <CardDescription>
-            登录你的 VexGo 账号
+            {t('loginPage.loginVexgo')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -185,7 +186,7 @@ export function LoginPage() {
                       className="mt-2"
                     >
                       <ArrowLeft className="w-3 h-3 mr-2" />
-                      重新发送验证邮件
+                      {t('loginPage.resendVerification')}
                     </Button>
                   )}
                 </AlertDescription>
@@ -193,7 +194,7 @@ export function LoginPage() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">邮箱</Label>
+              <Label htmlFor="email">{t('auth.email')}</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -209,13 +210,13 @@ export function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">密码</Label>
+              <Label htmlFor="password">{t('auth.password')}</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="请输入密码"
+                  placeholder={t('auth.password')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10"
@@ -235,11 +236,11 @@ export function LoginPage() {
             {captchaEnabled && (
               <div className="mt-4">
                 <div className="flex items-center justify-between mb-2">
-                  <Label className="text-sm font-medium">安全验证</Label>
+                  <Label className="text-sm font-medium">{t('loginPage.securityVerification')}</Label>
                   {isCaptchaVerified && (
                     <span className="text-xs text-green-600 flex items-center">
                       <CheckCircle className="h-3 w-3 mr-1" />
-                      已验证
+                      {t('loginPage.verifiedBadge')}
                     </span>
                   )}
                 </div>
@@ -248,7 +249,7 @@ export function LoginPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center text-sm text-green-600">
                         <CheckCircle className="h-4 w-4 mr-2" />
-                        验证已完成
+                        {t('loginPage.captchaCompleted')}
                       </div>
                       <Button
                         type="button"
@@ -257,12 +258,12 @@ export function LoginPage() {
                         onClick={resetCaptcha}
                         className="text-xs h-7"
                       >
-                        重新验证
+                        {t('auth.resetPassword')}
                       </Button>
                     </div>
                   ) : (
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">请完成滑块验证</span>
+                      <span className="text-sm text-gray-600">{t('loginPage.completeSlider')}</span>
                       <Button
                         type="button"
                         variant="outline"
@@ -270,7 +271,7 @@ export function LoginPage() {
                         onClick={() => setIsCaptchaModalOpen(true)}
                         className="text-xs h-7"
                       >
-                        去验证
+                        {t('loginPage.verifyButton')}
                       </Button>
                     </div>
                   )}
@@ -286,10 +287,10 @@ export function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  登录中...
+                  {t('loginPage.loggingIn')}
                 </>
               ) : (
-                '登录'
+                t('loginPage.loginButton')
               )}
             </Button>
           </form>
@@ -300,21 +301,21 @@ export function LoginPage() {
               onClick={() => navigate('/reset-password')}
               className="text-primary hover:underline focus:outline-none"
             >
-              忘记密码？
+              {t('loginPage.forgotPassword')}
             </button>
           </div>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">还没有账号？</span>{' '}
+            <span className="text-muted-foreground">{t('loginPage.noAccount')}</span>{' '}
             <Link to="/register" className="text-primary hover:underline">
-              立即注册
+              {t('loginPage.registerNow')}
             </Link>
           </div>
 
           {/* 演示账号 */}
           <div className="mt-6 p-4 bg-muted rounded-lg text-sm">
-            <p className="font-medium mb-2">演示账号：</p>
-            <p className="text-muted-foreground">管理员：admin@blog.com / admin123</p>
+            <p className="font-medium mb-2">{t('loginPage.demoAccount')}</p>
+            <p className="text-muted-foreground">{t('loginPage.demoAdmin')}</p>
           </div>
         </CardContent>
       </Card>

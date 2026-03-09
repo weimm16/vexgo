@@ -21,7 +21,7 @@ export function getLocale(): string {
   return currentLocale;
 }
 
-export function t(key: string): string {
+export function t(key: string, params?: Record<string, unknown>): string {
   const keys = key.split('.');
   let value: unknown = translations[currentLocale];
   
@@ -33,7 +33,16 @@ export function t(key: string): string {
     }
   }
   
-  return (value as string) || key;
+  let result = (value as string) || key;
+  
+  // 如果提供了参数，进行替换
+  if (params) {
+    result = result.replace(/\{(\w+)\}/g, (match, paramName) => {
+      return params[paramName] !== undefined ? String(params[paramName]) : match;
+    });
+  }
+  
+  return result;
 }
 
 // 初始化：从 localStorage 读取语言设置

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from '@/lib/I18nContext';
 import { configApi } from '@/lib/api';
 import type { GeneralSettings } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,13 +13,14 @@ import { toast } from 'sonner';
 
 export function GeneralSettingsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [config, setConfig] = useState<GeneralSettings>({
     id: '',
     captchaEnabled: false,
     registrationEnabled: true,
-    siteName: 'VexGo',
+    siteName: t('common.siteName') || 'VexGo',
     siteDescription: '',
     itemsPerPage: 20,
     createdAt: '',
@@ -35,7 +37,7 @@ export function GeneralSettingsPage() {
       setConfig(response.data);
     } catch (error) {
       console.error('加载通用设置失败:', error);
-      toast.error('加载设置失败');
+      toast.error(t('generalSettings.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -43,22 +45,22 @@ export function GeneralSettingsPage() {
 
   const handleSave = async () => {
     if (!config.siteName.trim()) {
-      toast.error('请输入网站名称');
+      toast.error(t('generalSettings.siteNameRequired'));
       return;
     }
     if (config.itemsPerPage <= 0 || config.itemsPerPage > 100) {
-      toast.error('每页显示数量必须在 1-100 之间');
+      toast.error(t('generalSettings.itemsPerPageInvalid'));
       return;
     }
 
     setSaving(true);
     try {
       await configApi.updateGeneralSettings(config);
-      toast.success('通用设置已保存');
+      toast.success(t('generalSettings.saveSuccess'));
     } catch (error) {
       console.error('保存通用设置失败:', error);
       const err = error as { response?: { data?: { error?: string } } };
-      toast.error('保存失败: ' + (err.response?.data?.error || '未知错误'));
+      toast.error(t('generalSettings.saveFailed') + ': ' + (err.response?.data?.error || t('common.unknownError')));
     } finally {
       setSaving(false);
     }
@@ -86,57 +88,57 @@ export function GeneralSettingsPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* 头部 */}
       <div className="mb-6">
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => navigate('/admin')}
           className="mb-4"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          返回管理后台
+          {t('generalSettings.backToAdmin')}
         </Button>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Settings className="w-8 h-8" />
-          通用设置
+          {t('generalSettings.title')}
         </h1>
         <p className="text-muted-foreground mt-2">
-          管理系统的基本配置，包括验证、注册、显示等设置
+          {t('generalSettings.description')}
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>基本设置</CardTitle>
+          <CardTitle>{t('generalSettings.basicSettings')}</CardTitle>
           <CardDescription>
-            配置系统的基本参数
+            {t('generalSettings.basicSettingsDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* 网站名称 */}
           <div className="space-y-2">
-            <Label htmlFor="siteName">网站名称</Label>
+            <Label htmlFor="siteName">{t('generalSettings.siteName')}</Label>
             <Input
               id="siteName"
               value={config.siteName}
               onChange={(e) => setConfig({ ...config, siteName: e.target.value })}
-              placeholder="请输入网站名称"
+              placeholder={t('generalSettings.siteNamePlaceholder')}
             />
           </div>
 
           {/* 网站描述 */}
           <div className="space-y-2">
-            <Label htmlFor="siteDescription">网站描述</Label>
+            <Label htmlFor="siteDescription">{t('generalSettings.siteDescription')}</Label>
             <Input
               id="siteDescription"
               value={config.siteDescription}
               onChange={(e) => setConfig({ ...config, siteDescription: e.target.value })}
-              placeholder="请输入网站描述（可选）"
+              placeholder={t('generalSettings.siteDescriptionPlaceholder')}
             />
           </div>
 
           {/* 每页显示数量 */}
           <div className="space-y-2">
-            <Label htmlFor="itemsPerPage">每页显示数量</Label>
+            <Label htmlFor="itemsPerPage">{t('generalSettings.itemsPerPage')}</Label>
             <Input
               id="itemsPerPage"
               type="number"
@@ -144,16 +146,19 @@ export function GeneralSettingsPage() {
               max={100}
               value={config.itemsPerPage}
               onChange={(e) => setConfig({ ...config, itemsPerPage: parseInt(e.target.value) || 20 })}
-              placeholder="每页显示的项目数量"
+              placeholder={t('generalSettings.itemsPerPagePlaceholder')}
             />
+            <p className="text-xs text-muted-foreground">
+              {t('generalSettings.itemsPerPageDesc')}
+            </p>
           </div>
 
           {/* 启用滑块验证 */}
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
-              <Label htmlFor="captchaEnabled">滑块验证</Label>
+              <Label htmlFor="captchaEnabled">{t('generalSettings.captcha')}</Label>
               <p className="text-sm text-muted-foreground">
-                启用滑动拼图验证码，增强安全性
+                {t('generalSettings.captchaDesc')}
               </p>
             </div>
             <Switch
@@ -166,9 +171,9 @@ export function GeneralSettingsPage() {
           {/* 允许注册 */}
           <div className="flex items-center justify-between rounded-lg border p-4">
             <div className="space-y-0.5">
-              <Label htmlFor="registrationEnabled">允许注册</Label>
+              <Label htmlFor="registrationEnabled">{t('generalSettings.registration')}</Label>
               <p className="text-sm text-muted-foreground">
-                允许新用户注册账号
+                {t('generalSettings.registrationDesc')}
               </p>
             </div>
             <Switch
@@ -184,11 +189,11 @@ export function GeneralSettingsPage() {
       <div className="mt-6 flex justify-end">
         <Button onClick={handleSave} disabled={saving} size="lg">
           {saving ? (
-            <>保存中...</>
+            <>{t('generalSettings.saving')}</>
           ) : (
             <>
               <Save className="w-4 h-4 mr-2" />
-              保存设置
+              {t('generalSettings.saveSettings')}
             </>
           )}
         </Button>
