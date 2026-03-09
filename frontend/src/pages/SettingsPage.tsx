@@ -33,9 +33,10 @@ export function SettingsPage() {
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() =>
     getSavedSetting('theme', 'light')
   );
-  const [language, setLanguage] = useState(() =>
-    getSavedSetting('language', locale)
-  );
+  const [language, setLanguage] = useState(() => {
+    const savedLocale = localStorage.getItem('locale');
+    return savedLocale === 'zh-CN' || savedLocale === 'en-US' ? savedLocale : locale;
+  });
   
   // Privacy settings - 从 user 对象或 localStorage 初始化
   const [profileVisibility, setProfileVisibility] = useState<'public' | 'private'>(() => {
@@ -95,7 +96,6 @@ export function SettingsPage() {
       // 保存其他设置到 localStorage
       const settings = {
         theme,
-        language,
         profileVisibility,
         hideEmail,
         hideBirthday,
@@ -103,6 +103,8 @@ export function SettingsPage() {
       };
       
       localStorage.setItem('userSettings', JSON.stringify(settings));
+      // 单独保存语言设置
+      localStorage.setItem('locale', language);
       
       // Apply theme
       document.documentElement.classList.remove('light', 'dark');

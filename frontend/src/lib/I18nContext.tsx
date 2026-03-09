@@ -28,6 +28,8 @@ export function I18nProvider({ children }: I18nProviderProps) {
     if (newLocale === 'zh-CN' || newLocale === 'en-US') {
       setLocaleState(newLocale);
       setLocaleUtil(newLocale);
+      // 保存到 localStorage
+      localStorage.setItem('locale', newLocale);
     }
   }, []);
 
