@@ -658,6 +658,7 @@ export const zhCN = {
     newEmail: '新邮箱地址',
     enterNewEmail: '请输入新邮箱地址',
     emailSameAsCurrent: '新邮箱不能与当前邮箱相同',
+    updateAvatar: '头像修改成功',
     avatarUpdateFailed: '头像更新失败',
     roleSuperAdmin: '超级管理员',
     roleAdmin: '管理员',

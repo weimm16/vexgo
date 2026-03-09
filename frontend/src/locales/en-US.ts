@@ -658,6 +658,7 @@ export const enUS = {
     newEmail: 'New Email Address',
     enterNewEmail: 'Enter new email address',
     emailSameAsCurrent: 'New email cannot be the same as current email',
+    updateAvatar: 'Avatar updated successfully',
     avatarUpdateFailed: 'Avatar update failed',
     roleSuperAdmin: 'Super Admin',
     roleAdmin: 'Administrator',
@@ -745,4 +746,3 @@ export const enUS = {
     uploadFailed: 'Upload failed, please try again',
   },
 };
-
