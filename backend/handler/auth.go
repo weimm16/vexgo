@@ -136,13 +136,13 @@ func Login(c *gin.Context) {
 
 	// 生成 token
 	claims := jwt.MapClaims{
-		"user_id":  user.ID,
-		"username": user.Username,
-		"role":     user.Role,
+		"user_id":          user.ID,
+		"username":         user.Username,
+		"role":             user.Role,
 		"password_version": user.PasswordVersion,
-		"exp":      time.Now().Add(24 * time.Hour).Unix(),
-		"iat":      time.Now().Unix(),                                                  // Timestamp
-		"jti":      fmt.Sprintf("%d-%s", user.ID, time.Now().Format(time.RFC3339Nano)), // Unique identifier
+		"exp":              time.Now().Add(24 * time.Hour).Unix(),
+		"iat":              time.Now().Unix(),                                                  // Timestamp
+		"jti":              fmt.Sprintf("%d-%s", user.ID, time.Now().Format(time.RFC3339Nano)), // Unique identifier
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -283,6 +283,8 @@ func UpdateProfile(c *gin.Context) {
 	var req struct {
 		Username *string `json:"username"`
 		Avatar   *string `json:"avatar"`
+		Birthday *string `json:"birthday"`
+		Bio      *string `json:"bio"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -303,6 +305,12 @@ func UpdateProfile(c *gin.Context) {
 	}
 	if req.Avatar != nil {
 		user.Avatar = *req.Avatar
+	}
+	if req.Birthday != nil {
+		user.Birthday = *req.Birthday
+	}
+	if req.Bio != nil {
+		user.Bio = *req.Bio
 	}
 	db.Save(&user)
 	c.JSON(http.StatusOK, gin.H{"user": user})

@@ -29,14 +29,16 @@ type User struct {
 	ID                uint       `json:"id" gorm:"primaryKey"`
 	Username          string     `json:"username" binding:"required" gorm:"size:100;uniqueIndex"`
 	Email             string     `json:"email" binding:"required,email" gorm:"size:255;uniqueIndex"`
-	Password          string     `json:"-"`                                  // 不序列化
-	Role              string     `json:"role" gorm:"size:50"`                // super_admin/admin/author/contributor/guest
-	Avatar            string     `json:"avatar,omitempty"`                   // 头像 URL
-	EmailVerified     bool       `json:"email_verified"`                     // 邮箱是否已验证
-	VerificationToken string     `json:"verification_token" gorm:"size:255"` // 验证令牌
-	TokenExpiresAt    *time.Time `json:"token_expires_at"`                   // 令牌过期时间（可为NULL）
+	Password          string     `json:"-"`                                       // 不序列化
+	Role              string     `json:"role" gorm:"size:50"`                     // super_admin/admin/author/contributor/guest
+	Avatar            string     `json:"avatar,omitempty"`                        // 头像 URL
+	EmailVerified     bool       `json:"email_verified"`                          // 邮箱是否已验证
+	VerificationToken string     `json:"verification_token" gorm:"size:255"`      // 验证令牌
+	TokenExpiresAt    *time.Time `json:"token_expires_at"`                        // 令牌过期时间（可为NULL）
 	PendingEmail      string     `json:"pending_email,omitempty" gorm:"size:255"` // 待确认的新邮箱（用于邮箱变更）
-	PasswordVersion   int        `json:"-" gorm:"default:1"`                 // 密码版本，用于密码修改后使旧令牌失效
+	PasswordVersion   int        `json:"-" gorm:"default:1"`                      // 密码版本，用于密码修改后使旧令牌失效
+	Birthday          string     `json:"birthday,omitempty"`                      // 生日
+	Bio               string     `json:"bio,omitempty"`                           // 个人简介
 }
 
 type Tag struct {
