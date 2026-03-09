@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"math"
 	"net/http"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"vexgo/backend/config"
@@ -288,6 +292,49 @@ func UpdatePost(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "文章已更新", "post": post})
 }
 
+// 从HTML内容中提取所有图片URL
+func extractImageURLs(content string) []string {
+	var urls []string
+
+	// 匹配 <img> 标签的 src 属性
+	// 正则表达式匹配 src="..." 或 src='...' 或 src=...
+	re := regexp.MustCompile(`<img[^>]+src=["']([^"']+)["'][^>]*>`)
+	matches := re.FindAllStringSubmatch(content, -1)
+
+	for _, match := range matches {
+		if len(match) >= 2 {
+			url := strings.TrimSpace(match[1])
+			if url != "" {
+				urls = append(urls, url)
+			}
+		}
+	}
+
+	return urls
+}
+
+// 删除文件（需是上传者或管理员）
+func deleteImageFile(url string) error {
+	// 从URL中提取文件名，例如：/uploads/abc123.jpg -> abc123.jpg
+	filename := filepath.Base(url)
+	if filename == "" || filename == "/" {
+		return fmt.Errorf("无效的文件名: %s", url)
+	}
+
+	// 构建完整路径，使用 upload.go 中定义的 DataDir
+	path := filepath.Join(DataDir, "media", filename)
+
+	// 检查文件是否存在
+	if _, err := os.Stat(path); err == nil {
+		// 文件存在，删除它
+		if err := os.Remove(path); err != nil {
+			return fmt.Errorf("删除文件失败: %w", err)
+		}
+	}
+
+	return nil
+}
+
 // 删除文章（需要身份验证，只有作者或管理员可删除）
 func DeletePost(c *gin.Context) {
 	id := c.Param("id")
@@ -307,6 +354,32 @@ func DeletePost(c *gin.Context) {
 		}
 	}
 
+	// 收集需要删除的图片URL
+	var imagesToDelete []string
+
+	// 1. 添加封面图片
+	if post.CoverImage != "" {
+		imagesToDelete = append(imagesToDelete, post.CoverImage)
+	}
+
+	// 2. 从文章内容中提取所有图片
+	contentImages := extractImageURLs(post.Content)
+	imagesToDelete = append(imagesToDelete, contentImages...)
+
+	// 3. 删除所有收集到的图片文件（去重后）
+	uniqueImages := make(map[string]bool)
+	for _, url := range imagesToDelete {
+		uniqueImages[url] = true
+	}
+
+	for url := range uniqueImages {
+		if err := deleteImageFile(url); err != nil {
+			// 记录错误但继续执行，避免文章删除失败
+			fmt.Printf("删除图片失败 %s: %v\n", url, err)
+		}
+	}
+
+	// 删除文章（GORM会自动删除关联的评论、点赞等）
 	db.Delete(&post)
 	c.JSON(http.StatusOK, gin.H{"message": "文章已删除"})
 }
