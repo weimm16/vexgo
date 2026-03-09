@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Check, Bell, Palette, Globe, Shield, Loader2 } from 'lucide-react';
+import { Check, Palette, Shield, Loader2 } from 'lucide-react';
 
 export function SettingsPage() {
   const { user, updateUser } = useAuth();
@@ -29,14 +29,6 @@ export function SettingsPage() {
     return defaultValue;
   };
 
-  // Notification settings
-  const [emailNotifications, setEmailNotifications] = useState(() =>
-    getSavedSetting('emailNotifications', true)
-  );
-  const [pushNotifications, setPushNotifications] = useState(() =>
-    getSavedSetting('pushNotifications', false)
-  );
-  
   // Display settings
   const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(() =>
     getSavedSetting('theme', 'light')
@@ -102,8 +94,6 @@ export function SettingsPage() {
       
       // 保存其他设置到 localStorage
       const settings = {
-        emailNotifications,
-        pushNotifications,
         theme,
         language,
         profileVisibility,
@@ -146,7 +136,7 @@ export function SettingsPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">{t('settings.title')}</h1>
-        <p className="text-muted-foreground">{t('settings.accountInfo')} / {t('settings.notificationSettings')}</p>
+        <p className="text-muted-foreground">{t('settings.displaySettings')} / {t('settings.privacySettings')}</p>
       </div>
 
       {success && (
@@ -162,40 +152,6 @@ export function SettingsPage() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Notification settings cards */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              {t('settings.notificationSettings')}
-            </CardTitle>
-            <CardDescription>{t('settings.notificationSettings')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>{t('settings.emailNotifications')}</Label>
-                <p className="text-sm text-muted-foreground">{t('settings.emailNotificationsDesc')}</p>
-              </div>
-              <Switch
-                checked={emailNotifications}
-                onCheckedChange={setEmailNotifications}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>{t('settings.pushNotifications')}</Label>
-                <p className="text-sm text-muted-foreground">{t('settings.pushNotificationsDesc')}</p>
-              </div>
-              <Switch
-                checked={pushNotifications}
-                onCheckedChange={setPushNotifications}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Display settings card */}
         <Card>
           <CardHeader>
@@ -297,39 +253,6 @@ export function SettingsPage() {
                   checked={hideBio}
                   onCheckedChange={setHideBio}
                 />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Account Information Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Globe className="w-5 h-5" />
-              {t('settings.accountInfo')}
-            </CardTitle>
-            <CardDescription>{t('settings.accountInfo')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>{t('settings.username')}</Label>
-              <div className="p-2 bg-muted rounded-md">{user?.username}</div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>{t('settings.email')}</Label>
-              <div className="p-2 bg-muted rounded-md">{user?.email}</div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>{t('settings.role')}</Label>
-              <div className="p-2 bg-muted rounded-md">
-                {user?.role === 'super_admin' ? t('roles.super_admin') :
-                 user?.role === 'admin' ? t('roles.admin') :
-                 user?.role === 'author' ? t('roles.author') :
-                 user?.role === 'contributor' ? t('roles.contributor') :
-                 t('roles.guest')}
               </div>
             </div>
           </CardContent>
