@@ -25,66 +25,18 @@ export function SettingsPage() {
     return savedLocale === 'zh-CN' || savedLocale === 'en-US' ? savedLocale : locale;
   });
   
-  // Privacy settings - 从 user 对象或 localStorage 初始化
+  // Privacy settings - 只从 user 对象初始化（从后端获取）
   const [profileVisibility, setProfileVisibility] = useState<'public' | 'private'>(() => {
-    const savedSettings = localStorage.getItem('userSettings');
-    if (user?.profile_visibility) {
-      return user.profile_visibility as 'public' | 'private';
-    }
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        return settings.profileVisibility !== undefined ? settings.profileVisibility : 'public';
-      } catch {
-        return 'public';
-      }
-    }
-    return 'public';
+    return user?.profile_visibility as 'public' | 'private' || 'public';
   });
   const [hideEmail, setHideEmail] = useState(() => {
-    const savedSettings = localStorage.getItem('userSettings');
-    if (user?.hide_email !== undefined) {
-      return user.hide_email;
-    }
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        return settings.hideEmail !== undefined ? settings.hideEmail : false;
-      } catch {
-        return false;
-      }
-    }
-    return false;
+    return user?.hide_email || false;
   });
   const [hideBirthday, setHideBirthday] = useState(() => {
-    const savedSettings = localStorage.getItem('userSettings');
-    if (user?.hide_birthday !== undefined) {
-      return user.hide_birthday;
-    }
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        return settings.hideBirthday !== undefined ? settings.hideBirthday : false;
-      } catch {
-        return false;
-      }
-    }
-    return false;
+    return user?.hide_birthday || false;
   });
   const [hideBio, setHideBio] = useState(() => {
-    const savedSettings = localStorage.getItem('userSettings');
-    if (user?.hide_bio !== undefined) {
-      return user.hide_bio;
-    }
-    if (savedSettings) {
-      try {
-        const settings = JSON.parse(savedSettings);
-        return settings.hideBio !== undefined ? settings.hideBio : false;
-      } catch {
-        return false;
-      }
-    }
-    return false;
+    return user?.hide_bio || false;
   });
   
   const [success, setSuccess] = useState('');
@@ -132,16 +84,6 @@ export function SettingsPage() {
       
       // 单独保存主题设置
       localStorage.setItem('theme', theme);
-      
-      // 保存隐私设置到 localStorage
-      const settings = {
-        profileVisibility,
-        hideEmail,
-        hideBirthday,
-        hideBio
-      };
-      
-      localStorage.setItem('userSettings', JSON.stringify(settings));
       
       // 单独保存语言设置
       localStorage.setItem('locale', language);
