@@ -736,7 +736,7 @@ export const zhCN = {
     tagsPlaceholder: '添加标签',
     addTag: '添加',
     excerptLabel: '摘要',
-    excerptPlaceholder: '请输入文章摘要（可选，不填写将自动提取正文前200字）',
+    excerptPlaceholder: '请输入文章摘要',
     contentLabel: '正文内容',
     contentPlaceholder: '开始写作...',
     contentRequired: '请输入文章内容',
