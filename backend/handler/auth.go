@@ -699,9 +699,5 @@ func ResetPassword(c *gin.Context) {
 		return
 	}
 
-<<<<<<< HEAD
 	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
-=======
-	c.JSON(http.StatusOK, gin.H{"message": "密码已重置成功"})
->>>>>>> 630995e (fix bugs)
 }
