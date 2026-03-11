@@ -17,7 +17,7 @@
 ### Docker
 
 ```bash
-sudo docker run -d --name vexgo -p 3001:3001 -v ./data:/app/data ghcr.io/antipeth/vexgo:latest
+sudo docker run -d --name vexgo -p 3001:3001 -v ./data:/app/data ghcr.io/weimm16/vexgo:latest
 ```
 
 然后访问 http://127.0.0.1:3001
