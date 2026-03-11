@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { postsApi } from '@/lib/api';
 import type { Post } from '@/types';
 import { useTranslation } from '@/lib/I18nContext';
+import { getLocale } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -79,7 +80,8 @@ export function MyPostsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', {
+    const locale = getLocale();
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTranslation } from "@/lib/I18nContext";
+import { getLocale } from "@/lib/i18n";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,8 @@ export function UserPostsPage() {
   }, [id, loadUserPosts]);
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("zh-CN", {
+    const locale = getLocale();
+    return new Date(dateString).toLocaleDateString(locale, {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -147,7 +149,7 @@ export function UserPostsPage() {
                         <Calendar className="w-3 h-3" />
                         <span>
                           {t("profilePage.birthday")}:{" "}
-                          {new Date(user.birthday).toLocaleDateString("zh-CN")}
+                          {new Date(user.birthday).toLocaleDateString(getLocale())}
                         </span>
                       </div>
                     )}

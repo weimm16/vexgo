@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import {
   Users, UserCheck
 } from 'lucide-react';
+import { getLocale } from '@/lib/i18n';
 
 export function UserManagementPage() {
   const { user: currentUser } = useAuth();
@@ -90,7 +91,8 @@ export function UserManagementPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', {
+    const locale = getLocale();
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'

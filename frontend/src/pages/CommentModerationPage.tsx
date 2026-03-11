@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from '@/lib/I18nContext';
+import { getLocale } from '@/lib/i18n';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -146,7 +147,7 @@ export function CommentModerationPage() {
                           <User className="h-4 w-4" />
                           <span className="font-medium">{comment.author?.username || t('commentModeration.anonymous')}</span>
                           <span className="text-muted-foreground text-sm">
-                            {new Date(comment.createdAt).toLocaleString('zh-CN')}
+                            {new Date(comment.createdAt).toLocaleString(getLocale())}
                           </span>
                         </div>
                         <div className="flex gap-2">
@@ -200,7 +201,7 @@ export function CommentModerationPage() {
                         <User className="h-4 w-4" />
                         <span className="font-medium">{comment.author?.username || t('commentModeration.anonymous')}</span>
                         <span className="text-muted-foreground text-sm">
-                          {new Date(comment.createdAt).toLocaleString('zh-CN')}
+                          {new Date(comment.createdAt).toLocaleString(getLocale())}
                         </span>
                         <Badge variant="default" className="ml-auto">{t('moderation.approved')}</Badge>
                       </div>
@@ -236,7 +237,7 @@ export function CommentModerationPage() {
                         <User className="h-4 w-4" />
                         <span className="font-medium">{comment.author?.username || t('commentModeration.anonymous')}</span>
                         <span className="text-muted-foreground text-sm">
-                          {new Date(comment.createdAt).toLocaleString('zh-CN')}
+                          {new Date(comment.createdAt).toLocaleString(getLocale())}
                         </span>
                         <Badge variant="destructive" className="ml-auto">{t('moderation.rejected')}</Badge>
                       </div>

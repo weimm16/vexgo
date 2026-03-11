@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { normalizeTagsArray } from '@/lib/utils';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { getLocale } from '@/lib/i18n';
 
 export function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -188,7 +189,8 @@ export function PostDetailPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', {
+    const locale = getLocale();
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

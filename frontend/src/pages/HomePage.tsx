@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { postsApi, categoriesApi, statsApi, likesApi } from '@/lib/api';
 import type { Post, Category } from '@/types';
 import { useTranslation } from '@/lib/I18nContext';
+import { getLocale } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -200,7 +201,8 @@ export function HomePage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', {
+    const locale = getLocale();
+    return new Date(dateString).toLocaleDateString(locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
@@ -352,7 +354,7 @@ export function HomePage() {
                               {post.author?.birthday && !JSON.parse(localStorage.getItem('userSettings') || '{}').hideBirthday && (
                                 <span className="flex items-center gap-1">
                                   <Calendar className="w-2.5 h-2.5" />
-                                  {new Date(post.author.birthday).toLocaleDateString('zh-CN', {
+                                  {new Date(post.author.birthday).toLocaleDateString(getLocale(), {
                                     month: 'short',
                                     day: 'numeric'
                                   })}
