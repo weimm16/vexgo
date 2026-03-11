@@ -31,136 +31,126 @@ func main() {
 	r := gin.Default()
 
 	// ===================== Core API routing group (all endpoints under /api) =====================
-	// Match frontend Axios baseURL: /api, ensure all frontend API requests are handled
 	api := r.Group("/api")
-	// Optional JWT middleware: public endpoints can identify logged-in users when Authorization header is present
 	api.Use(middleware.OptionalJWTAuth())
 	{
 		// -------------------- Public API (no JWT authentication required) --------------------
-		// Public endpoints related to posts
-		api.GET("/posts", handler.GetPosts)    // GET /api/posts (get posts list)
-		api.GET("/posts/:id", handler.GetPost) // GET /api/posts/:id (get single post)
+		api.GET("/posts", handler.GetPosts)
+		api.GET("/posts/:id", handler.GetPost)
 
-		// Email verification public endpoints
-		api.GET("/verify-email", handler.VerifyEmail) // GET /api/verify-email (verify email)
+		api.GET("/verify-email", handler.VerifyEmail)
 
-		// Sliding puzzle captcha public endpoints
-		api.GET("/captcha", handler.GenerateCaptcha)       // GET /api/captcha (generate sliding puzzle captcha)
-		api.POST("/captcha/verify", handler.VerifyCaptcha) // POST /api/captcha/verify (verify sliding puzzle)
+		api.GET("/captcha", handler.GenerateCaptcha)
+		api.POST("/captcha/verify", handler.VerifyCaptcha)
 
-		// Category/Tag public endpoints
-		api.GET("/categories", handler.GetCategories) // GET /api/categories (get categories list)
-		api.GET("/tags", handler.GetTags)             // GET /api/tags (get tags list)
+		api.GET("/categories", handler.GetCategories)
+		api.GET("/tags", handler.GetTags)
 
-		// Statistics related public endpoints
-		api.GET("/stats", handler.GetStats)                      // GET /api/stats (get statistics)
-		api.GET("/stats/popular-posts", handler.GetPopularPosts) // GET /api/stats/popular-posts
-		api.GET("/stats/latest-posts", handler.GetLatestPosts)   // GET /api/stats/latest-posts
+		api.GET("/stats", handler.GetStats)
+		api.GET("/stats/popular-posts", handler.GetPopularPosts)
+		api.GET("/stats/latest-posts", handler.GetLatestPosts)
 
-		// Comment/Like public endpoints
-		api.GET("/comments/post/:id", handler.GetComments) // GET /api/comments/post/:id (get post comments)
-		api.GET("/likes/:postId", handler.GetLikeStatus)   // GET /api/likes/:postId (get like status)
-		// Get user posts list
-		api.GET("/posts/user/:id", handler.GetUserPosts) // GET /api/posts/user/:id (get specified user's posts)
+		api.GET("/comments/post/:id", handler.GetComments)
+		api.GET("/likes/:postId", handler.GetLikeStatus)
+		api.GET("/posts/user/:id", handler.GetUserPosts)
 
-		// -------------------- Authentication related API (/api/auth subgroup) --------------------
-		// Match all frontend authApi endpoints: /api/auth/xxx
+		// -------------------- Authentication related API --------------------
 		auth := api.Group("/auth")
 		{
-			auth.POST("/register", handler.Register)                                                 // POST /api/auth/register (register)
-			auth.POST("/login", handler.Login)                                                       // POST /api/auth/login (login)
-			auth.GET("/me", middleware.JWTAuth(), handler.GetCurrentUser)                            // GET /api/auth/me (get current user, requires authentication)
-			auth.GET("/user", middleware.JWTAuth(), handler.GetCurrentUser)                          // backward compatibility: /api/auth/user
-			auth.PUT("/profile", middleware.JWTAuth(), handler.UpdateProfile)                        // PUT /api/auth/profile (update profile)
-			auth.PUT("/password", middleware.JWTAuth(), handler.ChangePassword)                      // PUT /api/auth/password (change password)
-			auth.PUT("/email", middleware.JWTAuth(), handler.UpdateEmail)                            // PUT /api/auth/email (update email)
-			auth.PUT("/settings", middleware.JWTAuth(), handler.UpdateSettings)                      // PUT /api/auth/settings (update user settings)
-			auth.POST("/request-password-reset", handler.RequestPasswordReset)                       // POST /api/auth/request-password-reset (request password reset)
-			auth.POST("/reset-password", handler.ResetPassword)                                      // POST /api/auth/reset-password (reset password)
-			auth.GET("/verification-status", middleware.JWTAuth(), handler.GetVerificationStatus)    // GET /api/auth/verification-status (get verification status)
-			auth.POST("/resend-verification", middleware.JWTAuth(), handler.ResendVerificationEmail) // POST /api/auth/resend-verification (resend verification email)
+			auth.POST("/register", handler.Register)
+			auth.POST("/login", handler.Login)
+			auth.GET("/me", middleware.JWTAuth(), handler.GetCurrentUser)
+			auth.GET("/user", middleware.JWTAuth(), handler.GetCurrentUser)
+			auth.PUT("/profile", middleware.JWTAuth(), handler.UpdateProfile)
+			auth.PUT("/password", middleware.JWTAuth(), handler.ChangePassword)
+			auth.PUT("/email", middleware.JWTAuth(), handler.UpdateEmail)
+			auth.PUT("/settings", middleware.JWTAuth(), handler.UpdateSettings)
+			auth.POST("/request-password-reset", handler.RequestPasswordReset)
+			auth.POST("/reset-password", handler.ResetPassword)
+			auth.GET("/verification-status", middleware.JWTAuth(), handler.GetVerificationStatus)
+			auth.POST("/resend-verification", middleware.JWTAuth(), handler.ResendVerificationEmail)
+		}
+
+		// -------------------- SSO --------------------
+		sso := api.Group("/sso")
+		{
+			// Public: returns enabled providers, used by frontend to show/hide buttons
+			// GET /api/sso/providers
+			sso.GET("/providers", handler.SSOProviders)
+
+			// Step 1: open in popup → redirects to provider
+			// GET /api/sso/:provider/login?method=sso_get_token|get_sso_id
+			sso.GET("/:provider/login", handler.SSOLoginRedirect)
+
+			// Step 2: provider redirects back, popup sends postMessage → closes
+			// GET /api/sso/:provider/callback?method=...&code=...&state=...
+			sso.GET("/:provider/callback", func(c *gin.Context) {
+				handler.SSOCallback(c, handler.DB())
+			})
 		}
 
 		// -------------------- Business API requiring JWT authentication --------------------
-		// Post operations (requires login)
-		api.POST("/posts", middleware.JWTAuth(), handler.CreatePost)              // POST /api/posts (create post)
-		api.GET("/posts/user/my-posts", middleware.JWTAuth(), handler.GetMyPosts) // GET /api/posts/user/my-posts (my posts)
-		api.GET("/posts/drafts", middleware.JWTAuth(), handler.GetDraftPosts)     // GET /api/posts/drafts (draft posts)
-		api.PUT("/posts/:id", middleware.JWTAuth(), handler.UpdatePost)           // PUT /api/posts/:id (update post)
-		api.DELETE("/posts/:id", middleware.JWTAuth(), handler.DeletePost)        // DELETE /api/posts/:id (delete post)
+		api.POST("/posts", middleware.JWTAuth(), handler.CreatePost)
+		api.GET("/posts/user/my-posts", middleware.JWTAuth(), handler.GetMyPosts)
+		api.GET("/posts/drafts", middleware.JWTAuth(), handler.GetDraftPosts)
+		api.PUT("/posts/:id", middleware.JWTAuth(), handler.UpdatePost)
+		api.DELETE("/posts/:id", middleware.JWTAuth(), handler.DeletePost)
 
-		// Category/Tag operations (requires login)
-		api.POST("/categories", middleware.JWTAuth(), handler.CreateCategory) // POST /api/categories (create category)
-		api.POST("/tags", middleware.JWTAuth(), handler.CreateTag)            // POST /api/tags (create tag)
+		api.POST("/categories", middleware.JWTAuth(), handler.CreateCategory)
+		api.POST("/tags", middleware.JWTAuth(), handler.CreateTag)
 
-		// Comment operations (requires login)
-		api.POST("/comments", middleware.JWTAuth(), handler.CreateComment)       // POST /api/comments (create comment)
-		api.DELETE("/comments/:id", middleware.JWTAuth(), handler.DeleteComment) // DELETE /api/comments/:id (delete comment)
+		api.POST("/comments", middleware.JWTAuth(), handler.CreateComment)
+		api.DELETE("/comments/:id", middleware.JWTAuth(), handler.DeleteComment)
 
-		// Comment moderation related API (requires admin permission)
-		api.GET("/moderation/comments/pending", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetPendingComments)           // GET /api/moderation/comments/pending (get pending comments)
-		api.GET("/moderation/comments/approved", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetApprovedComments)         // GET /api/moderation/comments/approved (get approved comments)
-		api.GET("/moderation/comments/rejected", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetRejectedComments)         // GET /api/moderation/comments/rejected (get rejected comments)
-		api.PUT("/moderation/comments/approve/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.ApproveComment)           // PUT /api/moderation/comments/approve/:id (approve comment)
-		api.PUT("/moderation/comments/reject/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.RejectComment)             // PUT /api/moderation/comments/reject/:id (reject comment)
-		api.GET("/moderation/comments/config", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetCommentModerationConfig)    // GET /api/moderation/comments/config (get comment moderation config)
-		api.PUT("/moderation/comments/config", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateCommentModerationConfig) // PUT /api/moderation/comments/config (update comment moderation config)
+		api.GET("/moderation/comments/pending", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetPendingComments)
+		api.GET("/moderation/comments/approved", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetApprovedComments)
+		api.GET("/moderation/comments/rejected", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetRejectedComments)
+		api.PUT("/moderation/comments/approve/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.ApproveComment)
+		api.PUT("/moderation/comments/reject/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.RejectComment)
+		api.GET("/moderation/comments/config", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetCommentModerationConfig)
+		api.PUT("/moderation/comments/config", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateCommentModerationConfig)
 
-		// Like operations (requires login)
-		api.POST("/likes/:postId", middleware.JWTAuth(), handler.ToggleLike) // POST /api/likes/:postId (toggle like)
+		api.POST("/likes/:postId", middleware.JWTAuth(), handler.ToggleLike)
 
-		// File upload operations (requires login)
-		api.POST("/upload/file", middleware.JWTAuth(), handler.UploadFile)    // POST /api/upload/file (single file upload)
-		api.POST("/upload/files", middleware.JWTAuth(), handler.UploadFiles)  // POST /api/upload/files (multiple files upload)
-		api.GET("/upload/my-files", middleware.JWTAuth(), handler.GetMyFiles) // GET /api/upload/my-files (my files)
-		api.DELETE("/upload/:id", middleware.JWTAuth(), handler.DeleteFile)   // DELETE /api/upload/:id (delete file)
+		api.POST("/upload/file", middleware.JWTAuth(), handler.UploadFile)
+		api.POST("/upload/files", middleware.JWTAuth(), handler.UploadFiles)
+		api.GET("/upload/my-files", middleware.JWTAuth(), handler.GetMyFiles)
+		api.DELETE("/upload/:id", middleware.JWTAuth(), handler.DeleteFile)
 
-		// Post moderation related API (requires admin permission)
-		api.GET("/moderation/pending", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetPendingPosts)   // GET /api/moderation/pending (get pending posts)
-		api.GET("/moderation/approved", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetApprovedPosts) // GET /api/moderation/approved (get approved posts)
-		api.GET("/moderation/rejected", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetRejectedPosts) // GET /api/moderation/rejected (get rejected posts)
-		api.PUT("/moderation/approve/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.ApprovePost)   // PUT /api/moderation/approve/:id (approve post)
-		api.PUT("/moderation/reject/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.RejectPost)     // PUT /api/moderation/reject/:id (reject post)
-		api.PUT("/moderation/resubmit/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.ResubmitPost) // PUT /api/moderation/resubmit/:id (resubmit post for moderation)
+		api.GET("/moderation/pending", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetPendingPosts)
+		api.GET("/moderation/approved", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetApprovedPosts)
+		api.GET("/moderation/rejected", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetRejectedPosts)
+		api.PUT("/moderation/approve/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.ApprovePost)
+		api.PUT("/moderation/reject/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.RejectPost)
+		api.PUT("/moderation/resubmit/:id", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.ResubmitPost)
 
-		// User management related API (requires admin permission)
-		api.GET("/users", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetUserList)             // GET /api/users (get user list)
-		api.PUT("/users/:id/role", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateUserRole) // PUT /api/users/:id/role (update user role)
+		api.GET("/users", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetUserList)
+		api.PUT("/users/:id/role", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateUserRole)
 
-		// SMTP configuration related API (requires admin permission)
-		api.GET("/config/smtp", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetSMTPConfig)    // GET /api/config/smtp (get SMTP config)
-		api.PUT("/config/smtp", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateSMTPConfig) // PUT /api/config/smtp (update SMTP config)
-		api.POST("/config/smtp/test", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.TestSMTP)   // POST /api/config/smtp/test (test SMTP config)
+		api.GET("/config/smtp", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetSMTPConfig)
+		api.PUT("/config/smtp", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateSMTPConfig)
+		api.POST("/config/smtp/test", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.TestSMTP)
 
-		// AI configuration related API (requires admin permission)
-		api.GET("/config/ai", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetAIConfig)        // GET /api/config/ai (get AI config)
-		api.PUT("/config/ai", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateAIConfig)     // PUT /api/config/ai (update AI config)
-		api.POST("/config/ai/test", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.TestAI)       // POST /api/config/ai/test (test AI config)
-		api.GET("/config/ai/models", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetAIModels) // GET /api/config/ai/models (get model list)
+		api.GET("/config/ai", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetAIConfig)
+		api.PUT("/config/ai", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateAIConfig)
+		api.POST("/config/ai/test", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.TestAI)
+		api.GET("/config/ai/models", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.GetAIModels)
 
-		// General settings related API (GET public, PUT requires admin permission)
-		api.GET("/config/general", handler.GetGeneralSettings)                                                                                   // GET /api/config/general (get general settings, public)
-		api.PUT("/config/general", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateGeneralSettings) // PUT /api/config/general (update general settings, requires admin permission)
+		api.GET("/config/general", handler.GetGeneralSettings)
+		api.PUT("/config/general", middleware.JWTAuth(), middleware.PermissionMiddleware("admin", "super_admin"), handler.UpdateGeneralSettings)
 	}
 
-	// ===================== Static file hosting (must be after API routes) =====================
-	// 1. Host uploaded files: frontend access /uploads/xxx corresponds to media folder in backend data directory
+	// ===================== Static file hosting =====================
 	mediaDir := filepath.Join(cfg.DataDir, "media")
 	r.Static("/uploads", mediaDir)
 
-	// 2. Host frontend built static assets: using embedded file system
-	// Mount embedded dist directory to /assets path
 	r.GET("/assets/*filepath", func(c *gin.Context) {
-		// Remove /assets prefix
 		file := strings.TrimPrefix(c.Param("filepath"), "/")
-		// Read embedded file, need to add assets prefix because files are under dist/assets/
-		// Use forward slashes for embed.FS compatibility across platforms
 		content, err := public.ReadAsset("assets/" + file)
 		if err != nil {
 			c.Status(404)
 			return
 		}
-		// Set Content-Type based on file extension
 		ext := filepath.Ext(file)
 		switch ext {
 		case ".js":
@@ -190,24 +180,18 @@ func main() {
 		}
 	})
 
-	// 3. Frontend entry page: root path / returns embedded index.html
 	r.GET("/", func(c *gin.Context) {
 		c.Data(200, "text/html; charset=utf-8", public.GetIndexHTML())
 	})
 
-	// ===================== Frontend SPA route compatibility (defined last) =====================
-	// Handle React/Vue client-side routes (like /login, /posts/1, etc.)
-	// Must be placed after all API and static file routes to ensure API requests are matched first
+	// ===================== Frontend SPA route compatibility =====================
 	r.NoRoute(func(c *gin.Context) {
-		// For non-API requests, return embedded index.html to support frontend routing
 		if !strings.HasPrefix(c.Request.URL.Path, "/api/") {
 			c.Data(200, "text/html; charset=utf-8", public.GetIndexHTML())
 			return
 		}
-		// API request not matched, return 404
 		c.JSON(404, gin.H{"error": "Not Found"})
 	})
 
-	// Start HTTP service, listen on configured address and port
 	r.Run(cfg.GetListenAddr())
 }

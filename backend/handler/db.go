@@ -162,6 +162,7 @@ func InitDB(cfg *cmd.Config, dataDir string) {
 		&model.GeneralSettings{},
 		&model.CommentModerationConfig{},
 		&model.AIConfig{},
+		&model.SSOBinding{},
 	); err != nil {
 		log.Fatalf("auto migrate failed: %v", err)
 	}
