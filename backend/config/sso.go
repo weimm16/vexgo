@@ -73,6 +73,22 @@ func LoadFromConfig(cfg *cmd.Config) {
 	// Only update fields that are set in the config (non-zero values)
 	// This preserves the priority: command line > config file > environment
 
+	// GitHub OAuth
+	if cfg.GitHubClientID != "" {
+		SSOConfig.GitHub.ClientID = cfg.GitHubClientID
+	}
+	if cfg.GitHubClientSecret != "" {
+		SSOConfig.GitHub.ClientSecret = cfg.GitHubClientSecret
+	}
+
+	// Google OAuth
+	if cfg.GoogleClientID != "" {
+		SSOConfig.Google.ClientID = cfg.GoogleClientID
+	}
+	if cfg.GoogleClientSecret != "" {
+		SSOConfig.Google.ClientSecret = cfg.GoogleClientSecret
+	}
+
 	// OIDC Enabled
 	if cfg.OIDCEnabled {
 		SSOConfig.OIDC.Enabled = cfg.OIDCEnabled

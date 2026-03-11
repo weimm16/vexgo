@@ -41,6 +41,14 @@ type Config struct {
 	OIDCAutoRedirect  bool   `yaml:"oidc_auto_redirect"`  // Auto-redirect to OIDC provider (skip login page)
 	OIDCVerifyEmail   bool   `yaml:"oidc_verify_email"`   // Require email_verified=true in token
 
+	// GitHub OAuth configuration
+	GitHubClientID     string `yaml:"github_client_id"`     // GitHub OAuth App Client ID
+	GitHubClientSecret string `yaml:"github_client_secret"` // GitHub OAuth App Client Secret
+
+	// Google OAuth configuration
+	GoogleClientID     string `yaml:"google_client_id"`     // Google OAuth 2.0 Client ID
+	GoogleClientSecret string `yaml:"google_client_secret"` // Google OAuth 2.0 Client Secret
+
 	// Global options
 	AllowLocalLogin bool `yaml:"allow_local_login"` // Allow password-based login (default: true)
 }
@@ -246,6 +254,30 @@ func applyEnvOverrides(cfg *Config) {
 			}
 		}
 	}
+
+	// GitHub OAuth configuration
+	if cfg.GitHubClientID == "" {
+		if env := os.Getenv("GITHUB_CLIENT_ID"); env != "" {
+			cfg.GitHubClientID = env
+		}
+	}
+	if cfg.GitHubClientSecret == "" {
+		if env := os.Getenv("GITHUB_CLIENT_SECRET"); env != "" {
+			cfg.GitHubClientSecret = env
+		}
+	}
+
+	// Google OAuth configuration
+	if cfg.GoogleClientID == "" {
+		if env := os.Getenv("GOOGLE_CLIENT_ID"); env != "" {
+			cfg.GoogleClientID = env
+		}
+	}
+	if cfg.GoogleClientSecret == "" {
+		if env := os.Getenv("GOOGLE_CLIENT_SECRET"); env != "" {
+			cfg.GoogleClientSecret = env
+		}
+	}
 }
 
 // loadConfigFile loads configuration from a YAML file
@@ -349,6 +381,22 @@ func loadConfigFile(filename string, cfg *Config) error {
 	}
 	if !cfg.AllowLocalLogin && temp.AllowLocalLogin {
 		cfg.AllowLocalLogin = temp.AllowLocalLogin
+	}
+
+	// GitHub OAuth configuration
+	if cfg.GitHubClientID == "" && temp.GitHubClientID != "" {
+		cfg.GitHubClientID = temp.GitHubClientID
+	}
+	if cfg.GitHubClientSecret == "" && temp.GitHubClientSecret != "" {
+		cfg.GitHubClientSecret = temp.GitHubClientSecret
+	}
+
+	// Google OAuth configuration
+	if cfg.GoogleClientID == "" && temp.GoogleClientID != "" {
+		cfg.GoogleClientID = temp.GoogleClientID
+	}
+	if cfg.GoogleClientSecret == "" && temp.GoogleClientSecret != "" {
+		cfg.GoogleClientSecret = temp.GoogleClientSecret
 	}
 
 	return nil
