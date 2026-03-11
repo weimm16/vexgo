@@ -1,5 +1,8 @@
 # VexGo
-This is a blog built on React, Go, Gin, JWT, and SQLite, which implements features such as user registration and article management.
+
+**English | [中文](README_zh_cn.md)**
+
+This is a blog CMS built on React, Go, Gin, JWT, and SQLite, which implements features such as user registration and article management.
 
 ## Quick Start
 
@@ -19,8 +22,7 @@ sudo docker run -d --name vexgo -p 3001:3001 -v ./data:/app/data ghcr.io/antipet
 
 Then, visit http://127.0.0.1:3001
 
-The Default super admin account: `admin@example.com`
-
+The Default super admin account: `admin@example.com`  
 The Default super admin password: `password`
 
 You can change your account password on your profile page.
@@ -30,33 +32,28 @@ You can change your account password on your profile page.
 Configuration priority: command-line arguments > configuration files > environment variables > default values
 
 ### Use config file
+
 Here is example config file:
 
-```config.yml
+```yaml
 # Server listen address
 addr: "0.0.0.0"
-
 # Server listen port
 port: 3001
-
 # Data directory (for storing SQLite database and uploaded media files)
 data: "./data"
-
 # JWT secret key for signing tokens
 # IMPORTANT: Generate a secure random string for production!
 # You can generate one with: openssl rand -base64 32
 jwt_secret: "your-secret-key-change-this-in-production"
-
 # Database configuration
 db_type: "sqlite"  # Options: "sqlite", "mysql", or "postgres"
-
 # When db_type is "mysql", configure the following parameters
 # db_host: "127.0.0.1"
 # db_port: 3306
 # db_user: "your_username"
 # db_password: "your_password"
 # db_name: "vexgo"
-
 # When db_type is "postgres", configure the following parameters
 # db_host: "127.0.0.1"
 # db_port: 5432
@@ -71,46 +68,112 @@ Then, Run the following command:
 ```bash
 ./vexgo-linux-amd64 -c /the/path/to/config.yml
 ```
-### Use environment
 
-You can also configure the application using environment variables. The environment variable names correspond to the configuration keys in uppercase with underscores.
+### Use environment variables
 
-Available environment variables:
+You can also configure the application using environment variables.
 
-- `ADDR`: Server listen address (default: "0.0.0.0")
-- `PORT`: Server listen port (default: 3001)
-- `DATA`: Data directory path (default: "./data")
-- `JWT_SECRET`: JWT secret key (required for production)
-- `DB_TYPE`: Database type, options: "sqlite", "mysql", or "postgres" (default: "sqlite")
-- `DB_HOST`: Database host (required for mysql/postgres)
-- `DB_PORT`: Database port (required for mysql/postgres)
-- `DB_USER`: Database username (required for mysql/postgres)
-- `DB_PASSWORD`: Database password (required for mysql/postgres)
-- `DB_NAME`: Database name (required for mysql/postgres)
-- `DB_SSL_MODE`: SSL mode for postgres (default: "disable")
+#### Server
 
-Example using environment variables:
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ADDR` | `0.0.0.0` | Server listen address |
+| `PORT` | `3001` | Server listen port |
+| `DATA` | `./data` | Data directory path |
+| `JWT_SECRET` | — | JWT secret key (required for production) |
 
-```bash
-export PORT=3001
-export DB_TYPE=mysql
-export DB_HOST=127.0.0.1
-export DB_PORT=3306
-export DB_USER=vexgo_user
-export DB_PASSWORD=password
-export DB_NAME=vexgo_db
-./vexgo-linux-amd64
-```
+#### Database
 
-or
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DB_TYPE` | `sqlite` | Database type: `sqlite`, `mysql`, or `postgres` |
+| `DB_HOST` | — | Database host (required for mysql/postgres) |
+| `DB_PORT` | — | Database port (required for mysql/postgres) |
+| `DB_USER` | — | Database username (required for mysql/postgres) |
+| `DB_PASSWORD` | — | Database password (required for mysql/postgres) |
+| `DB_NAME` | — | Database name (required for mysql/postgres) |
+| `DB_SSL_MODE` | `disable` | SSL mode for postgres |
+
+#### SSO / Single Sign-On
+
+VexGo supports GitHub, Google, and any OpenID Connect (OIDC) compatible provider (Keycloak, Authentik, Authelia, Okta, Casdoor, etc.).
+
+**General**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BASE_URL` | — | Public base URL of your instance, e.g. `https://vexgo.example.com`. Required when running behind a reverse proxy so that OAuth2 redirect URIs are generated correctly. |
+| `ALLOW_LOCAL_LOGIN` | `true` | Set to `false` to disable password login and enforce SSO-only access. |
+
+**GitHub**
+
+| Variable | Description |
+|----------|-------------|
+| `GITHUB_CLIENT_ID` | GitHub OAuth App Client ID |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth App Client Secret |
+
+Register your OAuth App at https://github.com/settings/developers. Set the callback URL to `https://your-domain/api/sso/github/callback`.
+
+**Google**
+
+| Variable | Description |
+|----------|-------------|
+| `GOOGLE_CLIENT_ID` | Google OAuth 2.0 Client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth 2.0 Client Secret |
+
+Create credentials at https://console.developers.google.com. Set the callback URL to `https://your-domain/api/sso/google/callback`.
+
+**OIDC**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OIDC_ENABLED` | `false` | Set to `true` to enable OIDC login |
+| `OIDC_ISSUER_URL` | — | Issuer URL of your OIDC provider, e.g. `https://auth.example.com/realms/myrealm`. VexGo will auto-discover endpoints via `<issuer>/.well-known/openid-configuration`. |
+| `OIDC_CLIENT_ID` | — | Client ID provided by your OIDC provider |
+| `OIDC_CLIENT_SECRET` | — | Client Secret provided by your OIDC provider |
+
+Advanced options:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OIDC_SCOPES` | `openid profile email` | Space-separated scopes. Add `groups` if your provider requires it for group claims. |
+| `OIDC_EMAIL_CLAIM` | `email` | Claim name for the user's email |
+| `OIDC_NAME_CLAIM` | `name` | Claim name for the user's display name |
+| `OIDC_GROUP_CLAIM` | `groups` | Claim name for group membership |
+| `OIDC_ALLOWED_GROUPS` | — | Comma-separated list of groups allowed to log in, e.g. `admins,developers`. Empty = allow all users. |
+| `OIDC_AUTO_REDIRECT` | `false` | Automatically redirect to the OIDC provider on the login page, skipping the password form. |
+| `OIDC_VERIFY_EMAIL` | `false` | Require `email_verified=true` in the token before allowing login. |
+| `OIDC_AUTH_URL` | — | Manual override for the authorization endpoint (only needed if OIDC discovery is unavailable). |
+| `OIDC_TOKEN_URL` | — | Manual override for the token endpoint. |
+| `OIDC_USERINFO_URL` | — | Manual override for the userinfo endpoint (optional fallback when the `id_token` lacks required claims). |
+
+Register your OIDC client with the callback URL: `https://your-domain/api/sso/oidc/callback`.
+
+> **Tip:** To find your issuer URL, open `<provider-base-url>/.well-known/openid-configuration` and look for the `issuer` field.
+
+**Example: Docker with OIDC**
 
 ```bash
 sudo docker run -d --name vexgo \
   -p 3001:3001 \
-  -e PORT=3001 \
-  -e DB_TYPE=sqlite \
-  -v ./data:/app/data \ 
+  -v ./data:/app/data \
+  -e BASE_URL=https://vexgo.example.com \
+  -e OIDC_ENABLED=true \
+  -e OIDC_ISSUER_URL=https://auth.example.com/realms/myrealm \
+  -e OIDC_CLIENT_ID=your-client-id \
+  -e OIDC_CLIENT_SECRET=your-client-secret \
   ghcr.io/antipeth/vexgo:latest
+```
+
+**Example: environment variables**
+
+```bash
+export BASE_URL=https://vexgo.example.com
+export OIDC_ENABLED=true
+export OIDC_ISSUER_URL=https://auth.example.com/realms/myrealm
+export OIDC_CLIENT_ID=your-client-id
+export OIDC_CLIENT_SECRET=your-client-secret
+./vexgo-linux-amd64
 ```
 
 ## Database
@@ -119,9 +182,7 @@ sudo docker run -d --name vexgo \
 
 Recommend Version: Postgres 18
 
-To use postgres.
-
-First, you run a postgres instance.
+To use postgres. First, you run a postgres instance.
 
 ```bash
 sudo docker run -d --name postgres -e POSTGRES_PASSWORD=test -p 5432:5432 -v ./postgres:/var/lib/postgresql/data docker.io/library/postgres:18-alpine
@@ -136,6 +197,7 @@ postgres=# CREATE DATABASE vexgo_db OWNER vexgo_user ENCODING 'UTF8' LC_COLLATE 
 ```
 
 Run backend with this command:
+
 ```bash
 go run main.go -c ../examples/config-postgres.yml
 ```
@@ -144,9 +206,7 @@ go run main.go -c ../examples/config-postgres.yml
 
 Recommend Version: Mysql 8
 
-To use mysql.
-
-First, you run a mysql instance.
+To use mysql. First, you run a mysql instance.
 
 ```bash
 sudo docker run -d --name mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=test -v ./mysql:/var/lib/mysql docker.io/library/mysql:8
@@ -156,13 +216,14 @@ Then, enter mysql shell.
 
 ```bash
 mysql -p
-mysql>CREATE DATABASE vexgo_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-mysql>CREATE USER 'vexgo_user'@'%' IDENTIFIED BY 'password';
-mysql>GRANT ALL ON vexgo_db.* TO 'vexgo_user'@'%';
-mysql>FLUSH PRIVILEGES;
+mysql> CREATE DATABASE vexgo_db DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+mysql> CREATE USER 'vexgo_user'@'%' IDENTIFIED BY 'password';
+mysql> GRANT ALL ON vexgo_db.* TO 'vexgo_user'@'%';
+mysql> FLUSH PRIVILEGES;
 ```
 
 Run backend with this command:
+
 ```bash
 go run main.go -c ../examples/config-mysql.yml
 ```
@@ -170,13 +231,15 @@ go run main.go -c ../examples/config-mysql.yml
 ## Development
 
 ### Requirements
+
 - Linux/MacOS
 - go
 - nodejs
 - pnpm
 
 ### Steps
-```
+
+```bash
 git clone https://github.com/weimm16/vexgo.git
 cd vexgo/frontend
 pnpm install
@@ -184,5 +247,5 @@ pnpm run build
 cd ../backend
 go run main.go
 ```
-Then, visit http://127.0.0.1:3001
 
+Then, visit http://127.0.0.1:3001
