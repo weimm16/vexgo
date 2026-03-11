@@ -36,31 +36,102 @@ sudo docker run -d --name vexgo -p 3001:3001 -v ./data:/app/data ghcr.io/antipet
 以下是示例配置文件：
 
 ```yaml
-# Server listen address
+# 服务器监听地址
 addr: "0.0.0.0"
-# Server listen port
+
+# 服务器监听端口
 port: 3001
-# Data directory (for storing SQLite database and uploaded media files)
+
+# 数据目录（用于存储 SQLite 数据库和上传的媒体文件）
 data: "./data"
-# JWT secret key for signing tokens
-# IMPORTANT: Generate a secure random string for production!
-# You can generate one with: openssl rand -base64 32
+
+# 用于签名 JWT Token 的密钥
+# 重要：生产环境必须生成一个安全的随机字符串！
+# 可以使用下面命令生成：
+# openssl rand -base64 32
 jwt_secret: "your-secret-key-change-this-in-production"
-# Database configuration
-db_type: "sqlite"  # Options: "sqlite", "mysql", or "postgres"
-# When db_type is "mysql", configure the following parameters
+
+# 数据库配置
+db_type: "sqlite"  # 可选值: "sqlite", "mysql", 或 "postgres"
+
+# 当 db_type 为 "mysql" 时，需要配置以下参数
 # db_host: "127.0.0.1"
 # db_port: 3306
-# db_user: "your_username"
-# db_password: "your_password"
+# db_user: "你的用户名"
+# db_password: "你的密码"
 # db_name: "vexgo"
-# When db_type is "postgres", configure the following parameters
+
+# 当 db_type 为 "postgres" 时，需要配置以下参数
 # db_host: "127.0.0.1"
 # db_port: 5432
-# db_user: "your_username"
-# db_password: "your_password"
+# db_user: "你的用户名"
+# db_password: "你的密码"
 # db_name: "vexgo"
-# db_ssl_mode: "disable"  # Options: "disable", "require", "verify-ca", "verify-full"
+# db_ssl_mode: "disable"  # 可选值: "disable", "require", "verify-ca", "verify-full"
+
+# ==================== 单点登录 (SSO) 配置 ====================
+
+# -------------------- GitHub OAuth --------------------
+# GitHub OAuth 应用凭证
+# 申请地址: https://github.com/settings/developers
+# 留空则禁用 GitHub 登录
+github_client_id: ""
+github_client_secret: ""
+
+# -------------------- Google OAuth --------------------
+# Google OAuth 2.0 凭证
+# 申请地址: https://console.cloud.google.com/apis/credentials
+# 留空则禁用 Google 登录
+google_client_id: ""
+google_client_secret: ""
+
+# -------------------- OIDC (OpenID Connect) --------------------
+# 通用 OIDC 提供商支持
+# 例如：Keycloak、Authentik、Okta、Authelia 等
+
+# 是否启用 OIDC 登录
+oidc_enabled: false
+
+# OIDC Discovery URL（启用时必须填写）
+# 服务器会从以下地址获取 OIDC 配置：
+# {issuer_url}/.well-known/openid-configuration
+# 示例: "https://auth.example.com/realms/myrealm"
+oidc_issuer_url: ""
+
+# OIDC 客户端凭证（启用时必须填写）
+oidc_client_id: ""
+oidc_client_secret: ""
+
+# 手动端点覆盖（仅在 OIDC discovery 不可用时使用）
+# 如果填写，将覆盖自动发现的端点
+oidc_auth_url: ""      # 授权端点 (Authorization endpoint)
+oidc_token_url: ""     # Token 端点 (Token endpoint)
+oidc_userinfo_url: ""  # 用户信息端点 (UserInfo endpoint，可选备用)
+
+# OIDC scope（空格分隔，默认: "openid profile email"）
+# 如果你的提供商需要额外权限，可以添加
+# 例如: "openid profile email groups"
+oidc_scopes: "openid profile email"
+
+# OIDC claim 字段名称（默认是标准 OIDC claim）
+oidc_email_claim: "email"   # 用户邮箱字段
+oidc_name_claim: "name"     # 用户显示名称字段
+oidc_group_claim: "groups"  # 用户组字段（用于访问控制）
+
+# OIDC 访问控制（可选）
+# 允许登录的用户组（逗号分隔）
+# 留空表示所有认证用户都可以登录
+oidc_allowed_groups: ""
+
+# OIDC 用户体验选项
+oidc_auto_redirect: false  # 如果为 true，跳过登录页直接跳转到 OIDC 登录
+oidc_verify_email: false   # 如果为 true，要求 ID Token 中 email_verified=true
+
+# -------------------- 全局选项 --------------------
+
+# 是否允许本地账号密码登录
+# 设置为 false 可以强制只允许 SSO 登录
+allow_local_login: true
 ```
 
 然后运行以下命令：

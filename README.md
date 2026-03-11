@@ -38,22 +38,28 @@ Here is example config file:
 ```yaml
 # Server listen address
 addr: "0.0.0.0"
+
 # Server listen port
 port: 3001
+
 # Data directory (for storing SQLite database and uploaded media files)
 data: "./data"
+
 # JWT secret key for signing tokens
 # IMPORTANT: Generate a secure random string for production!
 # You can generate one with: openssl rand -base64 32
 jwt_secret: "your-secret-key-change-this-in-production"
+
 # Database configuration
 db_type: "sqlite"  # Options: "sqlite", "mysql", or "postgres"
+
 # When db_type is "mysql", configure the following parameters
 # db_host: "127.0.0.1"
 # db_port: 3306
 # db_user: "your_username"
 # db_password: "your_password"
 # db_name: "vexgo"
+
 # When db_type is "postgres", configure the following parameters
 # db_host: "127.0.0.1"
 # db_port: 5432
@@ -61,6 +67,62 @@ db_type: "sqlite"  # Options: "sqlite", "mysql", or "postgres"
 # db_password: "your_password"
 # db_name: "vexgo"
 # db_ssl_mode: "disable"  # Options: "disable", "require", "verify-ca", "verify-full"
+
+# ==================== SSO Configuration ====================
+
+# -------------------- GitHub OAuth --------------------
+# GitHub OAuth App credentials (https://github.com/settings/developers)
+# Leave empty to disable GitHub login
+github_client_id: ""
+github_client_secret: ""
+
+# -------------------- Google OAuth --------------------
+# Google OAuth 2.0 credentials (https://console.cloud.google.com/apis/credentials)
+# Leave empty to disable Google login
+google_client_id: ""
+google_client_secret: ""
+
+# -------------------- OIDC (OpenID Connect) --------------------
+# Generic OIDC provider support (Keycloak, Authentik, Okta, Authelia, etc.)
+# Enable OIDC login
+oidc_enabled: false
+
+# OIDC discovery URL (required when enabled)
+# The server will fetch the OIDC configuration from: {issuer_url}/.well-known/openid-configuration
+# Example: "https://auth.example.com/realms/myrealm"
+oidc_issuer_url: ""
+
+# OIDC client credentials (required when enabled)
+oidc_client_id: ""
+oidc_client_secret: ""
+
+# Manual endpoint override (only needed when OIDC discovery is unavailable)
+# If provided, these override the discovery endpoints
+oidc_auth_url: ""      # Authorization endpoint
+oidc_token_url: ""     # Token endpoint
+oidc_userinfo_url: ""  # UserInfo endpoint (optional fallback)
+
+# OIDC scopes (space-separated, default: "openid profile email")
+# Add extra scopes if your provider requires them, e.g., "openid profile email groups"
+oidc_scopes: "openid profile email"
+
+# OIDC claim names (defaults are standard OIDC claims)
+oidc_email_claim: "email"   # Claim name for user's email
+oidc_name_claim: "name"     # Claim name for user's display name
+oidc_group_claim: "groups"  # Claim name for user's groups (for access control)
+
+# OIDC access control (optional)
+# Comma-separated list of groups allowed to log in
+# Leave empty to allow all authenticated users
+oidc_allowed_groups: ""
+
+# OIDC user experience options
+oidc_auto_redirect: false  # If true, skip login page and redirect to OIDC provider automatically
+oidc_verify_email: false   # If true, require email_verified=true in the ID token
+
+# -------------------- Global Options --------------------
+# Set to false to enforce SSO-only (disable password login)
+allow_local_login: true
 ```
 
 Then, Run the following command:
