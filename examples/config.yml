@@ -29,3 +29,44 @@ db_type: "sqlite"  # Options: "sqlite", "mysql", or "postgres"
 # db_password: "your_password"
 # db_name: "vexgo"
 # db_ssl_mode: "disable"  # Options: "disable", "require", "verify-ca", "verify-full"
+
+# ==================== OIDC Configuration ====================
+# Enable OIDC login (default: false)
+# When enabled, users can log in via an OIDC provider (Keycloak, Authentik, Okta, etc.)
+oidc_enabled: false
+
+# OIDC discovery URL (required when enabled)
+# The server will fetch the OIDC configuration from: {issuer_url}/.well-known/openid-configuration
+# Example: "https://auth.example.com/realms/myrealm"
+oidc_issuer_url: ""
+
+# OIDC client credentials (required when enabled)
+oidc_client_id: ""
+oidc_client_secret: ""
+
+# Manual endpoint override (only needed when OIDC discovery is unavailable)
+# If provided, these override the discovery endpoints
+oidc_auth_url: ""      # Authorization endpoint
+oidc_token_url: ""     # Token endpoint
+oidc_userinfo_url: ""  # UserInfo endpoint (optional fallback)
+
+# OIDC scopes (space-separated, default: "openid profile email")
+# Add extra scopes if your provider requires them, e.g., "openid profile email groups"
+oidc_scopes: "openid profile email"
+
+# OIDC claim names (defaults are standard OIDC claims)
+oidc_email_claim: "email"   # Claim name for user's email
+oidc_name_claim: "name"     # Claim name for user's display name
+oidc_group_claim: "groups"  # Claim name for user's groups (for access control)
+
+# OIDC access control (optional)
+# Comma-separated list of groups allowed to log in
+# Leave empty to allow all authenticated users
+oidc_allowed_groups: ""
+
+# OIDC user experience options
+oidc_auto_redirect: false  # If true, skip login page and redirect to OIDC provider automatically
+oidc_verify_email: false   # If true, require email_verified=true in the ID token
+
+# Global options
+allow_local_login: true  # Set to false to enforce SSO-only (disable password login)

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"vexgo/backend/cmd"
 )
 
 // SSOProviderConfig holds OAuth2 credentials for a single provider.
@@ -64,44 +65,133 @@ type ssoConfig struct {
 	AllowLocalLogin bool // ALLOW_LOCAL_LOGIN (default: true)
 }
 
+// LoadFromConfig loads SSO configuration from cmd.Config.
+// Config file values take priority over environment variables.
+// This should be called after config.Init() in main.go to override
+// environment variables with config file values.
+func LoadFromConfig(cfg *cmd.Config) {
+	// Only update fields that are set in the config (non-zero values)
+	// This preserves the priority: command line > config file > environment
+
+	// OIDC Enabled
+	if cfg.OIDCEnabled {
+		SSOConfig.OIDC.Enabled = cfg.OIDCEnabled
+	}
+
+	// OIDC Client credentials
+	if cfg.OIDCClientID != "" {
+		SSOConfig.OIDC.ClientID = cfg.OIDCClientID
+	}
+	if cfg.OIDCClientSecret != "" {
+		SSOConfig.OIDC.ClientSecret = cfg.OIDCClientSecret
+	}
+
+	// OIDC endpoints
+	if cfg.OIDCIssuerURL != "" {
+		SSOConfig.OIDC.IssuerURL = cfg.OIDCIssuerURL
+	}
+	if cfg.OIDCAuthURL != "" {
+		SSOConfig.OIDC.AuthURL = cfg.OIDCAuthURL
+	}
+	if cfg.OIDCTokenURL != "" {
+		SSOConfig.OIDC.TokenURL = cfg.OIDCTokenURL
+	}
+	if cfg.OIDCUserInfoURL != "" {
+		SSOConfig.OIDC.UserInfoURL = cfg.OIDCUserInfoURL
+	}
+
+	// OIDC Scopes
+	if cfg.OIDCScopes != "" {
+		SSOConfig.OIDC.Scopes = strings.Fields(cfg.OIDCScopes)
+	}
+
+	// OIDC Claim names
+	if cfg.OIDCEmailClaim != "" {
+		SSOConfig.OIDC.EmailClaim = cfg.OIDCEmailClaim
+	}
+	if cfg.OIDCNameClaim != "" {
+		SSOConfig.OIDC.NameClaim = cfg.OIDCNameClaim
+	}
+	if cfg.OIDCGroupClaim != "" {
+		SSOConfig.OIDC.GroupClaim = cfg.OIDCGroupClaim
+	}
+
+	// OIDC Allowed groups
+	if cfg.OIDCAllowedGroups != "" {
+		SSOConfig.OIDC.AllowedGroups = parseCommaSeparatedFromString(cfg.OIDCAllowedGroups)
+	}
+
+	// OIDC UX options
+	if cfg.OIDCAutoRedirect {
+		SSOConfig.OIDC.AutoRedirect = cfg.OIDCAutoRedirect
+	}
+	if cfg.OIDCVerifyEmail {
+		SSOConfig.OIDC.VerifyEmail = cfg.OIDCVerifyEmail
+	}
+
+	// Global options
+	if cfg.AllowLocalLogin {
+		SSOConfig.AllowLocalLogin = cfg.AllowLocalLogin
+	}
+}
+
+// parseCommaSeparatedFromString parses a comma-separated list from a string.
+func parseCommaSeparatedFromString(s string) []string {
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, ",")
+	result := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if trimmed := strings.TrimSpace(p); trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
+}
+
 // SSOConfig is the global SSO configuration, populated from environment
 // variables at process startup. A provider is enabled when its CLIENT_ID
 // (or OIDC_ENABLED) is non-empty / true.
 //
 // ── GitHub ───────────────────────────────────────────────────────────────────
-//   GITHUB_CLIENT_ID        GitHub OAuth App Client ID
-//   GITHUB_CLIENT_SECRET    GitHub OAuth App Client Secret
+//
+//	GITHUB_CLIENT_ID        GitHub OAuth App Client ID
+//	GITHUB_CLIENT_SECRET    GitHub OAuth App Client Secret
 //
 // ── Google ───────────────────────────────────────────────────────────────────
-//   GOOGLE_CLIENT_ID        Google OAuth 2.0 Client ID
-//   GOOGLE_CLIENT_SECRET    Google OAuth 2.0 Client Secret
+//
+//	GOOGLE_CLIENT_ID        Google OAuth 2.0 Client ID
+//	GOOGLE_CLIENT_SECRET    Google OAuth 2.0 Client Secret
 //
 // ── OIDC ─────────────────────────────────────────────────────────────────────
-//   OIDC_ENABLED            Enable OIDC login (default: false)
-//   OIDC_ISSUER_URL         Issuer URL for OIDC discovery
-//                           e.g. https://auth.example.com/realms/myrealm
-//                           Tip: verify at <issuer>/.well-known/openid-configuration
-//   OIDC_CLIENT_ID          Client ID
-//   OIDC_CLIENT_SECRET      Client Secret
 //
-//   Manual endpoint override (only when OIDC discovery is unavailable):
-//   OIDC_AUTH_URL           Authorization endpoint
-//   OIDC_TOKEN_URL          Token endpoint
-//   OIDC_USERINFO_URL       UserInfo endpoint (optional fallback)
+//	OIDC_ENABLED            Enable OIDC login (default: false)
+//	OIDC_ISSUER_URL         Issuer URL for OIDC discovery
+//	                        e.g. https://auth.example.com/realms/myrealm
+//	                        Tip: verify at <issuer>/.well-known/openid-configuration
+//	OIDC_CLIENT_ID          Client ID
+//	OIDC_CLIENT_SECRET      Client Secret
 //
-//   OIDC_SCOPES             Space-separated extra scopes (default: "openid profile email")
-//                           e.g. "openid profile email groups"
-//   OIDC_EMAIL_CLAIM        Claim name for email    (default: "email")
-//   OIDC_NAME_CLAIM         Claim name for username (default: "name")
-//   OIDC_GROUP_CLAIM        Claim name for groups   (default: "groups")
-//   OIDC_ALLOWED_GROUPS     Comma-separated groups permitted to log in
-//                           e.g. "admins,developers"  (empty = allow all)
-//   OIDC_AUTO_REDIRECT      Redirect to OIDC provider automatically (default: false)
-//   OIDC_VERIFY_EMAIL       Require email_verified=true in token    (default: false)
+//	Manual endpoint override (only when OIDC discovery is unavailable):
+//	OIDC_AUTH_URL           Authorization endpoint
+//	OIDC_TOKEN_URL          Token endpoint
+//	OIDC_USERINFO_URL       UserInfo endpoint (optional fallback)
+//
+//	OIDC_SCOPES             Space-separated extra scopes (default: "openid profile email")
+//	                        e.g. "openid profile email groups"
+//	OIDC_EMAIL_CLAIM        Claim name for email    (default: "email")
+//	OIDC_NAME_CLAIM         Claim name for username (default: "name")
+//	OIDC_GROUP_CLAIM        Claim name for groups   (default: "groups")
+//	OIDC_ALLOWED_GROUPS     Comma-separated groups permitted to log in
+//	                        e.g. "admins,developers"  (empty = allow all)
+//	OIDC_AUTO_REDIRECT      Redirect to OIDC provider automatically (default: false)
+//	OIDC_VERIFY_EMAIL       Require email_verified=true in token    (default: false)
 //
 // ── Global ───────────────────────────────────────────────────────────────────
-//   ALLOW_LOCAL_LOGIN       Allow password-based login (default: true)
-//                           Set false to enforce SSO-only access
+//
+//	ALLOW_LOCAL_LOGIN       Allow password-based login (default: true)
+//	                        Set false to enforce SSO-only access
 var SSOConfig = ssoConfig{
 	BaseURL: os.Getenv("BASE_URL"),
 	GitHub: SSOProviderConfig{
@@ -119,9 +209,9 @@ var SSOConfig = ssoConfig{
 			ClientID:     os.Getenv("OIDC_CLIENT_ID"),
 			ClientSecret: os.Getenv("OIDC_CLIENT_SECRET"),
 		},
-		AuthURL:     os.Getenv("OIDC_AUTH_URL"),
-		TokenURL:    os.Getenv("OIDC_TOKEN_URL"),
-		UserInfoURL: os.Getenv("OIDC_USERINFO_URL"),
+		AuthURL:       os.Getenv("OIDC_AUTH_URL"),
+		TokenURL:      os.Getenv("OIDC_TOKEN_URL"),
+		UserInfoURL:   os.Getenv("OIDC_USERINFO_URL"),
 		Scopes:        parseScopes("OIDC_SCOPES", []string{"openid", "profile", "email"}),
 		EmailClaim:    getEnvOrDefault("OIDC_EMAIL_CLAIM", "email"),
 		NameClaim:     getEnvOrDefault("OIDC_NAME_CLAIM", "name"),

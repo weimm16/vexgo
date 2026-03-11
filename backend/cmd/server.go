@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/goccy/go-yaml"
 )
@@ -23,6 +24,25 @@ type Config struct {
 	DBPassword string `yaml:"db_password"` // Database password
 	DBName     string `yaml:"db_name"`     // Database name
 	DBSSLMode  string `yaml:"db_ssl_mode"` // PostgreSQL SSL mode (for postgres)
+
+	// OIDC configuration
+	OIDCEnabled       bool   `yaml:"oidc_enabled"`        // Enable OIDC login
+	OIDCIssuerURL     string `yaml:"oidc_issuer_url"`     // Issuer URL for OIDC discovery
+	OIDCClientID      string `yaml:"oidc_client_id"`      // OIDC client ID
+	OIDCClientSecret  string `yaml:"oidc_client_secret"`  // OIDC client secret
+	OIDCAuthURL       string `yaml:"oidc_auth_url"`       // Authorization endpoint (optional, for manual override)
+	OIDCTokenURL      string `yaml:"oidc_token_url"`      // Token endpoint (optional, for manual override)
+	OIDCUserInfoURL   string `yaml:"oidc_userinfo_url"`   // UserInfo endpoint (optional, for manual override)
+	OIDCScopes        string `yaml:"oidc_scopes"`         // Space-separated scopes (default: "openid profile email")
+	OIDCEmailClaim    string `yaml:"oidc_email_claim"`    // Claim name for email (default: "email")
+	OIDCNameClaim     string `yaml:"oidc_name_claim"`     // Claim name for username (default: "name")
+	OIDCGroupClaim    string `yaml:"oidc_group_claim"`    // Claim name for groups (default: "groups")
+	OIDCAllowedGroups string `yaml:"oidc_allowed_groups"` // Comma-separated allowed groups (empty = allow all)
+	OIDCAutoRedirect  bool   `yaml:"oidc_auto_redirect"`  // Auto-redirect to OIDC provider (skip login page)
+	OIDCVerifyEmail   bool   `yaml:"oidc_verify_email"`   // Require email_verified=true in token
+
+	// Global options
+	AllowLocalLogin bool `yaml:"allow_local_login"` // Allow password-based login (default: true)
 }
 
 // ParseFlags parses command line flags and returns the server configuration
@@ -141,6 +161,91 @@ func applyEnvOverrides(cfg *Config) {
 			cfg.DBSSLMode = env
 		}
 	}
+
+	// OIDC configuration
+	if !cfg.OIDCEnabled {
+		if env := os.Getenv("OIDC_ENABLED"); env != "" {
+			if b, err := strconv.ParseBool(env); err == nil {
+				cfg.OIDCEnabled = b
+			}
+		}
+	}
+	if cfg.OIDCIssuerURL == "" {
+		if env := os.Getenv("OIDC_ISSUER_URL"); env != "" {
+			cfg.OIDCIssuerURL = env
+		}
+	}
+	if cfg.OIDCClientID == "" {
+		if env := os.Getenv("OIDC_CLIENT_ID"); env != "" {
+			cfg.OIDCClientID = env
+		}
+	}
+	if cfg.OIDCClientSecret == "" {
+		if env := os.Getenv("OIDC_CLIENT_SECRET"); env != "" {
+			cfg.OIDCClientSecret = env
+		}
+	}
+	if cfg.OIDCAuthURL == "" {
+		if env := os.Getenv("OIDC_AUTH_URL"); env != "" {
+			cfg.OIDCAuthURL = env
+		}
+	}
+	if cfg.OIDCTokenURL == "" {
+		if env := os.Getenv("OIDC_TOKEN_URL"); env != "" {
+			cfg.OIDCTokenURL = env
+		}
+	}
+	if cfg.OIDCUserInfoURL == "" {
+		if env := os.Getenv("OIDC_USERINFO_URL"); env != "" {
+			cfg.OIDCUserInfoURL = env
+		}
+	}
+	if cfg.OIDCScopes == "" {
+		if env := os.Getenv("OIDC_SCOPES"); env != "" {
+			cfg.OIDCScopes = env
+		}
+	}
+	if cfg.OIDCEmailClaim == "" {
+		if env := os.Getenv("OIDC_EMAIL_CLAIM"); env != "" {
+			cfg.OIDCEmailClaim = env
+		}
+	}
+	if cfg.OIDCNameClaim == "" {
+		if env := os.Getenv("OIDC_NAME_CLAIM"); env != "" {
+			cfg.OIDCNameClaim = env
+		}
+	}
+	if cfg.OIDCGroupClaim == "" {
+		if env := os.Getenv("OIDC_GROUP_CLAIM"); env != "" {
+			cfg.OIDCGroupClaim = env
+		}
+	}
+	if cfg.OIDCAllowedGroups == "" {
+		if env := os.Getenv("OIDC_ALLOWED_GROUPS"); env != "" {
+			cfg.OIDCAllowedGroups = env
+		}
+	}
+	if !cfg.OIDCAutoRedirect {
+		if env := os.Getenv("OIDC_AUTO_REDIRECT"); env != "" {
+			if b, err := strconv.ParseBool(env); err == nil {
+				cfg.OIDCAutoRedirect = b
+			}
+		}
+	}
+	if !cfg.OIDCVerifyEmail {
+		if env := os.Getenv("OIDC_VERIFY_EMAIL"); env != "" {
+			if b, err := strconv.ParseBool(env); err == nil {
+				cfg.OIDCVerifyEmail = b
+			}
+		}
+	}
+	if !cfg.AllowLocalLogin {
+		if env := os.Getenv("ALLOW_LOCAL_LOGIN"); env != "" {
+			if b, err := strconv.ParseBool(env); err == nil {
+				cfg.AllowLocalLogin = b
+			}
+		}
+	}
 }
 
 // loadConfigFile loads configuration from a YAML file
@@ -197,6 +302,53 @@ func loadConfigFile(filename string, cfg *Config) error {
 	}
 	if cfg.DBSSLMode == "" {
 		cfg.DBSSLMode = temp.DBSSLMode
+	}
+
+	// OIDC configuration
+	if !cfg.OIDCEnabled && temp.OIDCEnabled {
+		cfg.OIDCEnabled = temp.OIDCEnabled
+	}
+	if cfg.OIDCIssuerURL == "" && temp.OIDCIssuerURL != "" {
+		cfg.OIDCIssuerURL = temp.OIDCIssuerURL
+	}
+	if cfg.OIDCClientID == "" && temp.OIDCClientID != "" {
+		cfg.OIDCClientID = temp.OIDCClientID
+	}
+	if cfg.OIDCClientSecret == "" && temp.OIDCClientSecret != "" {
+		cfg.OIDCClientSecret = temp.OIDCClientSecret
+	}
+	if cfg.OIDCAuthURL == "" && temp.OIDCAuthURL != "" {
+		cfg.OIDCAuthURL = temp.OIDCAuthURL
+	}
+	if cfg.OIDCTokenURL == "" && temp.OIDCTokenURL != "" {
+		cfg.OIDCTokenURL = temp.OIDCTokenURL
+	}
+	if cfg.OIDCUserInfoURL == "" && temp.OIDCUserInfoURL != "" {
+		cfg.OIDCUserInfoURL = temp.OIDCUserInfoURL
+	}
+	if cfg.OIDCScopes == "" && temp.OIDCScopes != "" {
+		cfg.OIDCScopes = temp.OIDCScopes
+	}
+	if cfg.OIDCEmailClaim == "" && temp.OIDCEmailClaim != "" {
+		cfg.OIDCEmailClaim = temp.OIDCEmailClaim
+	}
+	if cfg.OIDCNameClaim == "" && temp.OIDCNameClaim != "" {
+		cfg.OIDCNameClaim = temp.OIDCNameClaim
+	}
+	if cfg.OIDCGroupClaim == "" && temp.OIDCGroupClaim != "" {
+		cfg.OIDCGroupClaim = temp.OIDCGroupClaim
+	}
+	if cfg.OIDCAllowedGroups == "" && temp.OIDCAllowedGroups != "" {
+		cfg.OIDCAllowedGroups = temp.OIDCAllowedGroups
+	}
+	if !cfg.OIDCAutoRedirect && temp.OIDCAutoRedirect {
+		cfg.OIDCAutoRedirect = temp.OIDCAutoRedirect
+	}
+	if !cfg.OIDCVerifyEmail && temp.OIDCVerifyEmail {
+		cfg.OIDCVerifyEmail = temp.OIDCVerifyEmail
+	}
+	if !cfg.AllowLocalLogin && temp.AllowLocalLogin {
+		cfg.AllowLocalLogin = temp.AllowLocalLogin
 	}
 
 	return nil

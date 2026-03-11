@@ -19,6 +19,9 @@ func main() {
 	// 2. Initialize configuration (load JWT secret, etc., support config files and environment variables)
 	config.Init(cfg.JWTSecret)
 
+	// 2.1 Load SSO configuration from config file (overrides environment variables)
+	config.LoadFromConfig(cfg)
+
 	// Set data directory (for file uploads)
 	handler.DataDir = cfg.DataDir
 
