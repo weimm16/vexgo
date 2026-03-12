@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { postsApi, categoriesApi, statsApi, likesApi } from '@/lib/api';
 import type { Post, Category } from '@/types';
 import { useTranslation } from '@/lib/I18nContext';
 import { getLocale } from '@/lib/i18n';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +26,9 @@ import { normalizeTagsArray } from '@/lib/utils';
 
 export function HomePage() {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [popularPosts, setPopularPosts] = useState<Post[]>([]);
@@ -41,6 +44,8 @@ export function HomePage() {
   const currentPage = parseInt(searchParams.get('page') || '1');
   const searchQuery = searchParams.get('search') || '';
   const selectedCategory = searchParams.get('category') || '';
+
+
 
   useEffect(() => {
     loadCategories();
@@ -194,6 +199,10 @@ export function HomePage() {
   };
 
   const handleTagClick = (tagName: string) => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     const newParams = new URLSearchParams(searchParams);
     newParams.set('search', tagName);
     newParams.delete('page');

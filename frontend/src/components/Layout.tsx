@@ -50,7 +50,11 @@ export function Layout({ children }: LayoutProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      if (isAuthenticated) {
+        navigate(`/?search=${encodeURIComponent(searchQuery.trim())}`);
+      } else {
+        navigate('/login');
+      }
     }
   };
 
