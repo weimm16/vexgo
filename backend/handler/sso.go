@@ -168,7 +168,7 @@ func SSOProviders(c *gin.Context) {
 		enabled = append(enabled, "oidc")
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"providers":        enabled,
+		"providers":         enabled,
 		"allow_local_login": config.SSOConfig.AllowLocalLogin,
 	})
 }
@@ -517,7 +517,7 @@ func findOrCreateUser(db *gorm.DB, provider string, info *ssoUserInfo) (*model.U
 		user = model.User{
 			Username:        username,
 			Email:           info.email,
-			Role:            "user",
+			Role:            model.RoleContributor,
 			PasswordVersion: 0,
 			// No password set — this user can only log in via SSO
 		}

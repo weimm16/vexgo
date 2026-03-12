@@ -30,7 +30,7 @@ func resetDB(t *testing.T) {
 
 // add a simple user and return its ID
 func createTestUser(t *testing.T) uint {
-	user := model.User{Username: "tester", Email: "test@example.com", Password: "pwd", Role: "user"}
+	user := model.User{Username: "tester", Email: "test@example.com", Password: "pwd", Role: model.RoleContributor}
 	err := db.Create(&user).Error
 	if err != nil {
 		t.Fatalf("failed to create user: %v", err)
