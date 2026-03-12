@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/lib/I18nContext';
-import { getUsers, updateUserRole } from '@/lib/userApi';
+import { getUsers, updateUserRole, deleteUser } from '@/lib/userApi';
 import type { User } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,10 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import {
-  Users, UserCheck
+  Users, UserCheck, Trash2
 } from 'lucide-react';
 import { getLocale } from '@/lib/i18n';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 export function UserManagementPage() {
   const { user: currentUser } = useAuth();
@@ -88,6 +89,30 @@ export function UserManagementPage() {
       console.error('更新用户角色失败:', error);
       toast.error(t('userManagement.updateRoleFailed'));
     }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const response = await deleteUser(userId);
+      toast.success(response.data.message);
+
+      // 从本地用户列表中移除删除的用户
+      setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+    } catch (error) {
+      console.error('删除用户失败:', error);
+      toast.error(t('userManagement.deleteUserFailed'));
+    }
+  };
+
+  // 检查是否可以删除用户
+  const canDeleteUser = (user: User) => {
+    if (currentUser?.id === user.id) return false; // 不能删除自己
+    if (currentUser?.role === 'super_admin') return true; // 超级管理员可以删除任何用户
+    if (currentUser?.role === 'admin') {
+      // 管理员只能删除作者、贡献者和访客
+      return ['author', 'contributor', 'guest'].includes(user.role);
+    }
+    return false;
   };
 
   const formatDate = (dateString: string) => {
@@ -188,6 +213,31 @@ export function UserManagementPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                  )}
+                  
+                  {canDeleteUser(user) && (
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          {t('userManagement.delete')}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t('userManagement.deleteConfirmation')}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {t('userManagement.deleteDescription', { username: user.username })}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteUser(user.id)}>
+                            {t('userManagement.delete')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   )}
                   
                   {currentUser?.id !== user.id && currentUser?.role === 'admin' && user.role === 'admin' && (

@@ -166,3 +166,137 @@ func UpdateUserRole(c *gin.Context) {
 		"user":    user,
 	})
 }
+
+// DeleteUser deletes user and all their posts and comments
+func DeleteUser(c *gin.Context) {
+	// Get current user information from context
+	currentUserInterface, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "No user information provided"})
+		return
+	}
+
+	// Convert user information from map to model.User
+	userMap, ok := currentUserInterface.(map[string]interface{})
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User information format error"})
+		return
+	}
+
+	currentUser := model.User{
+		ID:       userMap["id"].(uint),
+		Username: userMap["username"].(string),
+		Role:     userMap["role"].(string),
+	}
+
+	// Get user ID to delete
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	var user model.User
+
+	// Find target user
+	if err := db.First(&user, uint(id)).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(http.StatusNotFound, gin.H{"error": "User does not exist"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query user"})
+		return
+	}
+
+	// Cannot delete yourself
+	if user.ID == currentUser.ID {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Cannot delete yourself"})
+		return
+	}
+
+	// Permission check
+	// Super admin can delete any user except themselves
+	// Admin can only delete users with role author, contributor, or guest
+	if currentUser.Role == model.RoleSuperAdmin {
+		// Super admin can delete any user
+	} else if currentUser.Role == model.RoleAdmin {
+		// Admin can only delete users with role author, contributor, or guest
+		if user.Role != model.RoleAuthor && user.Role != model.RoleContributor && user.Role != model.RoleGuest {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Admin can only delete users with role author, contributor, or guest"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusForbidden, gin.H{"error": "No permission to delete user"})
+		return
+	}
+
+	// Start transaction
+	tx := db.Begin()
+
+	// Delete user's comments
+	if err := tx.Where("user_id = ?", user.ID).Delete(&model.Comment{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user comments"})
+		return
+	}
+
+	// Delete user's likes
+	if err := tx.Where("user_id = ?", user.ID).Delete(&model.Like{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user likes"})
+		return
+	}
+
+	// Delete user's media files
+	if err := tx.Where("user_id = ?", user.ID).Delete(&model.MediaFile{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user media files"})
+		return
+	}
+
+	// Get user's posts
+	var posts []model.Post
+	if err := tx.Where("author_id = ?", user.ID).Find(&posts).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query user posts"})
+		return
+	}
+
+	// Delete comments for each post
+	for _, post := range posts {
+		if err := tx.Where("post_id = ?", post.ID).Delete(&model.Comment{}).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post comments"})
+			return
+		}
+
+		if err := tx.Where("post_id = ?", post.ID).Delete(&model.Like{}).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post likes"})
+			return
+		}
+	}
+
+	// Delete user's posts
+	if err := tx.Where("author_id = ?", user.ID).Delete(&model.Post{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user posts"})
+		return
+	}
+
+	// Delete user
+	if err := tx.Delete(&user).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+		return
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to commit transaction"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}

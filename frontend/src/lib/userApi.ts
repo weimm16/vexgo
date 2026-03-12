@@ -17,3 +17,7 @@ export const getUsers = (params?: {
 // 更新用户角色
 export const updateUserRole = (id: string, role: string) =>
   api.put<{ message: string; user: User }>(`/users/${id}/role`, { role });
+
+// 删除用户
+export const deleteUser = (id: string) =>
+  api.delete<{ message: string }>(`/users/${id}`);

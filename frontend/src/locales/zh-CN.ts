@@ -124,6 +124,7 @@ export const zhCN = {
     userList: "用户列表",
     loadingUsers: "加载用户列表失败",
     updateRoleFailed: "更新用户角色失败",
+    deleteUserFailed: "删除用户失败",
     registered: "注册时间",
     unknown: "未知",
     sameLevel: "同等级",
@@ -131,6 +132,9 @@ export const zhCN = {
     previousPage: "上一页",
     nextPage: "下一页",
     page: "第 {page} 页，共 {totalPages} 页",
+    delete: "删除",
+    deleteConfirmation: "确认删除",
+    deleteDescription: "确定要删除用户 {username} 吗？此操作将删除该用户的所有文章、评论和相关数据，且不可撤销。",
   },
 
   // 评论配置页面

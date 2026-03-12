@@ -124,6 +124,7 @@ export const enUS = {
     userList: "User List",
     loadingUsers: "Failed to load user list",
     updateRoleFailed: "Failed to update user role",
+    deleteUserFailed: "Failed to delete user",
     registered: "Registered",
     unknown: "Unknown",
     sameLevel: "Same level",
@@ -131,6 +132,9 @@ export const enUS = {
     previousPage: "Previous",
     nextPage: "Next",
     page: "Page {page} of {totalPages}",
+    delete: "Delete",
+    deleteConfirmation: "Confirm Delete",
+    deleteDescription: "Are you sure you want to delete user {username}? This action will delete all the user's posts, comments and related data, and cannot be undone.",
   },
 
   // Comment Config Page
