@@ -2,6 +2,8 @@ package handler
 
 import (
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 
 	"vexgo/backend/model"
@@ -249,6 +251,21 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	// Delete user's media files
+	var mediaFiles []model.MediaFile
+	if err := tx.Where("user_id = ?", user.ID).Find(&mediaFiles).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query user media files"})
+		return
+	}
+
+	// Delete physical media files
+	for _, media := range mediaFiles {
+		filename := filepath.Base(media.URL)
+		path := filepath.Join(DataDir, "media", filename)
+		os.Remove(path)
+	}
+
+	// Delete media files from database
 	if err := tx.Where("user_id = ?", user.ID).Delete(&model.MediaFile{}).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user media files"})
@@ -265,6 +282,13 @@ func DeleteUser(c *gin.Context) {
 
 	// Delete comments for each post
 	for _, post := range posts {
+		// Delete post cover image if exists
+		if post.CoverImage != "" {
+			filename := filepath.Base(post.CoverImage)
+			path := filepath.Join(DataDir, "media", filename)
+			os.Remove(path)
+		}
+
 		if err := tx.Where("post_id = ?", post.ID).Delete(&model.Comment{}).Error; err != nil {
 			tx.Rollback()
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post comments"})
