@@ -12,6 +12,19 @@ data: "./data"
 # You can generate one with: openssl rand -base64 32
 jwt_secret: "your-secret-key-change-this-in-production"
 
+# Whether the server is behind a reverse proxy (e.g., nginx, Cloudflare)
+# Set to true if you're using a reverse proxy that sets X-Forwarded-* headers
+behind_reverse_proxy: false
+
+# List of trusted proxy IPs/CIDRs (comma-separated)
+# Only used when behind_reverse_proxy=true
+# If empty, defaults to common private networks: 127.0.0.1, ::1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12
+# Examples:
+#   - Single proxy: ["192.168.1.100"]
+#   - Multiple: ["192.168.1.100", "10.0.0.1"]
+#   - CIDR notation: ["192.168.1.0/24"]
+trusted_proxies: []
+
 # ==================== Database Configuration ====================
 
 # Database type
@@ -110,18 +123,3 @@ s3_custom_domain: ""
 
 # Disable including bucket in custom domain URLs (default: false, meaning include bucket by default)
 s3_disable_bucket_in_custom_url: false
-
-# ==================== Trusted Proxies Configuration ====================
-
-# Whether the server is behind a reverse proxy (e.g., nginx, Cloudflare)
-# Set to true if you're using a reverse proxy that sets X-Forwarded-* headers
-behind_reverse_proxy: false
-
-# List of trusted proxy IPs/CIDRs (comma-separated)
-# Only used when behind_reverse_proxy=true
-# If empty, defaults to common private networks: 127.0.0.1, ::1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12
-# Examples:
-#   - Single proxy: "192.168.1.100"
-#   - Multiple: "192.168.1.100, 10.0.0.1"
-#   - CIDR notation: "192.168.1.0/24"
-trusted_proxies: ["127.0.0.1", "192.168.1.0/24"]
