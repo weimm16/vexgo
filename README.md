@@ -191,7 +191,7 @@ You can also configure the application using environment variables.
 | `DATA` | `./data` | Data directory path |
 | `JWT_SECRET` | — | JWT secret key (required for production) |
 | `BEHIND_REVERSE_PROXY` | `false` | Set to `true` if the server is behind a reverse proxy (nginx, Cloudflare, etc.). This enables proper handling of `X-Forwarded-*` headers. |
-| `TRUSTED_PROXIES` | — | Comma-separated list of trusted proxy IPs/CIDRs. Only used when `BEHIND_REVERSE_PROXY=true`. If empty, defaults to common private networks (127.0.0.1, ::1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12). |
+| `TRUSTED_PROXIES` | — | Comma-separated list of trusted proxy IPs/CIDRs. Only used when `BEHIND_REVERSE_PROXY=true`. If empty, defaults to common private networks (127.0.0.1, ::1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12). Example: `TRUSTED_PROXIES="192.168.1.100, 10.0.0.1"` |
 
 #### Database
 
