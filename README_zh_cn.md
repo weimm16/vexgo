@@ -157,6 +157,9 @@ s3_force_path: false
 # 例如 CDN 域名: "cdn.example.com"
 # 留空则使用默认 S3 地址
 s3_custom_domain: ""
+
+# 禁用在自定义域名 URL 中包含存储桶（默认: false，意味着默认包含存储桶）
+s3_disable_bucket_in_custom_url: false
 ```
 
 然后运行以下命令：
@@ -287,6 +290,7 @@ VexGo 支持任何兼容 S3 协议的对象存储服务（AWS S3、MinIO、Garag
 | `S3_SECRET_KEY` | — | Secret Access Key |
 | `S3_FORCE_PATH` | `false` | 设置为 `true` 以使用路径风格 URL（MinIO 及大多数兼容 S3 的服务需要开启） |
 | `S3_CUSTOM_DOMAIN` | — | 生成文件公开访问 URL 时使用的自定义域名，例如 `cdn.example.com`。适用于在存储桶前接入 CDN 的场景。 |
+| `S3_DISABLE_BUCKET_IN_CUSTOM_URL` | `false` | 设置为 `true` 以禁用在自定义域名 URL 中包含存储桶名（默认：包含存储桶，默认情况下） |
 
 **示例：Docker + MinIO**
 
@@ -301,6 +305,7 @@ sudo docker run -d --name vexgo \
   -e S3_ACCESS_KEY=your-access-key \
   -e S3_SECRET_KEY=your-secret-key \
   -e S3_FORCE_PATH=true \
+  -e S3_DISABLE_BUCKET_IN_CUSTOM_URL=false \
   ghcr.io/weimm16/vexgo:latest
 ```
 

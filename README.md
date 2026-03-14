@@ -154,6 +154,9 @@ s3_force_path: false
 # Optional custom domain for public file URLs (e.g., CDN domain like "cdn.example.com")
 # Leave empty to use default S3 endpoints
 s3_custom_domain: ""
+
+# Disable including bucket in custom domain URLs (default: false, meaning include bucket by default)
+s3_disable_bucket_in_custom_url: false
 ```
 
 Then, Run the following command:
@@ -285,6 +288,7 @@ VexGo supports any S3-compatible object storage (AWS S3, MinIO, Garage, etc.).
 | `S3_SECRET_KEY` | — | Secret access key |
 | `S3_FORCE_PATH` | `false` | Set to `true` to use path-style URLs (required for MinIO and most S3-compatible services) |
 | `S3_CUSTOM_DOMAIN` | — | Custom domain for generating public file URLs, e.g. `cdn.example.com`. Useful when using a CDN in front of your bucket. |
+| `S3_DISABLE_BUCKET_IN_CUSTOM_URL` | `false` | Set to `true` to disable including bucket in custom domain URLs (default: include bucket by default) |
 
 **Example: Docker with MinIO**
 
@@ -299,6 +303,7 @@ sudo docker run -d --name vexgo \
   -e S3_ACCESS_KEY=your-access-key \
   -e S3_SECRET_KEY=your-secret-key \
   -e S3_FORCE_PATH=true \
+  -e S3_DISABLE_BUCKET_IN_CUSTOM_URL=false \
   ghcr.io/weimm16/vexgo:latest
 ```
 
