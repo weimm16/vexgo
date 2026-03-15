@@ -377,6 +377,171 @@ go run main.go -c ../examples/config-mysql.yml
 * Node.js
 * pnpm
 
+### 后端结构与架构
+
+后端按照职责清晰划分为以下目录：
+
+#### **cmd/** — 应用入口与配置解析
+
+* **文件**: `server.go`
+* **用途**: 解析命令行参数，并从配置文件、环境变量和命令行参数中加载配置
+* **关键函数**:
+
+  * `ParseFlags()`: 解析命令行参数和配置文件
+  * `Config` 结构体: 保存所有配置项
+* **导入规则**:
+
+  * ✅ **可以导入**: 标准库、外部包（gin、gorm 等）
+  * ✅ **可以被导入**: `main.go`、其他初始化模块
+  * ❌ **不能导入**: 其他后端模块（避免循环依赖，并保持为纯配置解析模块）
+
+#### **config/** — 配置初始化（纯初始化模块）
+
+* **文件**:
+
+  * `jwt.go`: JWT 密钥初始化与校验
+  * `s3.go`: S3 兼容存储配置（AWS S3、MinIO 等）
+  * `sso.go`: SSO 提供商配置（GitHub、Google、OIDC）
+* **用途**: 初始化并管理配置对象。该模块为纯初始化模块，不包含业务逻辑。
+* **关键函数**:
+
+  * `config.Init(jwtSecret)`: 初始化 JWT 配置
+  * `config.LoadFromConfig(cfg)`: 从配置文件加载 SSO 配置
+  * `S3Config.GetURL()`: 生成 S3 对象访问 URL
+* **导入规则**:
+
+  * ✅ **可以导入**: 仅标准库和外部包（不能导入 backend 内部模块）
+  * ✅ **可以被导入**: `main.go`、`handler`、`middleware`、`utils`
+  * ❌ **不能导入**: `handler`、`middleware`、`model`、`utils`、`public`
+  * **原因**: `config` 是纯初始化模块，不能依赖应用逻辑，以防止循环依赖
+
+#### **handler/** — HTTP 请求处理与 API 端点
+
+* **文件**:
+
+  * `api.go`: 主 API 路由注册
+  * `auth.go`: 认证接口（登录、登出、重置密码）
+  * `register.go`: 用户注册接口
+  * `post.go`: 博客文章 CRUD
+  * `comment.go`: 评论管理
+  * `comment_moderation.go`: 评论审核
+  * `post_moderation.go`: 文章审核流程
+  * `like.go`: 点赞功能
+  * `user_management.go`: 管理员用户管理
+  * `upload.go`: 文件上传处理
+  * `s3.go`: S3 上传与存储集成
+  * `sso.go`: OAuth2 / OIDC 登录处理
+  * `verification.go`: 邮件验证接口
+  * `home.go`: 首页数据接口
+  * `config.go`: 配置管理接口
+  * `db.go`: 数据库初始化与连接管理
+* **用途**: 实现所有 HTTP 接口与业务逻辑
+* **导入规则**:
+
+  * ✅ **可以导入**: `config`、`model`、`middleware`、`utils`、标准库、外部包
+  * ✅ **可以被导入**: `main.go`、其他 handler 文件
+  * ❌ **不能导入**: `cmd`、`public`
+
+#### **middleware/** — HTTP 中间件
+
+* **文件**:
+
+  * `auth.go`: JWT 验证与身份认证
+  * `permission.go`: 基于角色的权限检查
+* **用途**: 提供可复用的请求/响应处理中间件
+* **关键函数**:
+
+  * `JWTAuth()`: 校验 Authorization Header 中的 JWT
+  * `OptionalJWTAuth()`: 可选认证（没有 token 时不报错）
+  * `SetDB()`: 设置数据库连接用于权限检查
+* **导入规则**:
+
+  * ✅ **可以导入**: `config`、`model`、标准库、外部包
+  * ✅ **可以被导入**: `main.go`、`handler`
+  * ❌ **不能导入**: `cmd`、`handler`、`utils`、`public`
+
+#### **model/** — 数据模型与数据库结构
+
+* **文件**:
+
+  * `post.go`: Post、User、Tag、Like、Comment 模型
+  * `roles.go`: 用户角色与权限定义
+  * `sso_binding.go`: OAuth 账号绑定
+  * `config.go`: 数据库存储的配置模型（SMTPConfig、GeneralSettings 等）
+* **用途**: 定义所有数据结构与 GORM 数据库模型
+* **导入规则**:
+
+  * ✅ **可以导入**: 仅标准库（除 GORM struct tag 外不依赖外部库）
+  * ✅ **可以被导入**: `handler`、`middleware`、`utils`、`config`、其他 model 文件
+  * ❌ **不能导入**: `cmd`、`config`、`handler`、`middleware`、`public`、`utils`
+  * **原因**: model 位于依赖图核心，不能依赖应用逻辑
+
+#### **utils/** — 工具函数
+
+* **文件**:
+
+  * `mailer.go`: 邮件发送功能（SMTP 客户端）
+* **用途**: 提供通用工具函数
+* **导入规则**:
+
+  * ✅ **可以导入**: `model`、`config`、标准库、外部包
+  * ✅ **可以被导入**: `handler`、`middleware`
+  * ❌ **不能导入**: `cmd`、`public`
+
+#### **public/** — 内嵌静态资源
+
+* **文件**:
+
+  * `public.go`: 管理嵌入的前端构建产物
+* **用途**: 提供前端静态文件（embed）
+* **函数**:
+
+  * `GetStaticFS()`: 返回静态资源文件系统
+  * `GetIndexHTML()`: 返回 index.html
+* **导入规则**:
+
+  * ✅ **可以导入**: 仅标准库
+  * ✅ **可以被导入**: `main.go`
+  * ❌ **不能导入**: 任何 backend 模块
+
+### 导入规范
+
+项目使用 Go Modules，模块名为 `vexgo`
+
+所有导入遵循：
+
+```go
+import (
+    "vexgo/backend/config"
+    "vexgo/backend/model"
+    "vexgo/backend/handler"
+    "vexgo/backend/middleware"
+    "vexgo/backend/utils"
+)
+```
+
+### 依赖关系图
+
+箭头表示 **可以导入**
+
+```
+main.go
+  ↓
+cmd → config → (纯初始化模块，无 backend 依赖)
+  ↓
+main.go → handler → config, model, middleware, utils
+        → middleware → config, model
+        → config
+```
+
+---
+
+### 关键规则
+
+1. `config/` 不能导入任何 backend 模块（防止循环依赖）
+2. `model/` 不能导入业务逻辑模块（保持数据层纯净）
+3. 除 `main.go` 外，禁止从其他模块导入 `cmd/`（命令行解析仅用于初始化）
+
 ### 构建步骤
 
 ```bash

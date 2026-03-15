@@ -383,6 +383,140 @@ go run main.go -c ../examples/config-mysql.yml
 - nodejs
 - pnpm
 
+### Backend Structure and Architecture
+
+The backend is organized into the following folders with clear separation of concerns:
+
+#### **cmd/** — Application Entry Point and Configuration Parsing
+- **Files**: `server.go`
+- **Purpose**: Parses command-line arguments and loads configuration from config files, environment variables, and command-line flags
+- **Key Functions**: 
+  - `ParseFlags()`: Parses command-line arguments and config files
+  - `Config` struct: Holds all configuration values
+- **Import Rules**: 
+  - ✅ **Can import**: Standard library, external packages (gin, gorm, etc.)
+  - ✅ **Can be imported by**: `main.go`, other initialization modules
+  - ❌ **Cannot import**: Other backend modules (to avoid circular imports and keep it as a pure configuration parser)
+
+#### **config/** — Configuration Initialization (Pure Setup Module)
+- **Files**: 
+  - `jwt.go`: JWT secret initialization and validation
+  - `s3.go`: S3-compatible storage configuration (AWS S3, MinIO, etc.)
+  - `sso.go`: SSO provider configuration (GitHub, Google, OIDC)
+- **Purpose**: Initializes and manages configuration objects. This is a pure setup module with no business logic.
+- **Key Functions**:
+  - `config.Init(jwtSecret)`: Initializes JWT configuration
+  - `config.LoadFromConfig(cfg)`: Loads SSO configuration from config file
+  - `S3Config.GetURL()`: Generates S3 object URLs
+- **Import Rules**: 
+  - ✅ **Can import**: Standard library, external packages only (NO backend modules)
+  - ✅ **Can be imported by**: `main.go`, `handler`, `middleware`, `utils`
+  - ❌ **Cannot import**: `handler`, `middleware`, `model`, `utils`, `public` (maintains isolation)
+  - **Reason**: `config` is a pure initialization module that must not depend on application logic to prevent circular imports
+
+#### **handler/** — HTTP Request Handlers and API Endpoints
+- **Files**: 
+  - `api.go`: Main API route registration
+  - `auth.go`: Authentication endpoints (login, logout, password reset)
+  - `register.go`: User registration endpoints
+  - `post.go`: Blog post CRUD operations
+  - `comment.go`: Comment management
+  - `comment_moderation.go`: Comment moderation and approval
+  - `post_moderation.go`: Post moderation workflows
+  - `like.go`: Post/comment like functionality
+  - `user_management.go`: Admin user management
+  - `upload.go`: File upload handling
+  - `s3.go`: S3 upload and storage integration
+  - `sso.go`: OAuth2/OIDC login handlers
+  - `verification.go`: Email verification endpoints
+  - `home.go`: Homepage data endpoints
+  - `config.go`: Configuration management endpoints
+  - `db.go`: Database initialization and connection management
+- **Purpose**: Implements all HTTP endpoint handlers with business logic
+- **Import Rules**:
+  - ✅ **Can import**: `config`, `model`, `middleware`, `utils`, standard library, external packages
+  - ✅ **Can be imported by**: `main.go`, other handler files
+  - ❌ **Cannot import**: `cmd`, `public`
+
+#### **middleware/** — HTTP Middleware Functions
+- **Files**:
+  - `auth.go`: JWT token verification and authentication
+  - `permission.go`: Role-based authorization and permission checking
+- **Purpose**: Provides reusable middleware for request/response processing
+- **Key Functions**:
+  - `JWTAuth()`: Validates JWT tokens from Authorization header
+  - `OptionalJWTAuth()`: Optional authentication (doesn't fail if no token)
+  - `SetDB()`: Sets database connection for permission checking
+- **Import Rules**:
+  - ✅ **Can import**: `config`, `model`, standard library, external packages
+  - ✅ **Can be imported by**: `main.go`, `handler`
+  - ❌ **Cannot import**: `cmd`, `handler`, `utils`, `public`
+
+#### **model/** — Data Models and Database Schemas
+- **Files**:
+  - `post.go`: Post, User, Tag, Like, Comment data models
+  - `roles.go`: User role definitions and permissions
+  - `sso_binding.go`: OAuth provider account bindings
+  - `config.go`: Database configuration models (SMTPConfig, GeneralSettings, etc.)
+- **Purpose**: Defines all data structures and GORM database models
+- **Import Rules**:
+  - ✅ **Can import**: Standard library only (no external dependencies except for GORM struct tags)
+  - ✅ **Can be imported by**: `handler`, `middleware`, `utils`, `config`, other model files
+  - ❌ **Cannot import**: `cmd`, `config`, `handler`, `middleware`, `public`, `utils`
+  - **Reason**: Model is at the core of the dependency graph; it must not import application logic
+
+#### **utils/** — Utility Functions and Helpers
+- **Files**:
+  - `mailer.go`: Email sending functionality (SMTP client)
+- **Purpose**: Provides reusable utility functions for common tasks
+- **Import Rules**:
+  - ✅ **Can import**: `model`, `config`, standard library, external packages
+  - ✅ **Can be imported by**: `handler`, `middleware`
+  - ❌ **Cannot import**: `cmd`, `public`
+
+#### **public/** — Embedded Static Resources
+- **Files**:
+  - `public.go`: Embedded frontend build output management
+- **Purpose**: Serves the built frontend application as embedded assets
+- **Functions**:
+  - `GetStaticFS()`: Returns filesystem for static assets
+  - `GetIndexHTML()`: Returns the main index.html file
+- **Import Rules**:
+  - ✅ **Can import**: Standard library only
+  - ✅ **Can be imported by**: `main.go`
+  - ❌ **Cannot import**: Any backend modules
+
+### Import Conventions and Rules
+
+The project uses Go modules with the module name `vexgo`. All imports follow the pattern `vexgo/backend/{folder}`.
+
+**Example imports**:
+```go
+import (
+    "vexgo/backend/config"    // From config package
+    "vexgo/backend/model"     // From model package
+    "vexgo/backend/handler"   // From handler package
+    "vexgo/backend/middleware" // From middleware package
+    "vexgo/backend/utils"     // From utils package
+)
+```
+
+**Dependency Graph** (arrows show "can import"):
+```
+main.go
+  ↓
+cmd → config → (pure setup, no backend imports)
+  ↓
+main.go → handler → config, model, middleware, utils
+        → middleware → config, model
+        → config
+```
+
+**Critical Rules**:
+1. `config/` package must NOT import any other backend modules (prevents circular dependencies)
+2. `model/` package must NOT import application logic modules (keeps data structures clean)
+3. Never import from `cmd/` outside of `main.go` (command-line parsing is initialization-only)
+
 ### Steps
 
 ```bash
