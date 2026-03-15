@@ -71,6 +71,20 @@ func verifyState(provider, ip, state string) (method string, ok bool) {
 	return entry.method, true
 }
 
+// LocalLoginGuard returns a middleware that rejects password-based login
+// when ALLOW_LOCAL_LOGIN=false.
+func LocalLoginGuard() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !config.SSOConfig.AllowLocalLogin {
+			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
+				"error": "local login is disabled, please use SSO",
+			})
+			return
+		}
+		c.Next()
+	}
+}
+
 // ─────────────────────────────────────────────
 // OAuth2 configs (built per-request to allow dynamic redirect URI)
 // ─────────────────────────────────────────────
