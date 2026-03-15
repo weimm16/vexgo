@@ -3,7 +3,6 @@ package middleware
 import (
 	"net/http"
 
-	"vexgo/backend/handler"
 	"vexgo/backend/model"
 
 	"github.com/gin-gonic/gin"
@@ -23,9 +22,7 @@ func PermissionMiddleware(requiredRoles ...string) gin.HandlerFunc {
 
 		// Query user information
 		var user model.User
-		if err := handler.DB().First(&user, userID).Error; err != nil {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "User does not exist"})
-			return
+		if err := db.First(&user, userID).Error; err != nil {
 		}
 
 		// Check if user role meets requirements
