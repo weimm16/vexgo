@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/lib/I18nContext";
 import api from "@/lib/api";
 import {
   Card,
@@ -26,6 +27,7 @@ interface ThemeInfo {
 export function ThemePage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
 
   const [themes, setThemes] = useState<ThemeInfo[]>([]);
   const [activeTheme, setActiveTheme] = useState<string>("default");
@@ -59,7 +61,7 @@ export function ThemePage() {
       console.log("activeTheme from API:", configRes.data.activeTheme);
     } catch (error) {
       console.error("加载主题数据失败:", error);
-      setMessage({ type: "error", text: "加载主题数据失败" });
+      setMessage({ type: "error", text: t('themePage.loadFailed') });
     } finally {
       setLoading(false);
     }
@@ -74,7 +76,7 @@ export function ThemePage() {
       const themeName = themes.find((t) => t.id === themeId)?.name || themeId;
       setMessage({
         type: "success",
-        text: `主题 "${themeName}" 已成功应用，对所有用户生效`,
+        text: t('themePage.applySuccess', { themeName }),
       });
 
       // Reload the page after a short delay so the new theme takes effect
@@ -83,7 +85,7 @@ export function ThemePage() {
       // }, 1500);
     } catch (error) {
       console.error("应用主题失败:", error);
-      setMessage({ type: "error", text: "应用主题失败，请重试" });
+      setMessage({ type: "error", text: t('themePage.applyFailed') });
     } finally {
       setApplying(null);
     }
@@ -102,10 +104,10 @@ export function ThemePage() {
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Palette className="w-8 h-8" />
-          主题管理
+          {t('themePage.title')}
         </h1>
         <p className="text-gray-500 mt-2">
-          选择并应用网站主题，变更对所有访客即时生效
+          {t('themePage.description')}
         </p>
       </div>
 
@@ -136,7 +138,7 @@ export function ThemePage() {
         {themes.length === 0 ? (
           <Card>
             <CardContent className="pt-6">
-              <p className="text-center text-gray-500">未找到可用主题</p>
+              <p className="text-center text-gray-500">{t('themePage.noThemesFound')}</p>
             </CardContent>
           </Card>
         ) : (
@@ -155,28 +157,28 @@ export function ThemePage() {
                     <CardTitle className="flex items-center gap-2 flex-wrap">
                       {theme.name}
                       {activeTheme === theme.id && (
-                        <Badge className="bg-blue-500">当前使用</Badge>
+                        <Badge className="bg-blue-500">{t('themePage.currentBadge')}</Badge>
                       )}
                     </CardTitle>
                     <CardDescription>
                       <div className="mt-2 space-y-1 text-sm">
                         <p>
-                          <span className="font-semibold">作者:</span>{" "}
+                          <span className="font-semibold">{t('themePage.author')}:</span>{" "}
                           {theme.author}
                         </p>
                         <p>
-                          <span className="font-semibold">版本:</span>{" "}
+                          <span className="font-semibold">{t('themePage.version')}:</span>{" "}
                           {theme.version}
                         </p>
                         {theme.description && (
                           <p>
-                            <span className="font-semibold">描述:</span>{" "}
+                            <span className="font-semibold">{t('themePage.themeDescription')}:</span>{" "}
                             {theme.description}
                           </p>
                         )}
                         {theme.url && (
                           <p>
-                            <span className="font-semibold">链接:</span>{" "}
+                            <span className="font-semibold">{t('themePage.link')}:</span>{" "}
                             <a
                               href={theme.url}
                               target="_blank"
@@ -199,7 +201,7 @@ export function ThemePage() {
                     {applying === theme.id && (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     )}
-                    {activeTheme === theme.id ? "已应用" : "应用主题"}
+                    {activeTheme === theme.id ? t('themePage.applied') : t('themePage.applyTheme')}
                   </Button>
                 </div>
               </CardHeader>
@@ -210,25 +212,25 @@ export function ThemePage() {
 
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader>
-          <CardTitle className="text-blue-900">主题安装说明</CardTitle>
+          <CardTitle className="text-blue-900">{t('themePage.installationInstructions')}</CardTitle>
         </CardHeader>
         <CardContent className="text-blue-800 space-y-2">
           <p>
-            1. 在{" "}
+            1. {t('themePage.instruction1')}{" "}
             <code className="bg-white px-2 py-1 rounded">./data/theme/</code>{" "}
-            目录下创建主题文件夹
+            {t('themePage.instruction2')}
           </p>
           <p>
-            2. 在主题根目录创建{" "}
+            2. {t('themePage.instruction3')}{" "}
             <code className="bg-white px-2 py-1 rounded">vexgo-theme.json</code>{" "}
-            元数据文件
+            {t('themePage.instruction4')}
           </p>
           <p>
-            3. 在主题目录中放置{" "}
+            3. {t('themePage.instruction5')}{" "}
             <code className="bg-white px-2 py-1 rounded">dist/</code>{" "}
-            文件夹（包含编译后的静态资源）
+            {t('themePage.instruction6')}
           </p>
-          <p>4. 刷新此页面以查看新主题，应用后对所有用户即时生效</p>
+          <p>4. {t('themePage.instruction7')}</p>
         </CardContent>
       </Card>
     </div>

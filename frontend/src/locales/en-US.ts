@@ -216,6 +216,32 @@ export const enUS = {
     description: "Manage and customize website themes",
   },
 
+  // Theme Page
+  themePage: {
+    title: "Theme Management",
+    description: "Select and apply website themes, changes take effect immediately for all visitors",
+    noThemesFound: "No themes found",
+    author: "Author",
+    version: "Version",
+    themeDescription: "Description",
+    link: "Link",
+    currentBadge: "Current",
+    applied: "Applied",
+    applyTheme: "Apply Theme",
+    applying: "Applying...",
+    applyFailed: "Failed to apply theme",
+    loadFailed: "Failed to load theme data",
+    applySuccess: "Theme \"{themeName}\" has been applied successfully, taking effect for all users",
+    installationInstructions: "Theme Installation Instructions",
+    instruction1: "Create a theme folder in the",
+    instruction2: "directory",
+    instruction3: "Create a",
+    instruction4: "metadata file in the theme root directory",
+    instruction5: "Place the",
+    instruction6: "folder (containing compiled static assets) in the theme directory",
+    instruction7: "Refresh this page to see new themes. After application, changes take effect immediately for all users",
+  },
+
   // General Settings Page
   generalSettings: {
     title: "General Settings",

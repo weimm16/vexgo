@@ -216,6 +216,32 @@ export const zhCN = {
     description: "管理和自定义网站主题",
   },
 
+  // 主题管理页面
+  themePage: {
+    title: "主题管理",
+    description: "选择并应用网站主题，变更对所有访客即时生效",
+    noThemesFound: "未找到可用主题",
+    author: "作者",
+    version: "版本",
+    themeDescription: "描述",
+    link: "链接",
+    currentBadge: "当前使用",
+    applied: "已应用",
+    applyTheme: "应用主题",
+    applying: "应用中...",
+    applyFailed: "应用主题失败",
+    loadFailed: "加载主题数据失败",
+    applySuccess: "主题 \"{themeName}\" 已成功应用，对所有用户生效",
+    installationInstructions: "主题安装说明",
+    instruction1: "在",
+    instruction2: "目录下创建主题文件夹",
+    instruction3: "在主题根目录创建",
+    instruction4: "元数据文件",
+    instruction5: "在主题目录中放置",
+    instruction6: "文件夹（包含编译后的静态资源）",
+    instruction7: "刷新此页面以查看新主题，应用后对所有用户即时生效",
+  },
+
   // 通用设置页面
   generalSettings: {
     title: "通用设置",
