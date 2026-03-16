@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"path/filepath"
-	"strings"
 	"vexgo/backend/cmd"
 	"vexgo/backend/config"
 	"vexgo/backend/handler"
@@ -87,60 +85,8 @@ func main() {
 	handler.RegisterAPIRoutes(r)
 
 	// ===================== Static file hosting =====================
-	// Only serve local uploads if S3 is not enabled
-	if !cfg.S3Enabled {
-		mediaDir := filepath.Join(cfg.DataDir, "media")
-		r.Static("/uploads", mediaDir)
-	}
-
-	r.GET("/assets/*filepath", func(c *gin.Context) {
-		file := strings.TrimPrefix(c.Param("filepath"), "/")
-		content, err := public.ReadAsset("assets/" + file)
-		if err != nil {
-			c.Status(404)
-			return
-		}
-		ext := filepath.Ext(file)
-		switch ext {
-		case ".js":
-			c.Data(200, "application/javascript", content)
-		case ".css":
-			c.Data(200, "text/css", content)
-		case ".html":
-			c.Data(200, "text/html", content)
-		case ".json":
-			c.Data(200, "application/json", content)
-		case ".png":
-			c.Data(200, "image/png", content)
-		case ".jpg", ".jpeg":
-			c.Data(200, "image/jpeg", content)
-		case ".gif":
-			c.Data(200, "image/gif", content)
-		case ".svg":
-			c.Data(200, "image/svg+xml", content)
-		case ".ico":
-			c.Data(200, "image/x-icon", content)
-		case ".woff":
-			c.Data(200, "font/woff", content)
-		case ".woff2":
-			c.Data(200, "font/woff2", content)
-		default:
-			c.Data(200, "application/octet-stream", content)
-		}
-	})
-
-	r.GET("/", func(c *gin.Context) {
-		c.Data(200, "text/html; charset=utf-8", public.GetIndexHTML())
-	})
-
-	// ===================== Frontend SPA route compatibility =====================
-	r.NoRoute(func(c *gin.Context) {
-		if !strings.HasPrefix(c.Request.URL.Path, "/api/") {
-			c.Data(200, "text/html; charset=utf-8", public.GetIndexHTML())
-			return
-		}
-		c.JSON(404, gin.H{"error": "Not Found"})
-	})
+	// Register all static routes (assets, uploads, SPA fallback) in the public package
+	public.RegisterStaticRoutes(r, cfg.DataDir, cfg.S3Enabled)
 
 	r.Run(cfg.GetListenAddr())
 }
