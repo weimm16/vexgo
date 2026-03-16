@@ -50,10 +50,13 @@ export function AdminThemePage() {
     try {
       const [themesRes, configRes] = await Promise.all([
         api.get<{ themes: ThemeInfo[] }>("/themes"),
-        api.get<{ activeTheme: string }>("/config/theme"),
+        api.get<{ activeTheme: string }>("/config/theme", {
+          params: { _t: Date.now() }, // 加时间戳，破除缓存
+        }),
       ]);
       setThemes(themesRes.data.themes || []);
       setActiveTheme(configRes.data.activeTheme || "default");
+      console.log("activeTheme from API:", configRes.data.activeTheme);
     } catch (error) {
       console.error("加载主题数据失败:", error);
       setMessage({ type: "error", text: "加载主题数据失败" });
@@ -75,9 +78,9 @@ export function AdminThemePage() {
       });
 
       // Reload the page after a short delay so the new theme takes effect
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 1500);
     } catch (error) {
       console.error("应用主题失败:", error);
       setMessage({ type: "error", text: "应用主题失败，请重试" });
