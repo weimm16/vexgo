@@ -210,6 +210,12 @@ export const enUS = {
     outlookExample: "Outlook/Hotmail: smtp.office365.com:587 (TLS)",
   },
 
+  // Theme Settings Page
+  themeSettings: {
+    title: "Theme Management",
+    description: "Manage and customize website themes",
+  },
+
   // General Settings Page
   generalSettings: {
     title: "General Settings",
@@ -497,6 +503,7 @@ export const enUS = {
     manageModeration: "Manage articles pending review",
     manageComments: "Manage comments pending review",
     manageUsers: "Manage system users and permissions",
+    manageThemes: "Manage website themes",
     configEmail: "Configure mail server and enable registration verification",
     configAI: "Configure AI large model API and enable intelligent features",
     configGeneralSettings: "Manage system basic configuration and verification settings",

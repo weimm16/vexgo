@@ -165,37 +165,6 @@ export function AdminPage() {
         </h1>
       </div>
 
-      {/* 管理员菜单 */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={() => navigate('/admin/moderation')}>
-          <Shield className="w-4 h-4 mr-2" />
-          发布审核
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate('/admin/users')}>
-          <Users className="w-4 h-4 mr-2" />
-          用户管理
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate('/admin/comment-moderation')}>
-          <MessageSquare className="w-4 h-4 mr-2" />
-          评论审核
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate('/admin/smtp')}>
-          <Mail className="w-4 h-4 mr-2" />
-          SMTP设置
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate('/admin/general-settings')}>
-          <Settings className="w-4 h-4 mr-2" />
-          常规设置
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate('/admin/theme')}>
-          <Palette className="w-4 h-4 mr-2" />
-          主题管理
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => navigate('/admin/ai-settings')}>
-          <Cpu className="w-4 h-4 mr-2" />
-          AI设置
-        </Button>
-      </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardContent className="p-6">
@@ -334,6 +303,17 @@ export function AdminPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">{t('adminData.configAI')}</p>
+              </CardContent>
+            </Card>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/admin/theme')}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Palette className="w-5 h-5" />
+                  {t('themeSettings.title')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{t('adminData.manageThemes')}</p>
               </CardContent>
             </Card>
           </div>

@@ -210,6 +210,12 @@ export const zhCN = {
     outlookExample: "Outlook/Hotmail: smtp.office365.com:587 (TLS)",
   },
 
+  // 主题设置页面
+  themeSettings: {
+    title: "主题管理",
+    description: "管理和自定义网站主题",
+  },
+
   // 通用设置页面
   generalSettings: {
     title: "通用设置",
@@ -497,6 +503,7 @@ export const zhCN = {
     manageModeration: "管理待审核的文章内容",
     manageComments: "管理待审核的评论内容",
     manageUsers: "管理系统用户和权限",
+    manageThemes: "管理网站主题",
     configEmail: "配置邮件服务器，启用注册验证",
     configAI: "配置 AI 大模型 API，启用智能功能",
     configGeneralSettings: "管理系统基本配置和验证设置",
