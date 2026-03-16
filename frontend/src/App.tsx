@@ -13,6 +13,7 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { MyPostsPage } from '@/pages/MyPostsPage';
 import { UserPostsPage } from '@/pages/UserPostsPage';
 import { AdminPage } from '@/pages/AdminPage';
+import { AdminThemePage } from '@/pages/AdminThemePage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { ModerationPage } from '@/pages/ModerationPage';
 import { UserManagementPage } from '@/pages/UserManagementPage';
@@ -167,6 +168,14 @@ function App() {
               element={
                 <ProtectedRoute requireAdmin>
                   <AISettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/theme"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminThemePage />
                 </ProtectedRoute>
               }
             />

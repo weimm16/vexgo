@@ -265,7 +265,11 @@ export const configApi = {
  
    // AI 模型相关API
    getAIModels: () =>
-     api.get<{ message: string; models: AIModel[] }>('/config/ai/models')
+     api.get<{ message: string; models: AIModel[] }>('/config/ai/models'),
+
+   // 主题相关API
+   getThemes: () =>
+     api.get<{ themes: Array<{ id: string; name: string; author: string; version: string; description: string; url: string }> }>('/themes')
  };
 
 export default api;

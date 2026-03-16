@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"vexgo/backend/model"
+	"vexgo/backend/public"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -729,4 +730,12 @@ func checkModelExists(modelsURL, apiKey, modelName string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+// GetThemes returns all available themes
+func GetThemes(c *gin.Context) {
+	themes := public.GetAvailableThemes()
+	c.JSON(http.StatusOK, gin.H{
+		"themes": themes,
+	})
 }
