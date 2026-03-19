@@ -1,6 +1,6 @@
 # VexGo
 
-**[English](README.md) | 中文**
+**[English](../README.md) | 中文**
 
 这是一个基于 React、Go、Gin、JWT 和 SQLite 构建的博客内容管理系统，实现了用户注册、文章管理等功能。
 
