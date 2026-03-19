@@ -1,6 +1,6 @@
 # VexGo
 
-**English | [中文](README_zh_cn.md)**
+**English | [中文](docs/README_zh_cn.md)**
 
 This is a blog CMS built on React, Go, Gin, JWT, and SQLite, which implements features such as user registration and article management.
 
