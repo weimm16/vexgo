@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { postsApi, categoriesApi, uploadApi } from "@/lib/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { RichTextEditor, type RichTextEditorRef } from "@/components/editor/RichTextEditor";
+import { RichTextEditor } from "@/components/editor/RichTextEditor";
 import ImageCropper from "@/components/image/ImageCropper";
 import {
   Loader2,
@@ -64,7 +64,6 @@ export function WritePostPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  const editorRef = useRef<RichTextEditorRef>(null);
 
   // 确保 tags 始终为字符串数组，防止把对象直接渲染到 JSX 中导致 React 报错
   const normalizeTagsArray = (raw: any): string[] => {
@@ -272,19 +271,9 @@ export function WritePostPage() {
 
     setSaving(true);
     try {
-      // Upload temporary images if any
-      let finalContent = content;
-      if (editorRef.current) {
-        const uploadedImages = await editorRef.current.uploadTempImages();
-        // Replace temporary URLs with real URLs in content
-        uploadedImages.forEach(({ tempUrl, realUrl }: { tempUrl: string; realUrl: string }) => {
-          finalContent = finalContent.replace(new RegExp(tempUrl, 'g'), realUrl);
-        });
-      }
-
       const postData = {
         title: title.trim(),
-        content: finalContent,
+        content,
         category,
         tags,
         excerpt: excerpt.trim(),
@@ -505,7 +494,6 @@ export function WritePostPage() {
             {t("writePostPage.contentLabel")} *
           </Label>
           <RichTextEditor
-            ref={editorRef}
             content={content}
             onChange={setContent}
             placeholder={t("writePostPage.contentPlaceholder")}
