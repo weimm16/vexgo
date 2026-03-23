@@ -23,6 +23,7 @@ import { VerifyEmailPage } from '@/pages/VerifyEmailPage';
 import { CommentModerationPage } from '@/pages/CommentModerationPage';
 import { CommentConfigPage } from '@/pages/CommentConfigPage';
 import { AISettingsPage } from '@/pages/AISettingsPage';
+import { MessageCenterPage } from '@/pages/MessageCenterPage';
 import { Toaster } from '@/components/ui/sonner';
 import { useEffect } from 'react';
 
@@ -93,6 +94,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <MyPostsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <MessageCenterPage />
                 </ProtectedRoute>
               }
             />

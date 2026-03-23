@@ -50,6 +50,8 @@ func main() {
 	handler.InitDB(cfg, cfg.DataDir)
 	// Set database connection to authentication middleware
 	middleware.SetDB(handler.DB())
+	// Set database connection to handler package
+	handler.SetDB(handler.DB())
 
 	// 4. Create Gin engine instance (includes Logger and Recovery middleware by default)
 	r := gin.Default()

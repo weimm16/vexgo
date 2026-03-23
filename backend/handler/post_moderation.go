@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -58,6 +59,16 @@ func ApprovePost(c *gin.Context) {
 	post.Status = "published"
 	db.Save(&post)
 
+	// Create notification for post author
+	CreateNotification(
+		post.AuthorID,
+		"review",
+		"文章审核通过",
+		fmt.Sprintf("你的文章 \"%s\" 已通过审核", post.Title),
+		id,
+		"post",
+	)
+
 	c.JSON(http.StatusOK, gin.H{"message": "Post approved", "post": post})
 }
 
@@ -84,6 +95,16 @@ func RejectPost(c *gin.Context) {
 	post.Status = "rejected"
 	post.RejectionReason = req.RejectionReason
 	db.Save(&post)
+
+	// Create notification for post author
+	CreateNotification(
+		post.AuthorID,
+		"review",
+		"文章审核拒绝",
+		fmt.Sprintf("你的文章 \"%s\" 未通过审核，原因：%s", post.Title, req.RejectionReason),
+		id,
+		"post",
+	)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Post has been rejected", "post": post})
 }

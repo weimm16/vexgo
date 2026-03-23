@@ -179,6 +179,45 @@ func CreateComment(c *gin.Context) {
 	// Preload author information
 	db.Preload("User").First(&comment, comment.ID)
 
+	// Create notifications
+	// 1. Notify post author
+	var post model.Post
+	if err := db.First(&post, postID).Error; err == nil {
+		if post.AuthorID != userID { // Don't notify the commenter if they are the post author
+			var user model.User
+			if err := db.First(&user, userID).Error; err == nil {
+				CreateNotification(
+					post.AuthorID,
+					"comment",
+					"文章被评论",
+					fmt.Sprintf("用户 \"%s\" 评论了你的文章 \"%s\"", user.Username, post.Title),
+					strconv.FormatUint(uint64(postID), 10),
+					"post",
+				)
+			}
+		}
+	}
+
+	// 2. Notify parent comment author if this is a reply
+	if req.ParentID != nil {
+		var parentComment model.Comment
+		if err := db.First(&parentComment, *req.ParentID).Error; err == nil {
+			if parentComment.UserID != userID { // Don't notify the commenter if they are the parent comment author
+				var user model.User
+				if err := db.First(&user, userID).Error; err == nil {
+					CreateNotification(
+						parentComment.UserID,
+						"reply",
+						"评论被回复",
+						fmt.Sprintf("用户 \"%s\" 回复了你的评论", user.Username),
+						strconv.FormatUint(uint64(*req.ParentID), 10),
+						"comment",
+					)
+				}
+			}
+		}
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message":            "Comment created successfully",
 		"comment":            comment,

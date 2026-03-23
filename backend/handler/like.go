@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -32,6 +33,25 @@ func ToggleLike(c *gin.Context) {
 	db.Create(&like)
 	var count int64
 	db.Model(&model.Like{}).Where("post_id = ?", postID).Count(&count)
+
+	// Create notification for post author
+	var post model.Post
+	if err := db.First(&post, postID).Error; err == nil {
+		if post.AuthorID != userID { // Don't notify the user if they are the post author
+			var user model.User
+			if err := db.First(&user, userID).Error; err == nil {
+				CreateNotification(
+					post.AuthorID,
+					"like",
+					"文章被点赞",
+					fmt.Sprintf("用户 \"%s\" 点赞了你的文章 \"%s\"", user.Username, post.Title),
+					strconv.FormatUint(uint64(postID), 10),
+					"post",
+				)
+			}
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Liked successfully", "postId": postID, "isLiked": true, "likesCount": count})
 }
 

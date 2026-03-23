@@ -272,4 +272,22 @@ export const configApi = {
      api.get<{ themes: Array<{ id: string; name: string; author: string; version: string; description: string; url: string }> }>('/themes')
  };
 
+// 消息相关API
+export const messagesApi = {
+  getMessages: (params?: { page?: number; limit?: number; type?: string; is_read?: string }) =>
+    api.get<{ notifications: any[]; pagination: any }>('/messages', { params }),
+  
+  getUnreadCount: () =>
+    api.get<{ unreadCount: number }>('/messages/unread-count'),
+  
+  markAsRead: (id: string) =>
+    api.put<{ message: string }>(`/messages/${id}/read`),
+  
+  markAllAsRead: () =>
+    api.put<{ message: string }>('/messages/read-all'),
+  
+  deleteMessage: (id: string) =>
+    api.delete<{ message: string }>(`/messages/${id}`)
+};
+
 export default api;

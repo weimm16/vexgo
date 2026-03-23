@@ -164,6 +164,8 @@ func InitDB(cfg *cmd.Config, dataDir string) {
 		&model.AIConfig{},
 		&model.SSOBinding{},
 		&model.ThemeConfig{},
+		&model.Message{},
+		&model.Notification{},
 	); err != nil {
 		log.Fatalf("auto migrate failed: %v", err)
 	}
@@ -288,4 +290,9 @@ func InitDB(cfg *cmd.Config, dataDir string) {
 // DB returns the database instance
 func DB() *gorm.DB {
 	return db
+}
+
+// SetDB sets the database instance
+func SetDB(database *gorm.DB) {
+	db = database
 }
