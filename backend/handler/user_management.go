@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -158,10 +159,22 @@ func UpdateUserRole(c *gin.Context) {
 	}
 
 	// Save updates
+	oldRole := user.Role
+	user.Role = req.Role
 	if err := db.Model(&user).Select("Role").Updates(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user role"})
 		return
 	}
+
+	// Create notification for user when role changes
+	CreateNotification(
+		user.ID,
+		"role",
+		"角色权限变更",
+		fmt.Sprintf("你的角色已从 \"%s\" 变更为 \"%s\"", oldRole, req.Role),
+		"",
+		"",
+	)
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "User role updated successfully",

@@ -1,6 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { configApi } from '@/lib/api';
+import { configApi, messagesApi } from '@/lib/api';
 import { useTranslation } from '@/lib/I18nContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import {
   Search, PenLine, Menu, X, Home, User, Settings,
-  LogOut, FileText, BarChart3
+  LogOut, FileText, BarChart3, Bell
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -79,10 +79,54 @@ export function Layout({ children }: LayoutProps) {
     navigate('/');
   };
 
+  // 消息数量
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // 获取未读消息数量的函数
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await messagesApi.getUnreadCount();
+      setUnreadCount(response.data.unreadCount);
+    } catch (error) {
+      console.error('获取未读消息数量失败:', error);
+    }
+  };
+
+  useEffect(() => {
+    // 只有登录后才获取未读消息数量
+    if (isAuthenticated) {
+      fetchUnreadCount();
+    }
+  }, [isAuthenticated]);
+
+  // 定期检查未读消息数量（每30秒）
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isAuthenticated) {
+      interval = setInterval(() => {
+        fetchUnreadCount();
+      }, 30000); // 30秒检查一次
+    }
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isAuthenticated]);
+
+  // 监听路由变化，当进入或离开消息页面时更新未读数量
+  useEffect(() => {
+    if (isAuthenticated) {
+      // 当路由变化时检查未读消息数量
+      fetchUnreadCount();
+    }
+  }, [isAuthenticated, location.pathname]);
+
   const navItems = [
     { path: '/', label: t('layout.home'), icon: Home },
     ...(isAuthenticated ? [{ path: '/write', label: t('layout.writePost'), icon: PenLine }] : []),
     ...(isAuthenticated ? [{ path: '/my-posts', label: t('layout.myPosts'), icon: FileText }] : []),
+    ...(isAuthenticated ? [{ path: '/messages', label: '消息', icon: Bell }] : []),
     ...(user?.role === 'admin' || user?.role === 'super_admin' ? [{ path: '/admin', label: t('layout.adminPanel'), icon: BarChart3 }] : []),
   ];
 
@@ -137,10 +181,16 @@ export function Layout({ children }: LayoutProps) {
                   variant={isActive(item.path) ? 'default' : 'ghost'}
                   size="sm"
                   asChild
+                  className={item.path === '/messages' ? 'relative' : ''}
                 >
                   <Link to={item.path} className="flex items-center gap-2">
                     <item.icon className="w-4 h-4" />
                     {item.label}
+                    {item.path === '/messages' && unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {unreadCount}
+                      </span>
+                    )}
                   </Link>
                 </Button>
               ))}
