@@ -12,6 +12,9 @@ data: "./data"
 # You can generate one with: openssl rand -base64 32
 jwt_secret: "your-secret-key-change-this-in-production"
 
+# Logging level: "debug", "info", "warn", "error", "fatal", "panic"
+log_level: "info"
+
 # Whether the server is behind a reverse proxy (e.g., nginx, Cloudflare)
 # Set to true if you're using a reverse proxy that sets X-Forwarded-* headers
 behind_reverse_proxy: false

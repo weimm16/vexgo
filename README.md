@@ -112,6 +112,9 @@ data: "./data"
 # You can generate one with: openssl rand -base64 32
 jwt_secret: "your-secret-key-change-this-in-production"
 
+# Logging level: "debug", "info", "warn", "error", "fatal", "panic"
+log_level: "info"
+
 # Whether the server is behind a reverse proxy (e.g., nginx, Cloudflare)
 # Set to true if you're using a reverse proxy that sets X-Forwarded-* headers
 behind_reverse_proxy: false
@@ -252,6 +255,7 @@ You can also configure the application using environment variables.
 | `PORT`                 | `3001`    | Server listen port                                                                                                                                                                                                                                           |
 | `DATA`                 | `./data`  | Data directory path                                                                                                                                                                                                                                          |
 | `JWT_SECRET`           | —         | JWT secret key (required for production)                                                                                                                                                                                                                     |
+| `LOG_LEVEL`            | `info`    | Logging level: `debug`, `info`, `warn`, `error`, `fatal`, `panic`                                                                                                                                                                                            |
 | `BEHIND_REVERSE_PROXY` | `false`   | Set to `true` if the server is behind a reverse proxy (nginx, Cloudflare, etc.). This enables proper handling of `X-Forwarded-*` headers.                                                                                                                    |
 | `TRUSTED_PROXIES`      | —         | Comma-separated list of trusted proxy IPs/CIDRs. Only used when `BEHIND_REVERSE_PROXY=true`. If empty, defaults to common private networks (127.0.0.1, ::1, 192.168.0.0/16, 10.0.0.0/8, 172.16.0.0/12). Example: `TRUSTED_PROXIES="192.168.1.100, 10.0.0.1"` |
 

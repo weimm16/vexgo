@@ -112,6 +112,9 @@ data: "./data"
 # 可以使用以下命令生成：openssl rand -base64 32
 jwt_secret: "your-secret-key-change-this-in-production"
 
+# 日志级别："debug", "info", "warn", "error", "fatal", "panic"
+log_level: "info"
+
 # 受信任的代理 IP/CIDR 列表（逗号分隔）
 # 仅在 behind_reverse_proxy=true 时生效
 # 如果留空，默认使用常见私有网络：127.0.0.1、::1、192.168.0.0/16、10.0.0.0/8、172.16.0.0/12
@@ -251,6 +254,7 @@ s3_disable_bucket_in_custom_url: false
 | PORT                 | 3001    | 服务监听端口                                                                                                                                                                                                                   |
 | DATA                 | ./data  | 数据目录路径                                                                                                                                                                                                                   |
 | JWT_SECRET           | —       | JWT 签名密钥（生产环境必填）                                                                                                                                                                                                   |
+| LOG_LEVEL            | info    | 日志级别：debug、info、warn、error、fatal、panic                                                                                                                                                                                |
 | BEHIND_REVERSE_PROXY | false   | 设置为 `true` 表示服务器位于反向代理（如 nginx、Cloudflare 等）之后。启用后才会正确处理 `X-Forwarded-*` 头部。                                                                                                                 |
 | TRUSTED_PROXIES      | —       | 受信任的代理 IP/CIDR 列表（逗号分隔）。仅在 `BEHIND_REVERSE_PROXY=true` 时生效。如果留空，默认使用常见私有网络（127.0.0.1、::1、192.168.0.0/16、10.0.0.0/8、172.16.0.0/12）。示例：`TRUSTED_PROXIES="192.168.1.100, 10.0.0.1"` |
 
