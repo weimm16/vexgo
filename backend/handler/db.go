@@ -226,9 +226,9 @@ func InitDB(cfg *cmd.Config, dataDir string) {
 						ItemsPerPage:        20,
 					}
 					if err := db.Create(&generalSettings).Error; err != nil {
-						logrus.Printf("failed to create default general settings: %v", err)
+						logrus.WithError(err).Error("Failed to create default general settings")
 					} else {
-						logrus.Println("default general settings created")
+						logrus.Info("Default general settings created successfully")
 					}
 				}
 			}
@@ -247,9 +247,9 @@ func InitDB(cfg *cmd.Config, dataDir string) {
 				ModelName:   "gpt-3.5-turbo",
 			}
 			if err := db.Create(&aiConfig).Error; err != nil {
-				logrus.Printf("failed to create default ai config: %v", err)
+				logrus.WithError(err).Error("Failed to create default AI config")
 			} else {
-				logrus.Println("default ai config created")
+				logrus.Info("Default AI config created successfully")
 			}
 		}
 	}
@@ -262,9 +262,9 @@ func InitDB(cfg *cmd.Config, dataDir string) {
 				ActiveTheme: "default",
 			}
 			if err := db.Create(&themeConfig).Error; err != nil {
-				logrus.Printf("failed to create default theme config: %v", err)
+				logrus.WithError(err).Error("Failed to create default theme config")
 			} else {
-				logrus.Println("default theme config created")
+				logrus.Info("Default theme config created successfully")
 			}
 		}
 	}
@@ -278,9 +278,9 @@ func InitDB(cfg *cmd.Config, dataDir string) {
 				Description: "Default category for articles without a specified category",
 			}
 			if err := db.Create(&defaultCategory).Error; err != nil {
-				logrus.Printf("failed to create default category: %v", err)
+				logrus.WithError(err).Error("Failed to create default category")
 			} else {
-				logrus.Println("default category created: Default")
+				logrus.Info("Default category 'Default' created successfully")
 			}
 		}
 	}

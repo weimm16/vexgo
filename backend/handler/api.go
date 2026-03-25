@@ -12,6 +12,7 @@ import (
 func RegisterAPIRoutes(r *gin.Engine) {
 	logrus.Debug("Registering API routes")
 	api := r.Group("/api")
+	api.Use(middleware.RequestLogger())
 	api.Use(middleware.OptionalJWTAuth())
 	{
 		// -------------------- Public API (no JWT authentication required) --------------------

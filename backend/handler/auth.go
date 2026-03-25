@@ -15,6 +15,8 @@ import (
 	"vexgo/backend/model"
 	"vexgo/backend/utils"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -91,6 +93,8 @@ func verifyCaptcha(captchaID, captchaToken string, captchaX int, markAsUsed bool
 
 // Login: issue JWT based on email and password
 func Login(c *gin.Context) {
+	logrus.Info("User login attempt started")
+
 	var req struct {
 		Email        string `json:"email" binding:"required"`
 		Password     string `json:"password" binding:"required"`
@@ -100,9 +104,12 @@ func Login(c *gin.Context) {
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logrus.WithError(err).Warn("Failed to bind login request JSON")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	logrus.WithField("email", req.Email).Debug("Login request parsed successfully")
 
 	// Check if captcha verification is enabled
 	captchaEnabled, err := IsCaptchaEnabled()

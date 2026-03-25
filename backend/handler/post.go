@@ -141,36 +141,83 @@ func GetPosts(c *gin.Context) {
 
 	// 3. Count total + query data
 	var total int64
-	query.Count(&total)
+	logrus.WithFields(logrus.Fields{
+		"categoryID": categoryID,
+		"status":     status,
+		"search":     search,
+		"userRole":   userRole,
+		"userID":     userID,
+	}).Debug("Counting total posts")
 
-	query.Order("created_at DESC").
+	if err := query.Count(&total).Error; err != nil {
+		logrus.WithError(err).Error("Failed to count posts")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to count posts"})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"total":  total,
+		"page":   page,
+		"limit":  limit,
+		"offset": (page - 1) * limit,
+	}).Debug("Fetching posts from database")
+
+	if err := query.Order("created_at DESC").
 		Offset((page - 1) * limit).
 		Limit(limit).
-		Find(&posts)
+		Find(&posts).Error; err != nil {
+		logrus.WithError(err).Error("Failed to fetch posts")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch posts"})
+		return
+	}
+
+	logrus.WithField("count", len(posts)).Debug("Posts fetched successfully")
 
 	// Fill likes count, view count, and current logged-in user's like status for each post in the list (if logged in)
+	logrus.WithField("postCount", len(posts)).Debug("Starting to populate likes and comments count for posts")
 	for i := range posts {
 		var count int64
-		db.Model(&model.Like{}).Where("post_id = ?", posts[i].ID).Count(&count)
-		posts[i].LikesCount = int(count)
+		if err := db.Model(&model.Like{}).Where("post_id = ?", posts[i].ID).Count(&count).Error; err != nil {
+			logrus.WithFields(logrus.Fields{
+				"postID": posts[i].ID,
+			}).WithError(err).Warn("Failed to count likes for post")
+		} else {
+			posts[i].LikesCount = int(count)
+		}
+
 		posts[i].IsLiked = false
 		if userID != 0 {
 			var like model.Like
-			if db.Where("post_id = ? AND user_id = ?", posts[i].ID, userID).First(&like).Error == nil {
+			if err := db.Where("post_id = ? AND user_id = ?", posts[i].ID, userID).First(&like).Error; err != nil {
+				logrus.WithFields(logrus.Fields{
+					"postID": posts[i].ID,
+					"userID": userID,
+				}).WithError(err).Debug("Like status check failed (likely not liked)")
+			} else {
 				posts[i].IsLiked = true
+				logrus.WithFields(logrus.Fields{
+					"postID": posts[i].ID,
+					"userID": userID,
+				}).Debug("User has liked this post")
 			}
 		}
 
 		// Fill comments count
 		var ccount int64
-		db.Model(&model.Comment{}).Where("post_id = ?", posts[i].ID).Count(&ccount)
-		posts[i].CommentsCount = int(ccount)
+		if err := db.Model(&model.Comment{}).Where("post_id = ?", posts[i].ID).Count(&ccount).Error; err != nil {
+			logrus.WithFields(logrus.Fields{
+				"postID": posts[i].ID,
+			}).WithError(err).Warn("Failed to count comments for post")
+		} else {
+			posts[i].CommentsCount = int(ccount)
+		}
 
 		// Apply privacy filtering to author (if not admin and not viewing own post)
 		if userRole != model.RoleAdmin && userRole != model.RoleSuperAdmin && posts[i].AuthorID != userID {
 			FilterUserByPrivacy(&posts[i].Author, userID, userRole)
 		}
 	}
+	logrus.WithField("postCount", len(posts)).Debug("Finished populating likes and comments count")
 
 	// 4. Calculate total pages
 	totalPages := (int(total) + limit - 1) / limit
@@ -179,6 +226,14 @@ func GetPosts(c *gin.Context) {
 	}
 
 	// 5. Return response
+	logrus.WithFields(logrus.Fields{
+		"total":      total,
+		"page":       page,
+		"limit":      limit,
+		"totalPages": totalPages,
+		"returned":   len(posts),
+	}).Info("Posts list request completed successfully")
+
 	c.JSON(http.StatusOK, gin.H{
 		"posts": posts,
 		"pagination": gin.H{

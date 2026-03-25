@@ -11,6 +11,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -22,14 +23,26 @@ var (
 // InitS3 initializes the MinIO client and verifies the connection.
 // Returns an error if configuration is invalid or the bucket is unreachable.
 func InitS3(cfg *config.S3Config) error {
+	logrus.WithField("enabled", cfg.Enabled).Debug("Initializing S3 storage")
+
 	if !cfg.IsEnabled() {
 		UseS3Storage = false
+		logrus.Info("S3 storage disabled, using local file storage")
 		return nil
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"endpoint": cfg.Endpoint,
+		"region":   cfg.Region,
+		"bucket":   cfg.Bucket,
+	}).Debug("Validating S3 configuration")
+
 	if err := cfg.Validate(); err != nil {
+		logrus.WithError(err).Error("S3 configuration validation failed")
 		return fmt.Errorf("S3 configuration error: %w", err)
 	}
+
+	logrus.Debug("S3 configuration validation passed")
 
 	// Strip protocol prefix from endpoint, minio-go manages SSL separately
 	endpoint := cfg.Endpoint
@@ -37,11 +50,15 @@ func InitS3(cfg *config.S3Config) error {
 	if strings.HasPrefix(endpoint, "http://") {
 		endpoint = strings.TrimPrefix(endpoint, "http://")
 		useSSL = false
+		logrus.WithField("endpoint", endpoint).Debug("Using HTTP for S3 connection")
 	} else if strings.HasPrefix(endpoint, "https://") {
 		endpoint = strings.TrimPrefix(endpoint, "https://")
 		useSSL = true
+		logrus.WithField("endpoint", endpoint).Debug("Using HTTPS for S3 connection")
 	}
 	endpoint = strings.TrimSuffix(endpoint, "/")
+
+	logrus.WithField("endpoint", endpoint).Debug("Creating MinIO client")
 
 	// Create MinIO client with static credentials
 	client, err := minio.New(endpoint, &minio.Options{
@@ -50,23 +67,38 @@ func InitS3(cfg *config.S3Config) error {
 		Region: cfg.Region,
 	})
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"endpoint": endpoint,
+			"region":   cfg.Region,
+		}).WithError(err).Error("Failed to create MinIO client")
 		return fmt.Errorf("failed to create minio client: %w", err)
 	}
 
+	logrus.WithFields(logrus.Fields{
+		"endpoint": endpoint,
+		"region":   cfg.Region,
+	}).Debug("MinIO client created successfully")
+
 	// Verify connectivity by checking if the target bucket exists
+	logrus.WithField("bucket", cfg.Bucket).Debug("Checking if S3 bucket exists")
 	exists, err := client.BucketExists(context.TODO(), cfg.Bucket)
 	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"bucket": cfg.Bucket,
+		}).WithError(err).Error("Failed to check S3 bucket existence")
 		return fmt.Errorf("failed to connect to S3: %w", err)
 	}
 	if !exists {
+		logrus.WithField("bucket", cfg.Bucket).Error("S3 bucket does not exist")
 		return fmt.Errorf("bucket %s does not exist", cfg.Bucket)
 	}
+	logrus.WithField("bucket", cfg.Bucket).Info("S3 bucket exists and is accessible")
 
 	S3Client = client
 	S3Cfg = cfg
 	UseS3Storage = true
 
-	fmt.Printf("S3: Connected successfully\n")
+	logrus.WithField("bucket", cfg.Bucket).Info("S3 storage initialized successfully")
 	return nil
 }
 
