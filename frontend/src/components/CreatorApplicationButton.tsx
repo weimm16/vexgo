@@ -29,8 +29,9 @@ export function CreatorApplicationButton({ className }: CreatorApplicationButton
   const [reason, setReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Only show for guest users
-  if (user?.role !== 'guest') {
+  // Only show for guest and contributor users
+  // Hide for author, admin, and super_admin users
+  if (user?.role === 'author' || user?.role === 'admin' || user?.role === 'super_admin') {
     return null;
   }
 
@@ -43,7 +44,7 @@ export function CreatorApplicationButton({ className }: CreatorApplicationButton
       setIsConfirmOpen(false);
       setReason('');
     } catch (error: any) {
-      console.error('申请成为创作者失败:', error);
+      console.error('申请角色升级失败:', error);
       toast.error(error.response?.data?.error || t('errors.networkError'));
     } finally {
       setIsLoading(false);
@@ -64,7 +65,7 @@ export function CreatorApplicationButton({ className }: CreatorApplicationButton
         <DialogTrigger asChild>
           <Button className={className} variant="outline" size="sm">
             <UserPlus className="w-4 h-4 mr-2" />
-            {t('creatorApplication.applyButton')}
+            {user?.role === 'guest' ? t('creatorApplication.applyButton') : '申请成为作者'}
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
@@ -77,7 +78,7 @@ export function CreatorApplicationButton({ className }: CreatorApplicationButton
           
           <div className="space-y-4">
             <div className="text-sm text-muted-foreground">
-              {t('creatorApplication.currentRole')}: <span className="font-medium">{t('roles.guest')}</span>
+              {t('creatorApplication.currentRole')}: <span className="font-medium">{t(`roles.${user?.role || 'guest'}`)}</span>
             </div>
             
             <div className="space-y-2">

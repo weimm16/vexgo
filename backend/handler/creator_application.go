@@ -33,9 +33,9 @@ func ApplyForCreator(c *gin.Context) {
 		Role:     userMap["role"].(string),
 	}
 
-	// Only guest users can apply for creator role
-	if currentUser.Role != model.RoleGuest {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Only guest users can apply for creator role"})
+	// Only guest and contributor users can apply for role upgrade
+	if currentUser.Role != model.RoleGuest && currentUser.Role != model.RoleContributor {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Only guest and contributor users can apply for role upgrade"})
 		return
 	}
 
@@ -68,6 +68,14 @@ func ApplyForCreator(c *gin.Context) {
 		return
 	}
 
+	// Determine target role based on current role
+	targetRole := ""
+	if currentUser.Role == model.RoleGuest {
+		targetRole = "contributor"
+	} else if currentUser.Role == model.RoleContributor {
+		targetRole = "author"
+	}
+
 	// Send notification to admins and super admins
 	var admins []model.User
 	if err := db.Where("role IN ?", []string{model.RoleAdmin, model.RoleSuperAdmin}).Find(&admins).Error; err == nil {
@@ -75,8 +83,8 @@ func ApplyForCreator(c *gin.Context) {
 			CreateNotification(
 				admin.ID,
 				"role",
-				"New Creator Application",
-				fmt.Sprintf("User %s has applied for creator role", currentUser.Username),
+				"New Role Application",
+				fmt.Sprintf("User %s has applied for %s role", currentUser.Username, targetRole),
 				fmt.Sprintf("%d", application.ID),
 				"creator_application",
 			)
@@ -253,8 +261,12 @@ func ReviewCreatorApplication(c *gin.Context) {
 	// Update application status
 	if req.Action == "approve" {
 		application.Status = model.CreatorApplicationStatusApproved
-		// Update user role to author
-		application.User.Role = model.RoleAuthor
+		// Update user role based on current role
+		if application.User.Role == model.RoleGuest {
+			application.User.Role = model.RoleContributor
+		} else if application.User.Role == model.RoleContributor {
+			application.User.Role = model.RoleAuthor
+		}
 		if err := db.Model(&application.User).Select("Role").Updates(&application.User).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user role"})
 			return
@@ -274,11 +286,16 @@ func ReviewCreatorApplication(c *gin.Context) {
 	// Send notification to the applicant
 	var notificationTitle, notificationContent string
 	if req.Action == "approve" {
-		notificationTitle = "Creator Application Approved"
-		notificationContent = "Your creator application has been approved. You are now an author."
+		if application.User.Role == model.RoleAuthor {
+			notificationTitle = "Author Application Approved"
+			notificationContent = "Your author application has been approved. You are now an author."
+		} else {
+			notificationTitle = "Contributor Application Approved"
+			notificationContent = "Your contributor application has been approved. You are now a contributor."
+		}
 	} else {
-		notificationTitle = "Creator Application Rejected"
-		notificationContent = "Your creator application has been rejected."
+		notificationTitle = "Role Application Rejected"
+		notificationContent = "Your role application has been rejected."
 		if req.Reason != "" {
 			notificationContent += " Reason: " + req.Reason
 		}

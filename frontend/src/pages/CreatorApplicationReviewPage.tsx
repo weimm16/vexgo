@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { Users, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 export function CreatorApplicationReviewPage() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isLoading: isAuthLoading } = useAuth();
   const { t } = useTranslation();
   const [applications, setApplications] = useState<CreatorApplication[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +20,17 @@ export function CreatorApplicationReviewPage() {
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // Show loading state while auth is loading
+  if (isAuthLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
 
   // Only allow admin and super_admin to access this page
   if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'super_admin')) {
@@ -47,17 +58,23 @@ export function CreatorApplicationReviewPage() {
         limit: 100,
         status: 'pending'
       });
-      setApplications(response.data.applications);
+      // 确保 applications 是数组，即使后端返回 null 或 undefined
+      setApplications(response.data.applications || []);
     } catch (error) {
       console.error('加载创作者申请列表失败:', error);
       toast.error(t('errors.networkError'));
+      // 发生错误时也设置为空数组，避免白屏
+      setApplications([]);
     } finally {
       setLoading(false);
     }
   };
 
   const handleReview = async (action: 'approve' | 'reject') => {
-    if (!selectedApplication) return;
+    if (!selectedApplication) {
+      toast.error('Invalid application data');
+      return;
+    }
     
     setIsProcessing(true);
     try {
@@ -92,6 +109,7 @@ export function CreatorApplicationReviewPage() {
   };
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleString();
   };
 
@@ -177,18 +195,18 @@ export function CreatorApplicationReviewPage() {
                     <div className="flex items-center gap-3 mb-2">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                         <span className="text-primary font-medium">
-                          {application.username.charAt(0).toUpperCase()}
+                          {(application.username || '').charAt(0).toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <h3 className="font-medium">{application.username}</h3>
-                        <p className="text-sm text-muted-foreground">{application.email}</p>
+                        <h3 className="font-medium">{application.username || '-'}</h3>
+                        <p className="text-sm text-muted-foreground">{application.email || '-'}</p>
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{t('creatorApplication.currentRole')}: {t(`roles.${application.currentRole}`)}</span>
-                        <span>{t('creatorApplication.appliedAt')}: {formatDate(application.createdAt)}</span>
+                        <span>{t('creatorApplication.currentRole')}: {t(`roles.${application.currentRole || 'guest'}`)}</span>
+                        <span>{t('creatorApplication.appliedAt')}: {formatDate(application.createdAt || new Date().toISOString())}</span>
                       </div>
                       {application.reason && (
                         <div className="text-sm">
