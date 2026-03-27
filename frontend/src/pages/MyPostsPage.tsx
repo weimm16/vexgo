@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { postsApi } from '@/lib/api';
 import type { Post } from '@/types';
 import { useTranslation } from '@/lib/I18nContext';
@@ -35,6 +36,8 @@ import { normalizeTagsArray } from '@/lib/utils';
 
 export function MyPostsPage() {
   const { t } = useTranslation();
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,6 +47,13 @@ export function MyPostsPage() {
     totalPages: 1,
     limit: 10
   });
+
+  // Check if user is guest
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'guest') {
+      navigate('/');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     loadPosts();
@@ -155,12 +165,14 @@ export function MyPostsPage() {
           <PenLine className="w-6 h-6" />
           {t('myPostsPage.myPosts')}
         </h1>
-        <Button asChild>
-          <Link to="/write">
-            <Plus className="w-4 h-4 mr-2" />
-            {t('myPostsPage.writePost')}
-          </Link>
-        </Button>
+        {user?.role !== 'guest' && (
+          <Button asChild>
+            <Link to="/write">
+              <Plus className="w-4 h-4 mr-2" />
+              {t('myPostsPage.writePost')}
+            </Link>
+          </Button>
+        )}
       </div>
 
       {/* 文章列表 */}
@@ -172,12 +184,14 @@ export function MyPostsPage() {
             </div>
             <h3 className="text-lg font-semibold mb-2">{t('myPostsPage.noPosts')}</h3>
             <p className="text-muted-foreground mb-4">{t('myPostsPage.noPostsDesc')}</p>
-            <Button asChild>
-              <Link to="/write">
-                <Plus className="w-4 h-4 mr-2" />
-                {t('myPostsPage.writePost')}
-              </Link>
-            </Button>
+            {user?.role !== 'guest' && (
+              <Button asChild>
+                <Link to="/write">
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t('myPostsPage.writePost')}
+                </Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
