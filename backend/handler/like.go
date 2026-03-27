@@ -7,6 +7,8 @@ import (
 
 	"vexgo/backend/model"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,7 +24,18 @@ func ToggleLike(c *gin.Context) {
 	var like model.Like
 	if err := db.Where("post_id = ? AND user_id = ?", postID, userID).First(&like).Error; err == nil {
 		// Already liked -> unlike
-		db.Delete(&like)
+		if err := db.Delete(&like).Error; err != nil {
+			logrus.WithFields(logrus.Fields{
+				"postID": postID,
+				"userID": userID,
+			}).WithError(err).Error("Failed to delete like")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove like"})
+			return
+		}
+		logrus.WithFields(logrus.Fields{
+			"postID": postID,
+			"userID": userID,
+		}).Debug("User unliked post")
 		var count int64
 		db.Model(&model.Like{}).Where("post_id = ?", postID).Count(&count)
 		c.JSON(http.StatusOK, gin.H{"message": "Like removed", "postId": postID, "isLiked": false, "likesCount": count})

@@ -440,8 +440,49 @@ func DeletePost(c *gin.Context) {
 		}
 	}
 
-	// Delete post (GORM automatically deletes associated comments, likes, etc.)
-	db.Delete(&post)
+	// Delete post and handle all foreign key relationships properly
+	// For PostgreSQL, we need to explicitly delete all related records before deleting the post
+
+	// 1. Delete all comments associated with this post
+	if err := db.Where("post_id = ?", post.ID).Delete(&model.Comment{}).Error; err != nil {
+		logrus.WithFields(logrus.Fields{
+			"postID": post.ID,
+		}).WithError(err).Error("Failed to delete associated comments")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post comments"})
+		return
+	}
+
+	// 2. Delete all likes associated with this post
+	if err := db.Where("post_id = ?", post.ID).Delete(&model.Like{}).Error; err != nil {
+		logrus.WithFields(logrus.Fields{
+			"postID": post.ID,
+		}).WithError(err).Error("Failed to delete associated likes")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post likes"})
+		return
+	}
+
+	// 3. Clear the many-to-many tags relationship
+	if err := db.Model(&post).Association("Tags").Clear(); err != nil {
+		logrus.WithFields(logrus.Fields{
+			"postID": post.ID,
+		}).WithError(err).Error("Failed to clear post tags association")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post associations"})
+		return
+	}
+
+	// 4. Finally delete the post itself
+	if err := db.Delete(&post).Error; err != nil {
+		logrus.WithFields(logrus.Fields{
+			"postID": post.ID,
+		}).WithError(err).Error("Failed to delete post")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete post"})
+		return
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"postID": post.ID,
+		"title":  post.Title,
+	}).Info("Post and all associated data deleted successfully")
 	c.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 

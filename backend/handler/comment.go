@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"vexgo/backend/model"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -184,23 +186,23 @@ func CreateComment(c *gin.Context) {
 	var post model.Post
 	if err := db.First(&post, postID).Error; err == nil {
 		if post.AuthorID != userID { // Don't notify the commenter if they are the post author
-				var user model.User
-				if err := db.First(&user, userID).Error; err == nil {
-					// Truncate comment content to first 50 characters
-					commentContent := req.Content
-					if len(commentContent) > 50 {
-						commentContent = commentContent[:50] + "..."
-					}
-					CreateNotification(
-						post.AuthorID,
-						"comment",
-						"Post Commented",
-						fmt.Sprintf("User \"%s\" commented on your post \"%s\": %s", user.Username, post.Title, commentContent),
-						strconv.FormatUint(uint64(postID), 10),
-						"post",
-					)
+			var user model.User
+			if err := db.First(&user, userID).Error; err == nil {
+				// Truncate comment content to first 50 characters
+				commentContent := req.Content
+				if len(commentContent) > 50 {
+					commentContent = commentContent[:50] + "..."
 				}
+				CreateNotification(
+					post.AuthorID,
+					"comment",
+					"Post Commented",
+					fmt.Sprintf("User \"%s\" commented on your post \"%s\": %s", user.Username, post.Title, commentContent),
+					strconv.FormatUint(uint64(postID), 10),
+					"post",
+				)
 			}
+		}
 	}
 
 	// 2. Notify parent comment author if this is a reply
@@ -278,9 +280,20 @@ func DeleteComment(c *gin.Context) {
 	}
 
 	if err := db.Delete(&comment).Error; err != nil {
+		logrus.WithFields(logrus.Fields{
+			"commentID": comment.ID,
+			"postID":    comment.PostID,
+			"userID":    comment.UserID,
+		}).WithError(err).Error("Failed to delete comment")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete comment"})
 		return
 	}
+
+	logrus.WithFields(logrus.Fields{
+		"commentID": comment.ID,
+		"postID":    comment.PostID,
+		"userID":    comment.UserID,
+	}).Info("Comment deleted successfully")
 
 	// Return comment count after deletion for frontend sync
 	var count int64
