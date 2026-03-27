@@ -51,7 +51,8 @@ func JWTAuth() gin.HandlerFunc {
 		claims := token.Claims.(jwt.MapClaims)
 		userID := uint(claims["user_id"].(float64))
 
-		// Verify password version
+		// Verify password version and get latest role
+		var dbRole string
 		if db != nil {
 			var user model.User
 			if err := db.First(&user, userID).Error; err == nil {
@@ -62,6 +63,7 @@ func JWTAuth() gin.HandlerFunc {
 						return
 					}
 				}
+				dbRole = user.Role
 			}
 		}
 
@@ -74,8 +76,10 @@ func JWTAuth() gin.HandlerFunc {
 			"username": claims["username"].(string),
 		}
 
-		// Safely get role information
-		if role, ok := claims["role"].(string); ok {
+		// Safely get role information, prefer database role
+		if dbRole != "" {
+			userInfo["role"] = dbRole
+		} else if role, ok := claims["role"].(string); ok {
 			userInfo["role"] = role
 		} else {
 			userInfo["role"] = ""
@@ -120,7 +124,8 @@ func OptionalJWTAuth() gin.HandlerFunc {
 		userID := uint(0)
 		validToken := true
 
-		// Verify password version
+		// Verify password version and get latest role
+		var dbRole string
 		if db != nil {
 			if uid, ok := claims["user_id"].(float64); ok {
 				userID = uint(uid)
@@ -132,6 +137,7 @@ func OptionalJWTAuth() gin.HandlerFunc {
 							validToken = false
 						}
 					}
+					dbRole = user.Role
 				}
 			}
 		}
@@ -160,7 +166,10 @@ func OptionalJWTAuth() gin.HandlerFunc {
 		if uname, ok := claims["username"].(string); ok {
 			userInfo["username"] = uname
 		}
-		if role, ok := claims["role"].(string); ok {
+
+		if dbRole != "" {
+			userInfo["role"] = dbRole
+		} else if role, ok := claims["role"].(string); ok {
 			userInfo["role"] = role
 		}
 		c.Set("user", userInfo)
