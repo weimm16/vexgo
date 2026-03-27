@@ -333,6 +333,7 @@ export const enUS = {
 
   // Posts
   posts: {
+    author: "Author",
     list: "Posts",
     create: "Create Post",
     edit: "Edit Post",

@@ -330,6 +330,7 @@ export const zhCN = {
 
   // 文章
   posts: {
+    author: "作者",
     list: "文章",
     create: "创建文章",
     edit: "编辑文章",
