@@ -132,9 +132,9 @@ export const ImageCropper: React.FC<Props> = ({ file, aspect = 1200 / 630, onCan
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded shadow-lg p-4 max-w-4xl w-full mx-4">
-        <div className="flex items-center justify-between mb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-white rounded shadow-lg p-4 max-w-4xl w-full flex flex-col max-h-[90vh]">
+        <div className="flex items-center justify-between mb-3 shrink-0">
           <h3 className="text-lg font-medium">{circle ? '裁剪头像（圆形）' : '裁剪封面（保持比例）'}</h3>
           <div className="flex gap-2">
             <button className="btn" onClick={onCancel}>取消</button>
@@ -142,18 +142,17 @@ export const ImageCropper: React.FC<Props> = ({ file, aspect = 1200 / 630, onCan
           </div>
         </div>
 
-        <div className="w-full overflow-hidden touch-none" onWheel={handleWheel}>
+        <div className="w-full overflow-hidden touch-none flex-1 flex flex-col min-h-0" onWheel={handleWheel}>
           <div
             ref={containerRef}
+            className="flex-1 relative bg-gray-50 rounded"
             style={{
               width: '100%',
-              // crop box height based on aspect
-              height: `calc(100% )`,
+              minHeight: '360px',
+              height: '60vh',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              position: 'relative',
-              minHeight: 360
             }}
           >
             <div
@@ -166,7 +165,8 @@ export const ImageCropper: React.FC<Props> = ({ file, aspect = 1200 / 630, onCan
                 overflow: 'hidden',
                 width: '100%',
                 height: '100%',
-                position: 'relative'
+                position: 'absolute',
+                inset: 0
               }}
             >
               <img
@@ -215,7 +215,7 @@ export const ImageCropper: React.FC<Props> = ({ file, aspect = 1200 / 630, onCan
             </div>
           </div>
 
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-3 flex items-center gap-3 shrink-0">
             <label className="text-sm">缩放：</label>
             <input type="range" min={0.2} max={5} step={0.01} value={scale} onChange={(e) => setScale(Number(e.target.value))} />
             <span className="text-xs text-gray-500">拖动图片以移动，滚轮缩放</span>
