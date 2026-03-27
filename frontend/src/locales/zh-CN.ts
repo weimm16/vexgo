@@ -357,6 +357,8 @@ export const zhCN = {
     forbidden: "无权操作",
     notFound: "资源不存在",
     validationError: "验证失败",
+    emailAlreadyUsed: "邮箱已注册",
+    usernameAlreadyUsed: "用户名已注册",
   },
 
   // 首页

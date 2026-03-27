@@ -360,6 +360,8 @@ export const enUS = {
     forbidden: "Permission denied",
     notFound: "Resource not found",
     validationError: "Validation failed",
+    emailAlreadyUsed: "Email already registered",
+    usernameAlreadyUsed: "Username already registered",
   },
 
   // Home Page

@@ -248,8 +248,18 @@ export function RegisterPage() {
         response?: { data?: { message?: string } };
         message?: string;
       };
-      const msg = error.response?.data?.message || error.message || "";
-      toast.error(msg || t("registerPage.registrationError"));
+      let errorMessage = error.response?.data?.message || error.message || "";
+      
+      // 处理后端返回的英文错误信息，根据当前语言转换为对应语言的提示
+      if (errorMessage === "Email already registered") {
+        errorMessage = t("errors.emailAlreadyUsed");
+      } else if (errorMessage === "Username already registered") {
+        errorMessage = t("errors.usernameAlreadyUsed");
+      } else if (errorMessage === "Please verify your email address first") {
+        errorMessage = t("verifyEmail.emailVerificationSuccess");
+      }
+      
+      toast.error(errorMessage || t("registerPage.registrationError"));
       // 注册失败后不重置验证码状态，允许用户重试
     } finally {
       setLoading(false);

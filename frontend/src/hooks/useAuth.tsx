@@ -100,24 +100,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       requestData.captcha_token = captchaData.token;
       requestData.captcha_x = captchaData.x;
     }
-    const response = await authApi.register(requestData);
-    const { user, token, requires_verification, email_verified } =
-      response.data;
+    try {
+      const response = await authApi.register(requestData);
+      const { user, token, requires_verification, email_verified } =
+        response.data;
 
-    if (requires_verification && !email_verified) {
-      setUser(user);
-      const error = new Error(response.data.message || "请先验证您的邮箱地址");
-      (error as any).requiresVerification = true;
-      (error as any).email = email;
-      throw error;
-    }
+      if (requires_verification && !email_verified) {
+        setUser(user);
+        const error = new Error(response.data.message || "请先验证您的邮箱地址");
+        (error as any).requiresVerification = true;
+        (error as any).email = email;
+        throw error;
+      }
 
-    if (token) {
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUser(user);
-    } else {
-      setUser(user);
+      if (token) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+        setUser(user);
+      } else {
+        setUser(user);
+      }
+    } catch (error: any) {
+      // Extract error message from response
+      const errorMessage = error.response?.data?.error || error.message || "注册失败";
+      throw new Error(errorMessage);
     }
   };
 
