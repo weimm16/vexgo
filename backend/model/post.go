@@ -37,7 +37,7 @@ type User struct {
 	TokenExpiresAt    *time.Time `json:"token_expires_at"`                               // token expiration time (can be NULL)
 	PendingEmail      string     `json:"pending_email,omitempty" gorm:"size:255"`        // new email pending confirmation (for email change)
 	PasswordVersion   int        `json:"-" gorm:"default:1"`                             // password version, used to invalidate old tokens after password modification
-	LastLoginAt       time.Time  `json:"last_login_at" gorm:"default:CURRENT_TIMESTAMP"` // last login time to invalidate old tokens
+	LastLoginAt       time.Time  `json:"last_login_at"` // last login time to invalidate old tokens
 	Birthday          string     `json:"birthday,omitempty"`                             // birthday
 	Bio               string     `json:"bio,omitempty"`                                  // personal bio
 	CreatedAt         time.Time  `json:"createdAt"`                                      // registration time
