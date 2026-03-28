@@ -1,6 +1,6 @@
 # VexGo
 
-**[English](../README.md) | 中文**
+**[English](README.md) | 中文**
 
 ## VexGo - 现代化博客 CMS
 
