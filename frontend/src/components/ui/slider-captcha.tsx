@@ -68,15 +68,12 @@ export function SliderCaptcha({ isOpen, onClose, onSuccess }: SliderCaptchaProps
         setIsVerifying(true);
         setError('');
   
-        // 计算实际的x坐标（基于后端背景图片宽度320px，拼图块60px）
-        // 前端轨道宽度可能与后端背景图片宽度不同，需要进行比例转换
-        const trackWidth = trackRef.current?.offsetWidth || 320;
-        const sliderWidth = 40;
-        const maxPosition = trackWidth - sliderWidth;
-        const ratio = maxPosition > 0 ? x / maxPosition : 0;
-        // 后端拼图块的最大位置是240（320-60-20），最小位置是20
-        const actualX = Math.round(20 + ratio * 220); // 20是最小位置，220是可移动范围（240-20）
-        console.log('滑块位置:', x, '轨道宽度:', trackWidth, '最大位置:', maxPosition, '比例:', ratio, '实际X坐标:', actualX);
+        // 计算拼图块左边缘的x坐标
+        // 滑块宽度40px，拼图块宽度60px
+        // 滑块中心 = x + 20，拼图块中心应该与滑块中心对齐
+        // 拼图块左边缘 = 滑块中心 - 30 = x + 20 - 30 = x - 10
+        const puzzleX = Math.round(x - 10);
+        console.log('滑块位置:', x, '拼图块左边缘:', puzzleX);
   
         // 调用后端验证接口
         const response = await fetch('/api/captcha/verify', {
@@ -87,7 +84,7 @@ export function SliderCaptcha({ isOpen, onClose, onSuccess }: SliderCaptchaProps
           body: JSON.stringify({
             id: captchaData.id,
             token: captchaData.token,
-            x: actualX,
+            x: puzzleX,
           }),
         });
   
@@ -104,7 +101,7 @@ export function SliderCaptcha({ isOpen, onClose, onSuccess }: SliderCaptchaProps
           onSuccess({
             id: captchaData.id,
             token: captchaData.token,
-            x: actualX,
+            x: puzzleX,
           });
           // 验证成功后关闭弹窗
           setTimeout(() => {
@@ -137,17 +134,13 @@ export function SliderCaptcha({ isOpen, onClose, onSuccess }: SliderCaptchaProps
     if (!isDragging || !trackRef.current) return;
 
     const trackWidth = trackRef.current.offsetWidth;
-    const sliderWidth = 40; // 滑块宽度保持不变
+    const sliderWidth = 40;
     const deltaX = e.clientX - startXRef.current;
     let newPosition = currentXRef.current + deltaX;
 
-    // 限制滑块位置，考虑滑块宽度
     newPosition = Math.max(0, Math.min(newPosition, trackWidth - sliderWidth));
     
-    // 使用 requestAnimationFrame 优化性能
-    requestAnimationFrame(() => {
-      setSliderPosition(newPosition);
-    });
+    setSliderPosition(newPosition);
   };
 
   const handleMouseUp = () => {
@@ -184,21 +177,16 @@ export function SliderCaptcha({ isOpen, onClose, onSuccess }: SliderCaptchaProps
   const handleTouchMove = (e: TouchEvent) => {
     if (!isDragging || !trackRef.current) return;
     
-    // 阻止默认行为，防止页面滚动
     e.preventDefault();
 
     const trackWidth = trackRef.current.offsetWidth;
-    const sliderWidth = 40; // 滑块宽度保持不变
+    const sliderWidth = 40;
     const deltaX = e.touches[0].clientX - startXRef.current;
     let newPosition = currentXRef.current + deltaX;
 
-    // 限制滑块位置，考虑滑块宽度
     newPosition = Math.max(0, Math.min(newPosition, trackWidth - sliderWidth));
     
-    // 使用 requestAnimationFrame 优化性能
-    requestAnimationFrame(() => {
-      setSliderPosition(newPosition);
-    });
+    setSliderPosition(newPosition);
   };
 
   const handleTouchEnd = () => {
@@ -273,21 +261,21 @@ export function SliderCaptcha({ isOpen, onClose, onSuccess }: SliderCaptchaProps
                   className="w-full h-full"
                 />
                 
-                {/* 拼图块 - 使用后端返回的y坐标，并且根据背景图片宽度计算位置 */}
+                {/* 拼图块 - 与滑块中心对齐 */}
                 <div
                   className="absolute pointer-events-none"
                   style={{
-                    // 计算拼图块的实际位置，基于后端背景图片宽度320px，拼图块60px
-                    // 确保拼图块位置与滑块位置匹配
-                    // 后端拼图块的最大位置是240（320-60-20），最小位置是20
-                    left: `${20 + ((sliderPosition / Math.max(1, (trackRef.current?.offsetWidth || 320) - 60)) * 220)}px`,
+                    // 滑块宽度40px，拼图块宽度60px
+                    // 滑块中心 = sliderPosition + 20
+                    // 拼图块中心应该与滑块中心对齐
+                    // 拼图块左边缘 = 滑块中心 - 30 = sliderPosition - 10
+                    left: `${sliderPosition - 10}px`,
                     top: `${captchaData.y}px`,
                   }}
                 >
                   <img
                     src={captchaData.puzzle_img}
                     alt={t("sliderCaptcha.puzzleAlt")}
-                    className="h-15 w-15"
                     style={{ width: '60px', height: '60px' }}
                   />
                 </div>
@@ -299,17 +287,17 @@ export function SliderCaptcha({ isOpen, onClose, onSuccess }: SliderCaptchaProps
               ref={trackRef}
               className="relative h-10 bg-gray-200 rounded-full overflow-hidden"
             >
-              {/* 进度条 */}
+              {/* 进度条 - 跟随滑块中心位置 */}
               <div
-                className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-100"
-                style={{ width: `${sliderPosition}px` }}
+                className="absolute top-0 left-0 h-full bg-blue-500 transition-all duration-75"
+                style={{ width: `${sliderPosition + 20}px` }}
               />
               
               {/* 滑块 */}
               <div
                 ref={sliderRef}
-                className={`absolute top-1/2 w-10 h-10 bg-white rounded-full shadow-md flex items-center justify-center cursor-pointer transform -translate-y-1/2 transition-all ${
-                  isDragging ? 'scale-110' : 'hover:scale-105'
+                className={`absolute top-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center cursor-pointer transform -translate-y-1/2 transition-all duration-75 ${
+                  isDragging ? 'scale-105 shadow-xl' : 'hover:scale-105'
                 } ${isVerified ? 'bg-green-500' : ''}`}
                 style={{ left: `${sliderPosition}px` }}
                 onMouseDown={handleMouseDown}
@@ -318,7 +306,10 @@ export function SliderCaptcha({ isOpen, onClose, onSuccess }: SliderCaptchaProps
                 {isVerified ? (
                   <CheckCircle className="h-5 w-5 text-white" />
                 ) : (
-                  <div className="w-0 h-0 border-t-0 border-b-4 border-l-4 border-r-4 border-b-transparent border-l-gray-600 border-r-gray-600" />
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12H19" stroke="#4B5563" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M12 5L19 12L12 19" stroke="#4B5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 )}
               </div>
             </div>
