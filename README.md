@@ -1,6 +1,6 @@
 # VexGo
 
-**English | [中文](docs/README_zh_cn.md)**
+**English | [中文](README_zh-cn.md)**
 
 ## VexGo - Modern Blog CMS
 
