@@ -52,6 +52,8 @@ export function ThemePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+    
     if (user && user.role !== "admin" && user.role !== "super_admin") {
       navigate("/");
       return;
