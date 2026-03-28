@@ -1,2 +1,2 @@
 * [home](/)
-* [guide](guide)
+* [api](api.md)
