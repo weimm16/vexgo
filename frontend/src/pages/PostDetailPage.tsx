@@ -36,21 +36,49 @@ export function PostDetailPage() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const { t } = useTranslation();
-  const [post, setPost] = useState<Post | null>(null);
+  // 检查是否有初始数据
+  const initialData = (window as any).__INITIAL_DATA__;
+  
+  // 处理初始数据中的标签标准化
+  const processedInitialData = initialData?.post ? {
+    ...initialData.post,
+    tags: normalizeTagsArray(initialData.post.tags)
+  } : null;
+  
+  // 初始状态使用处理后的initialData，确保客户端渲染与服务器端一致
+  const [post, setPost] = useState<Post | null>(processedInitialData || null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [commentContent, setCommentContent] = useState('');
   const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
+  const [likesCount, setLikesCount] = useState(initialData?.post?.likesCount || 0);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      loadPost();
-      loadComments();
-      loadLikeStatus();
-    }
+    const loadData = async () => {
+      if (id) {
+        try {
+          // 加载评论和点赞状态
+          await loadComments();
+          await loadLikeStatus();
+          
+          // 如果没有初始数据，从API加载
+          if (!initialData?.post) {
+            setLoading(true);
+            await loadPost();
+            setLoading(false);
+          }
+        } catch (error) {
+          console.error('加载数据失败:', error);
+          if (!initialData?.post) {
+            setLoading(false);
+          }
+        }
+      }
+    };
+    
+    loadData();
   }, [id]);
 
   const loadPost = async () => {
@@ -202,7 +230,7 @@ export function PostDetailPage() {
   const canEditPost = user && post && (user.id === post.authorId || user.role === 'admin' || user.role === 'super_admin');
   const canDeletePost = user && post && (user.id === post.authorId || user.role === 'admin' || user.role === 'super_admin');
 
-  if (loading) {
+  if (loading || !post) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <Skeleton className="h-8 w-3/4 mb-4" />
@@ -211,17 +239,6 @@ export function PostDetailPage() {
         <Skeleton className="h-4 w-full mb-2" />
         <Skeleton className="h-4 w-full mb-2" />
         <Skeleton className="h-4 w-2/3" />
-      </div>
-    );
-  }
-
-  if (!post) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">{t('postDetailPage.articleNotExist')}</h1>
-        <Button asChild>
-          <Link to="/">{t('postDetailPage.backToHome')}</Link>
-        </Button>
       </div>
     );
   }

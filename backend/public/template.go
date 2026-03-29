@@ -45,38 +45,18 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 	<link rel="stylesheet" href="/assets/index-B34w2e4C.css">
 </head>
 <body>
-	<div id="root">
-		<article class="post-detail">
-			<h1>{{.Post.Title}}</h1>
-			<div class="post-meta">
-				<span>作者: {{.Post.Author.Username}}</span>
-				<span>发布时间: {{.Post.CreatedAt.Format "2006-01-02"}}</span>
-				<span>阅读: {{.Post.ViewCount}}</span>
-			</div>
-			{{if .Post.CoverImage}}
-			<div class="post-cover">
-				<img src="{{.Post.CoverImage}}" alt="{{.Post.Title}}">
-			</div>
-			{{end}}
-			<div class="post-content" style="white-space: pre-wrap;">{{.Post.Content}}</div>
-			<div class="post-tags">
-				{{range .Post.Tags}}
-					<span class="tag">{{.Name}}</span>
-				{{end}}
-			</div>
-		</article>
-	</div>
-	<script type="module" crossorigin src="/assets/index-DrBv4CXU.js"></script>
-	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
-	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
-	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
-	<link rel="stylesheet" crossorigin href="/assets/index-BTvxqpsA.css">
+	<div id="root"></div>
 	<script>
 		// 初始化前端应用
 		window.__INITIAL_DATA__ = {
 			post: {{.PostJSON}}
 		};
 	</script>
+	<script type="module" crossorigin src="/assets/index-DrBv4CXU.js"></script>
+	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
+	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
+	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
+	<link rel="stylesheet" crossorigin href="/assets/index-BTvxqpsA.css">
 </body>
 </html>`
 
@@ -173,17 +153,17 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 			{{end}}
 		</div>
 	</div>
-	<script type="module" crossorigin src="/assets/index-DrBv4CXU.js"></script>
-	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
-	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
-	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
-	<link rel="stylesheet" crossorigin href="/assets/index-BTvxqpsA.css">
 	<script>
 		// 初始化前端应用
 		window.__INITIAL_DATA__ = {
 			posts: {{.PostsJSON}}
 		};
 	</script>
+	<script type="module" crossorigin src="/assets/index-DrBv4CXU.js"></script>
+	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
+	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
+	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
+	<link rel="stylesheet" crossorigin href="/assets/index-BTvxqpsA.css">
 </body>
 </html>`
 
