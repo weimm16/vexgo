@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { messagesApi } from '@/lib/api';
-import { useTranslation } from '@/lib/I18nContext';
-import { CreatorApplicationButton } from '@/components/CreatorApplicationButton';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { messagesApi } from "@/lib/api";
+import { useTranslation } from "@/lib/I18nContext";
+import { CreatorApplicationButton } from "@/components/CreatorApplicationButton";
 
 import {
   Bell,
@@ -22,10 +22,10 @@ import {
   Trash2,
   Eye,
   Users,
-} from 'lucide-react';
+} from "lucide-react";
 
 // 消息类型
-type MessageType = 'comment' | 'like' | 'reply' | 'review' | 'role';
+type MessageType = "comment" | "like" | "reply" | "review" | "role";
 
 type Message = {
   id: string;
@@ -33,7 +33,7 @@ type Message = {
   title: string;
   content: string;
   relatedId: string;
-  relatedType: 'post' | 'comment';
+  relatedType: "post" | "comment";
   createdAt: string;
   isRead: boolean;
   sender?: {
@@ -47,17 +47,17 @@ export function MessageCenterPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('all');
-  
+  const [activeTab, setActiveTab] = useState("all");
+
   // 消息数据
   const [messages, setMessages] = useState<Message[]>([]);
-  
+
   const [loading, setLoading] = useState(false);
 
   // 检查是否是管理员
-  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
   // 检查是否是访客
-  const isGuest = user?.role === 'guest';
+  const isGuest = user?.role === "guest";
 
   // 从API获取消息数据
   useEffect(() => {
@@ -72,26 +72,28 @@ export function MessageCenterPage() {
           title: string;
           content: string;
           related_id: string;
-          related_type: 'post' | 'comment';
+          related_type: "post" | "comment";
           created_at: string;
           is_read: boolean;
         }
-        
-        const formattedMessages = response.data.notifications.map((notification: Notification) => ({
-          id: notification.id.toString(),
-          type: notification.type as MessageType,
-          title: notification.title,
-          content: notification.content,
-          relatedId: notification.related_id,
-          relatedType: notification.related_type,
-          createdAt: notification.created_at,
-          isRead: notification.is_read,
-          // 后端数据中可能没有sender信息，这里暂时为空
-          sender: undefined
-        }));
+
+        const formattedMessages = response.data.notifications.map(
+          (notification: Notification) => ({
+            id: notification.id.toString(),
+            type: notification.type as MessageType,
+            title: notification.title,
+            content: notification.content,
+            relatedId: notification.related_id,
+            relatedType: notification.related_type,
+            createdAt: notification.created_at,
+            isRead: notification.is_read,
+            // 后端数据中可能没有sender信息，这里暂时为空
+            sender: undefined,
+          }),
+        );
         setMessages(formattedMessages);
       } catch (error) {
-        console.error(t('errors.networkError'), error);
+        console.error(t("errors.networkError"), error);
       } finally {
         setLoading(false);
       }
@@ -102,12 +104,13 @@ export function MessageCenterPage() {
 
   // 根据标签筛选消息
   const filteredMessages = messages.filter((message) => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'unread') return !message.isRead;
-    if (activeTab === 'comment') return message.type === 'comment' || message.type === 'reply';
-    if (activeTab === 'like') return message.type === 'like';
-    if (activeTab === 'review') return message.type === 'review';
-    if (activeTab === 'role') return message.type === 'role';
+    if (activeTab === "all") return true;
+    if (activeTab === "unread") return !message.isRead;
+    if (activeTab === "comment")
+      return message.type === "comment" || message.type === "reply";
+    if (activeTab === "like") return message.type === "like";
+    if (activeTab === "review") return message.type === "review";
+    if (activeTab === "role") return message.type === "role";
     return true;
   });
 
@@ -118,11 +121,11 @@ export function MessageCenterPage() {
       // 更新本地状态
       setMessages((prev) =>
         prev.map((message) =>
-          message.id === id ? { ...message, isRead: true } : message
-        )
+          message.id === id ? { ...message, isRead: true } : message,
+        ),
       );
     } catch (error) {
-      console.error(t('errors.networkError'), error);
+      console.error(t("errors.networkError"), error);
     }
   };
 
@@ -132,10 +135,10 @@ export function MessageCenterPage() {
       await messagesApi.markAllAsRead();
       // 更新本地状态
       setMessages((prev) =>
-        prev.map((message) => ({ ...message, isRead: true }))
+        prev.map((message) => ({ ...message, isRead: true })),
       );
     } catch (error) {
-      console.error(t('errors.networkError'), error);
+      console.error(t("errors.networkError"), error);
     }
   };
 
@@ -146,15 +149,18 @@ export function MessageCenterPage() {
       // 更新本地状态
       setMessages((prev) => prev.filter((message) => message.id !== id));
     } catch (error) {
-      console.error(t('errors.networkError'), error);
+      console.error(t("errors.networkError"), error);
     }
   };
 
   // 跳转到相关内容
-  const navigateToRelated = (relatedId: string, relatedType: 'post' | 'comment') => {
-    if (relatedType === 'post') {
+  const navigateToRelated = (
+    relatedId: string,
+    relatedType: "post" | "comment",
+  ) => {
+    if (relatedType === "post") {
       navigate(`/post/${relatedId}`);
-    } else if (relatedType === 'comment') {
+    } else if (relatedType === "comment") {
       // 跳转到文章页面并定位到评论
       navigate(`/post/123#comment-${relatedId}`);
     }
@@ -163,9 +169,9 @@ export function MessageCenterPage() {
   // 获取消息状态图标
   const getStatusIcon = (type: MessageType) => {
     switch (type) {
-      case 'review':
+      case "review":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
-      case 'role':
+      case "role":
         return <CheckCircle className="w-4 h-4 text-green-500" />;
       default:
         return null;
@@ -175,35 +181,39 @@ export function MessageCenterPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold">{t('messageCenter.title')}</h1>
+        <h1 className="text-2xl font-bold">{t("messageCenter.title")}</h1>
         <div className="flex items-center gap-2">
-          {isGuest && (
-            <CreatorApplicationButton />
-          )}
+          {isGuest && <CreatorApplicationButton />}
           {isAdmin && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => navigate('/creator-applications')}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin/creator-applications")}
             >
               <Users className="w-4 h-4 mr-2" />
-              {t('creatorApplication.reviewApplications')}
+              {t("creatorApplication.reviewApplications")}
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={markAllAsRead}>
-            {t('messageCenter.markAllAsRead')}
+            {t("messageCenter.markAllAsRead")}
           </Button>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-6">
-          <TabsTrigger value="all">{t('messageCenter.tabs.all')}</TabsTrigger>
-          <TabsTrigger value="unread">{t('messageCenter.tabs.unread')}</TabsTrigger>
-          <TabsTrigger value="comment">{t('messageCenter.tabs.comment')}</TabsTrigger>
-          <TabsTrigger value="like">{t('messageCenter.tabs.like')}</TabsTrigger>
-          <TabsTrigger value="review">{t('messageCenter.tabs.review')}</TabsTrigger>
-          <TabsTrigger value="role">{t('messageCenter.tabs.role')}</TabsTrigger>
+          <TabsTrigger value="all">{t("messageCenter.tabs.all")}</TabsTrigger>
+          <TabsTrigger value="unread">
+            {t("messageCenter.tabs.unread")}
+          </TabsTrigger>
+          <TabsTrigger value="comment">
+            {t("messageCenter.tabs.comment")}
+          </TabsTrigger>
+          <TabsTrigger value="like">{t("messageCenter.tabs.like")}</TabsTrigger>
+          <TabsTrigger value="review">
+            {t("messageCenter.tabs.review")}
+          </TabsTrigger>
+          <TabsTrigger value="role">{t("messageCenter.tabs.role")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -215,15 +225,19 @@ export function MessageCenterPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">{t('messageCenter.empty.noMessages')}</h3>
-                <p className="text-muted-foreground">{t('messageCenter.empty.noMessagesDesc')}</p>
+                <h3 className="text-lg font-medium mb-2">
+                  {t("messageCenter.empty.noMessages")}
+                </h3>
+                <p className="text-muted-foreground">
+                  {t("messageCenter.empty.noMessagesDesc")}
+                </p>
               </CardContent>
             </Card>
           ) : (
             filteredMessages.map((message) => (
               <Card
                 key={message.id}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? '' : 'border-l-4 border-primary'}`}
+                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? "" : "border-l-4 border-primary"}`}
                 onClick={() => {
                   markAsRead(message.id);
                   if (message.relatedId) {
@@ -236,8 +250,13 @@ export function MessageCenterPage() {
                     <div className="flex-shrink-0">
                       {message.sender ? (
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={message.sender.avatar} alt={message.sender.username} />
-                          <AvatarFallback>{message.sender.username.charAt(0).toUpperCase()}</AvatarFallback>
+                          <AvatarImage
+                            src={message.sender.avatar}
+                            alt={message.sender.username}
+                          />
+                          <AvatarFallback>
+                            {message.sender.username.charAt(0).toUpperCase()}
+                          </AvatarFallback>
                         </Avatar>
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -252,16 +271,20 @@ export function MessageCenterPage() {
                           {new Date(message.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{message.content}</p>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {message.content}
+                      </p>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           {!message.isRead && (
-                           <Badge variant="secondary" className="text-xs">{t('messageCenter.unreadBadge')}</Badge>
-                         )}
+                            <Badge variant="secondary" className="text-xs">
+                              {t("messageCenter.unreadBadge")}
+                            </Badge>
+                          )}
                           {getStatusIcon(message.type)}
                         </div>
                         <div className="flex items-center gap-2">
-                          {message.type !== 'role' && (
+                          {message.type !== "role" && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -269,11 +292,15 @@ export function MessageCenterPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (message.relatedId) {
-                                  navigateToRelated(message.relatedId, message.relatedType);
+                                  navigateToRelated(
+                                    message.relatedId,
+                                    message.relatedType,
+                                  );
                                 }
                               }}
                             >
-                              {t('messageCenter.view')} <ArrowRight className="w-3 h-3 ml-1" />
+                              {t("messageCenter.view")}{" "}
+                              <ArrowRight className="w-3 h-3 ml-1" />
                             </Button>
                           )}
                           <Button
@@ -307,8 +334,12 @@ export function MessageCenterPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Eye className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">{t('messageCenter.empty.noUnreadMessages')}</h3>
-                <p className="text-muted-foreground">{t('messageCenter.empty.allRead')}</p>
+                <h3 className="text-lg font-medium mb-2">
+                  {t("messageCenter.empty.noUnreadMessages")}
+                </h3>
+                <p className="text-muted-foreground">
+                  {t("messageCenter.empty.allRead")}
+                </p>
               </CardContent>
             </Card>
           ) : (
@@ -328,8 +359,13 @@ export function MessageCenterPage() {
                     <div className="flex-shrink-0">
                       {message.sender ? (
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={message.sender.avatar} alt={message.sender.username} />
-                          <AvatarFallback>{message.sender.username.charAt(0).toUpperCase()}</AvatarFallback>
+                          <AvatarImage
+                            src={message.sender.avatar}
+                            alt={message.sender.username}
+                          />
+                          <AvatarFallback>
+                            {message.sender.username.charAt(0).toUpperCase()}
+                          </AvatarFallback>
                         </Avatar>
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -344,11 +380,15 @@ export function MessageCenterPage() {
                           {new Date(message.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{message.content}</p>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {message.content}
+                      </p>
                       <div className="flex items-center justify-between">
-                        <Badge variant="secondary" className="text-xs">{t('messageCenter.unreadBadge')}</Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {t("messageCenter.unreadBadge")}
+                        </Badge>
                         <div className="flex items-center gap-2">
-                          {message.type !== 'role' && (
+                          {message.type !== "role" && (
                             <Button
                               variant="ghost"
                               size="sm"
@@ -356,11 +396,15 @@ export function MessageCenterPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 if (message.relatedId) {
-                                  navigateToRelated(message.relatedId, message.relatedType);
+                                  navigateToRelated(
+                                    message.relatedId,
+                                    message.relatedType,
+                                  );
                                 }
                               }}
                             >
-                              {t('messageCenter.view')} <ArrowRight className="w-3 h-3 ml-1" />
+                              {t("messageCenter.view")}{" "}
+                              <ArrowRight className="w-3 h-3 ml-1" />
                             </Button>
                           )}
                           <Button
@@ -393,15 +437,19 @@ export function MessageCenterPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">{t('messageCenter.empty.noCommentMessages')}</h3>
-                <p className="text-muted-foreground">{t('messageCenter.empty.noCommentMessagesDesc')}</p>
+                <h3 className="text-lg font-medium mb-2">
+                  {t("messageCenter.empty.noCommentMessages")}
+                </h3>
+                <p className="text-muted-foreground">
+                  {t("messageCenter.empty.noCommentMessagesDesc")}
+                </p>
               </CardContent>
             </Card>
           ) : (
             filteredMessages.map((message) => (
               <Card
                 key={message.id}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? '' : 'border-l-4 border-primary'}`}
+                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? "" : "border-l-4 border-primary"}`}
                 onClick={() => {
                   markAsRead(message.id);
                   if (message.relatedId) {
@@ -414,8 +462,13 @@ export function MessageCenterPage() {
                     <div className="flex-shrink-0">
                       {message.sender ? (
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={message.sender.avatar} alt={message.sender.username} />
-                          <AvatarFallback>{message.sender.username.charAt(0).toUpperCase()}</AvatarFallback>
+                          <AvatarImage
+                            src={message.sender.avatar}
+                            alt={message.sender.username}
+                          />
+                          <AvatarFallback>
+                            {message.sender.username.charAt(0).toUpperCase()}
+                          </AvatarFallback>
                         </Avatar>
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -430,10 +483,14 @@ export function MessageCenterPage() {
                           {new Date(message.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{message.content}</p>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {message.content}
+                      </p>
                       <div className="flex items-center justify-between">
                         {!message.isRead && (
-                          <Badge variant="secondary" className="text-xs">{t('messageCenter.unreadBadge')}</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {t("messageCenter.unreadBadge")}
+                          </Badge>
                         )}
                         <div className="flex items-center gap-2">
                           <Button
@@ -443,11 +500,15 @@ export function MessageCenterPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (message.relatedId) {
-                                navigateToRelated(message.relatedId, message.relatedType);
+                                navigateToRelated(
+                                  message.relatedId,
+                                  message.relatedType,
+                                );
                               }
                             }}
                           >
-                            {t('messageCenter.view')} <ArrowRight className="w-3 h-3 ml-1" />
+                            {t("messageCenter.view")}{" "}
+                            <ArrowRight className="w-3 h-3 ml-1" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -479,15 +540,19 @@ export function MessageCenterPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <ThumbsUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">{t('messageCenter.empty.noLikeMessages')}</h3>
-                <p className="text-muted-foreground">{t('messageCenter.empty.noLikeMessagesDesc')}</p>
+                <h3 className="text-lg font-medium mb-2">
+                  {t("messageCenter.empty.noLikeMessages")}
+                </h3>
+                <p className="text-muted-foreground">
+                  {t("messageCenter.empty.noLikeMessagesDesc")}
+                </p>
               </CardContent>
             </Card>
           ) : (
             filteredMessages.map((message) => (
               <Card
                 key={message.id}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? '' : 'border-l-4 border-primary'}`}
+                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? "" : "border-l-4 border-primary"}`}
                 onClick={() => {
                   markAsRead(message.id);
                   if (message.relatedId) {
@@ -500,8 +565,13 @@ export function MessageCenterPage() {
                     <div className="flex-shrink-0">
                       {message.sender ? (
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={message.sender.avatar} alt={message.sender.username} />
-                          <AvatarFallback>{message.sender.username.charAt(0).toUpperCase()}</AvatarFallback>
+                          <AvatarImage
+                            src={message.sender.avatar}
+                            alt={message.sender.username}
+                          />
+                          <AvatarFallback>
+                            {message.sender.username.charAt(0).toUpperCase()}
+                          </AvatarFallback>
                         </Avatar>
                       ) : (
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -516,10 +586,14 @@ export function MessageCenterPage() {
                           {new Date(message.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{message.content}</p>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {message.content}
+                      </p>
                       <div className="flex items-center justify-between">
                         {!message.isRead && (
-                          <Badge variant="secondary" className="text-xs">{t('messageCenter.unreadBadge')}</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {t("messageCenter.unreadBadge")}
+                          </Badge>
                         )}
                         <div className="flex items-center gap-2">
                           <Button
@@ -529,11 +603,15 @@ export function MessageCenterPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (message.relatedId) {
-                                navigateToRelated(message.relatedId, message.relatedType);
+                                navigateToRelated(
+                                  message.relatedId,
+                                  message.relatedType,
+                                );
                               }
                             }}
                           >
-                            {t('messageCenter.view')} <ArrowRight className="w-3 h-3 ml-1" />
+                            {t("messageCenter.view")}{" "}
+                            <ArrowRight className="w-3 h-3 ml-1" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -565,15 +643,19 @@ export function MessageCenterPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">{t('messageCenter.empty.noReviewMessages')}</h3>
-                <p className="text-muted-foreground">{t('messageCenter.empty.noReviewMessagesDesc')}</p>
+                <h3 className="text-lg font-medium mb-2">
+                  {t("messageCenter.empty.noReviewMessages")}
+                </h3>
+                <p className="text-muted-foreground">
+                  {t("messageCenter.empty.noReviewMessagesDesc")}
+                </p>
               </CardContent>
             </Card>
           ) : (
             filteredMessages.map((message) => (
               <Card
                 key={message.id}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? '' : 'border-l-4 border-primary'}`}
+                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? "" : "border-l-4 border-primary"}`}
                 onClick={() => {
                   markAsRead(message.id);
                   if (message.relatedId) {
@@ -595,10 +677,14 @@ export function MessageCenterPage() {
                           {new Date(message.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{message.content}</p>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {message.content}
+                      </p>
                       <div className="flex items-center justify-between">
                         {!message.isRead && (
-                          <Badge variant="secondary" className="text-xs">{t('messageCenter.unreadBadge')}</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {t("messageCenter.unreadBadge")}
+                          </Badge>
                         )}
                         <div className="flex items-center gap-2">
                           <Button
@@ -608,11 +694,15 @@ export function MessageCenterPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (message.relatedId) {
-                                navigateToRelated(message.relatedId, message.relatedType);
+                                navigateToRelated(
+                                  message.relatedId,
+                                  message.relatedType,
+                                );
                               }
                             }}
                           >
-                            {t('messageCenter.view')} <ArrowRight className="w-3 h-3 ml-1" />
+                            {t("messageCenter.view")}{" "}
+                            <ArrowRight className="w-3 h-3 ml-1" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -644,15 +734,19 @@ export function MessageCenterPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <UserPlus className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">{t('messageCenter.empty.noRoleMessages')}</h3>
-                <p className="text-muted-foreground">{t('messageCenter.empty.noRoleMessagesDesc')}</p>
+                <h3 className="text-lg font-medium mb-2">
+                  {t("messageCenter.empty.noRoleMessages")}
+                </h3>
+                <p className="text-muted-foreground">
+                  {t("messageCenter.empty.noRoleMessagesDesc")}
+                </p>
               </CardContent>
             </Card>
           ) : (
             filteredMessages.map((message) => (
               <Card
                 key={message.id}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? '' : 'border-l-4 border-primary'}`}
+                className={`cursor-pointer transition-all duration-200 hover:shadow-md ${message.isRead ? "" : "border-l-4 border-primary"}`}
                 onClick={() => {
                   markAsRead(message.id);
                 }}
@@ -671,10 +765,14 @@ export function MessageCenterPage() {
                           {new Date(message.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{message.content}</p>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        {message.content}
+                      </p>
                       <div className="flex items-center justify-between">
                         {!message.isRead && (
-                          <Badge variant="secondary" className="text-xs">{t('messageCenter.unreadBadge')}</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {t("messageCenter.unreadBadge")}
+                          </Badge>
                         )}
                         <Button
                           variant="ghost"
