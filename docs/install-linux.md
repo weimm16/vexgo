@@ -540,7 +540,7 @@ git clone https://github.com/weimm16/vexgo.git
 cd vexgo
 ```
 
-### Step 4: Build the Frontend
+### Step 3: Build the Frontend
 
 ```bash
 cd frontend
@@ -549,7 +549,7 @@ pnpm run build
 cd ..
 ```
 
-### Step 5: Build the Backend
+### Step 4: Build the Backend
 
 ```bash
 cd backend
@@ -558,13 +558,13 @@ go build -o vexgo ./cmd/server
 cd ..
 ```
 
-### Step 6: Run VexGo
+### Step 5: Run VexGo
 
 ```bash
 ./vexgo
 ```
 
-### Step 7: (Optional) Create a Production Build
+### Step 6: (Optional) Create a Production Build
 
 ```bash
 # Build with version information and optimizations
@@ -578,7 +578,7 @@ CGO_ENABLED=0 go build \
 chmod +x vexgo
 ```
 
-### Step 8: (Optional) Install System-wide
+### Step 7: (Optional) Install System-wide
 
 ```bash
 # Copy binary to system path
@@ -791,6 +791,19 @@ If VexGo is running slowly:
 If you encounter issues not covered here:
 
 - Check the [GitHub Issues](https://github.com/weimm16/vexgo/issues)
+- Review the [Documentation](https://github.com/weimm16/vexgo/tree/main/docs)
+- Join the [Discussions](https://github.com/weimm16/vexgo/discussions)
+
+## Additional Resources
+
+- [Configuration Guide](configuration.md) - Detailed configuration options
+- [User Manual](user-manual.md) - Complete usage instructions
+- [API Documentation](api.md) - REST API reference
+- [Development Guide](development.md) - Contributing to VexGo
+
+---
+
+**Note**: This documentation is maintained with the latest version of VexGo. For version-specific instructions, please refer to the release notes.
 - Review the [main README](https://github.com/weimm16/vexgo)
 - Join the community discussions
 
