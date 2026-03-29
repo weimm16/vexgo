@@ -813,8 +813,3 @@ If you encounter issues not covered here:
 - [API Documentation](api.md)
 - [Configuration Guide](config.md)
 - [GitHub Repository](https://github.com/vexgo-org/vexgo)
-- [Docker Hub](https://hub.docker.com/r/vexgo-org/vexgo)
-
-## License
-
-VexGo is released under the MIT License. See [LICENSE](LICENSE) for details.
