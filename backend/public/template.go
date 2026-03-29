@@ -45,7 +45,7 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 	<link rel="stylesheet" href="/assets/index-B34w2e4C.css">
 </head>
 <body>
-	<div id="app">
+	<div id="root">
 		<article class="post-detail">
 			<h1>{{.Post.Title}}</h1>
 			<div class="post-meta">
@@ -66,7 +66,11 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 			</div>
 		</article>
 	</div>
-	<script type="text/javascript" src="/assets/index-40k4RxP1.js"></script>
+	<script type="module" crossorigin src="/assets/index-DrBv4CXU.js"></script>
+	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
+	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
+	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
+	<link rel="stylesheet" crossorigin href="/assets/index-BTvxqpsA.css">
 	<script>
 		// 初始化前端应用
 		window.__INITIAL_DATA__ = {
@@ -113,11 +117,11 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 	// 渲染模板
 	var buf bytes.Buffer
 	err = t.Execute(&buf, map[string]interface{}{
-		"Post":     data.Post,
-		"Title":    data.Title,
-		"MetaDesc": data.MetaDesc,
+		"Post":      data.Post,
+		"Title":     data.Title,
+		"MetaDesc":  data.MetaDesc,
 		"Canonical": data.Canonical,
-		"PostJSON": template.JS(postJSON),
+		"PostJSON":  template.JS(postJSON),
 	})
 	if err != nil {
 		return nil, err
@@ -144,7 +148,7 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 	<link rel="stylesheet" href="/assets/index-B34w2e4C.css">
 </head>
 <body>
-	<div id="app">
+	<div id="root">
 		<div class="post-list">
 			{{range .Posts}}
 			<article class="post-item">
@@ -169,7 +173,11 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 			{{end}}
 		</div>
 	</div>
-	<script type="text/javascript" src="/assets/index-40k4RxP1.js"></script>
+	<script type="module" crossorigin src="/assets/index-DrBv4CXU.js"></script>
+	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
+	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
+	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
+	<link rel="stylesheet" crossorigin href="/assets/index-BTvxqpsA.css">
 	<script>
 		// 初始化前端应用
 		window.__INITIAL_DATA__ = {
