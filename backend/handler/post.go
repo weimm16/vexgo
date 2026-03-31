@@ -104,13 +104,13 @@ func GetPosts(c *gin.Context) {
 		// Guest role can only see published posts
 		query = query.Where("status = ?", "published")
 	} else if userRole == model.RoleContributor {
-		// Contributors can see all their own posts (including pending, drafts, etc.) and others' published posts
+		// Contributors can see their own posts (excluding rejected) and others' published posts
 		query = query.Where(
-			db.Where("status = ?", "published").Or("author_id = ?", userID),
+			db.Where("status = ?", "published").Or("author_id = ? AND status != ?", userID, "rejected"),
 		)
 	} else if userRole == model.RoleAuthor || userRole == model.RoleAdmin || userRole == model.RoleSuperAdmin {
-		// Authors, admins, and super admins can see all posts
-		// No additional filter conditions needed
+		// Authors, admins, and super admins can see all posts except rejected ones
+		query = query.Where("status != ?", "rejected")
 	} else {
 		// Default case: only show published posts
 		query = query.Where("status = ?", "published")
@@ -493,7 +493,7 @@ func GetMyPosts(c *gin.Context) {
 	query := db.Model(&model.Post{}).
 		Preload("Author").
 		Preload("Tags").
-		Where("author_id = ?", uid)
+		Where("author_id = ? AND status != ?", uid, "rejected")
 
 	if status != "" {
 		query = query.Where("status = ?", status)
@@ -696,12 +696,16 @@ func GetUserPosts(c *gin.Context) {
 		// Non-logged in users or guests can only see published posts
 		query = query.Where("status = ?", "published")
 	} else if currentUserRole == model.RoleContributor {
-		// Contributors can see all their own posts and others' published posts
+		// Contributors can see their own posts (excluding rejected) and others' published posts
 		if uint(userID) != currentUserID {
 			query = query.Where("status = ?", "published")
+		} else {
+			query = query.Where("status != ?", "rejected")
 		}
+	} else {
+		// Authors, admins, and super admins can see all posts except rejected ones
+		query = query.Where("status != ?", "rejected")
 	}
-	// Authors, admins, and super admins can see all posts
 
 	var total int64
 	query.Count(&total)
