@@ -41,7 +41,7 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 	{{if .Post.CoverImage}}
 	<meta property="og:image" content="{{.Post.CoverImage}}">
 	{{end}}
-	<link rel="stylesheet" href="/assets/index-BTvxqpsA.css">
+	<link rel="stylesheet" href="{{.IndexCSS}}">
 </head>
 <body>
 	<div id="root"></div>
@@ -52,11 +52,11 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 			ssrRendered: true
 		};
 	</script>
-	<script type="module" crossorigin src="/assets/index-DR2bYJZO.js"></script>
-	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
-	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
-	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
-	<link rel="stylesheet" crossorigin href="/assets/index-BTvxqpsA.css">
+	<script type="module" crossorigin src="{{.IndexJS}}"></script>
+	<link rel="modulepreload" crossorigin href="{{.ReactVendorJS}}">
+	<link rel="modulepreload" crossorigin href="{{.UIVendorJS}}">
+	<link rel="modulepreload" crossorigin href="{{.UtilsVendorJS}}">
+	<link rel="stylesheet" crossorigin href="{{.IndexCSS}}">
 </body>
 </html>`
 
@@ -75,17 +75,23 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 	// 生成规范URL
 	canonical := fmt.Sprintf("%s/posts/%d", baseURL, post.ID)
 
-	// 生成JSON数据
+	// Generate JSON data
 	postJSON, err := model.ToJSON(post)
 	if err != nil {
 		return nil, err
 	}
 
-	data := PostTemplateData{
-		Post:      post,
-		Title:     post.Title,
-		MetaDesc:  metaDesc,
-		Canonical: canonical,
+	data := map[string]interface{}{
+		"Post":          post,
+		"Title":         post.Title,
+		"MetaDesc":      metaDesc,
+		"Canonical":     canonical,
+		"PostJSON":      template.JS(postJSON),
+		"IndexCSS":      GetAssetURL("css", "index"),
+		"IndexJS":       GetAssetURL("js", "index"),
+		"ReactVendorJS": GetAssetURL("js", "react-vendor"),
+		"UIVendorJS":    GetAssetURL("js", "ui-vendor"),
+		"UtilsVendorJS": GetAssetURL("js", "utils-vendor"),
 	}
 
 	// 解析模板
@@ -94,15 +100,9 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 		return nil, err
 	}
 
-	// 渲染模板
+	// Render template
 	var buf bytes.Buffer
-	err = t.Execute(&buf, map[string]interface{}{
-		"Post":      data.Post,
-		"Title":     data.Title,
-		"MetaDesc":  data.MetaDesc,
-		"Canonical": data.Canonical,
-		"PostJSON":  template.JS(postJSON),
-	})
+	err = t.Execute(&buf, data)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 	<meta property="og:description" content="{{.MetaDesc}}">
 	<meta property="og:type" content="website">
 	<meta property="og:url" content="{{.Canonical}}">
-	<link rel="stylesheet" href="/assets/index-BTvxqpsA.css">
+	<link rel="stylesheet" href="{{.IndexCSS}}">
 </head>
 <body>
 	<div id="root"></div>
@@ -136,11 +136,11 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 			ssrRendered: true
 		};
 	</script>
-	<script type="module" crossorigin src="/assets/index-DR2bYJZO.js"></script>
-	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
-	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
-	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
-	<link rel="stylesheet" crossorigin href="/assets/index-BTvxqpsA.css">
+	<script type="module" crossorigin src="{{.IndexJS}}"></script>
+	<link rel="modulepreload" crossorigin href="{{.ReactVendorJS}}">
+	<link rel="modulepreload" crossorigin href="{{.UIVendorJS}}">
+	<link rel="modulepreload" crossorigin href="{{.UtilsVendorJS}}">
+	<link rel="stylesheet" crossorigin href="{{.IndexCSS}}">
 </body>
 </html>`
 
@@ -174,28 +174,28 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 	// 生成规范URL
 	canonical := baseURL
 
-	// 生成JSON数据
+	// Generate JSON data
 	postsJSON, err := model.ToJSON(posts)
 	if err != nil {
 		return nil, err
 	}
 
-	data := IndexTemplateData{
-		Posts:     posts,
-		Title:     "博客首页",
-		MetaDesc:  metaDesc,
-		Canonical: canonical,
+	data := map[string]interface{}{
+		"Posts":         posts,
+		"Title":         "博客首页",
+		"MetaDesc":      metaDesc,
+		"Canonical":     canonical,
+		"PostsJSON":     template.JS(postsJSON),
+		"IndexCSS":      GetAssetURL("css", "index"),
+		"IndexJS":       GetAssetURL("js", "index"),
+		"ReactVendorJS": GetAssetURL("js", "react-vendor"),
+		"UIVendorJS":    GetAssetURL("js", "ui-vendor"),
+		"UtilsVendorJS": GetAssetURL("js", "utils-vendor"),
 	}
 
-	// 渲染模板
+	// Render template
 	var buf bytes.Buffer
-	err = t.Execute(&buf, map[string]interface{}{
-		"Posts":     data.Posts,
-		"Title":     data.Title,
-		"MetaDesc":  data.MetaDesc,
-		"Canonical": data.Canonical,
-		"PostsJSON": template.JS(postsJSON),
-	})
+	err = t.Execute(&buf, data)
 	if err != nil {
 		return nil, err
 	}
