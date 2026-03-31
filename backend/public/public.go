@@ -3,6 +3,7 @@ package public
 import (
 	"embed"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"mime"
 	"net/http"
@@ -221,6 +222,12 @@ func getFileContent(themeID, relativePath string) ([]byte, string, bool) {
 
 // RegisterStaticRoutes registers all static file routes, including theme support.
 func RegisterStaticRoutes(r *gin.Engine, dataDir string, s3Enabled bool) {
+	// Initialize asset manifest for dynamic asset loading
+	if err := LoadAssetManifest(); err != nil {
+		// Log error but continue with fallback to hardcoded paths
+		fmt.Printf("Warning: Failed to load asset manifest: %v\n", err)
+	}
+
 	// Serve local uploads if S3 is not enabled
 	if !s3Enabled {
 		mediaDir := filepath.Join(dataDir, "media")
