@@ -129,7 +129,6 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 </head>
 <body>
 	<div id="root">
-		{{if .Posts}}
 		<div class="post-list">
 			{{range .Posts}}
 			<article class="post-item">
@@ -153,11 +152,6 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 			</article>
 			{{end}}
 		</div>
-		{{else}}
-		<div class="empty-posts-message">
-			<p>暂无文章</p>
-		</div>
-		{{end}}
 	</div>
 	<script>
 		// 初始化前端应用
