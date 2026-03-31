@@ -277,7 +277,7 @@ func RegisterStaticRoutes(r *gin.Engine, dataDir string, s3Enabled bool) {
 
 		var post model.Post
 		if err := DBProvider().Preload("Author").Preload("Tags").First(&post, id).Error; err != nil {
-			// 文章不存在，回退到SPA
+			// 文章不存在，回退到SPA让前端处理404
 			c.Next()
 			return
 		}
@@ -313,7 +313,7 @@ func RegisterStaticRoutes(r *gin.Engine, dataDir string, s3Enabled bool) {
 
 		var post model.Post
 		if err := DBProvider().Preload("Author").Preload("Tags").First(&post, id).Error; err != nil {
-			// 文章不存在，回退到SPA
+			// 文章不存在，回退到SPA让前端处理404
 			c.Next()
 			return
 		}
@@ -341,13 +341,13 @@ func RegisterStaticRoutes(r *gin.Engine, dataDir string, s3Enabled bool) {
 		// 服务器端渲染
 		if DBProvider != nil {
 			var posts []model.Post
-			if err := DBProvider().Preload("Author").Preload("Tags").Where("status = ?", "published").Order("created_at DESC").Limit(10).Find(&posts).Error; err == nil {
-				// 渲染HTML
-				html, err := RenderIndexHTML(posts, BaseURL)
-				if err == nil {
-					c.Data(http.StatusOK, "text/html; charset=utf-8", html)
-					return
-				}
+			DBProvider().Preload("Author").Preload("Tags").Where("status = ?", "published").Order("created_at DESC").Limit(10).Find(&posts)
+			// 即使查询出错或没有文章，也要继续渲染
+			// 渲染HTML
+			html, renderErr := RenderIndexHTML(posts, BaseURL)
+			if renderErr == nil {
+				c.Data(http.StatusOK, "text/html; charset=utf-8", html)
+				return
 			}
 		}
 

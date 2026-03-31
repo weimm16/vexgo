@@ -41,8 +41,7 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 	{{if .Post.CoverImage}}
 	<meta property="og:image" content="{{.Post.CoverImage}}">
 	{{end}}
-	<link rel="stylesheet" href="/assets/index-4WleuXJq.css">
-	<link rel="stylesheet" href="/assets/index-B34w2e4C.css">
+	<link rel="stylesheet" href="/assets/index-BTvxqpsA.css">
 </head>
 <body>
 	<div id="root"></div>
@@ -52,7 +51,7 @@ func RenderPostHTML(post model.Post, baseURL string) ([]byte, error) {
 			post: {{.PostJSON}}
 		};
 	</script>
-	<script type="module" crossorigin src="/assets/index-DrBv4CXU.js"></script>
+	<script type="module" crossorigin src="/assets/index-DR2bYJZO.js"></script>
 	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
 	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
 	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
@@ -124,8 +123,7 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 	<meta property="og:description" content="{{.MetaDesc}}">
 	<meta property="og:type" content="website">
 	<meta property="og:url" content="{{.Canonical}}">
-	<link rel="stylesheet" href="/assets/index-4WleuXJq.css">
-	<link rel="stylesheet" href="/assets/index-B34w2e4C.css">
+	<link rel="stylesheet" href="/assets/index-BTvxqpsA.css">
 </head>
 <body>
 	<div id="root">
@@ -160,7 +158,7 @@ func RenderIndexHTML(posts []model.Post, baseURL string) ([]byte, error) {
 			hasPosts: {{if .Posts}}true{{else}}false{{end}}
 		};
 	</script>
-	<script type="module" crossorigin src="/assets/index-DrBv4CXU.js"></script>
+	<script type="module" crossorigin src="/assets/index-DR2bYJZO.js"></script>
 	<link rel="modulepreload" crossorigin href="/assets/react-vendor-BmqGXi6J.js">
 	<link rel="modulepreload" crossorigin href="/assets/ui-vendor-CEsCEvQe.js">
 	<link rel="modulepreload" crossorigin href="/assets/utils-vendor-42ANG6Sg.js">
