@@ -47,17 +47,23 @@ func buildAssetManifest() error {
 		// Get just the filename
 		filename := filepath.Base(path)
 
-		// Check if it's a CSS or JS file with hash pattern
-		if strings.HasPrefix(filename, "index-") && strings.HasSuffix(filename, ".css") {
-			manifest.CSS["index"] = "/assets/" + filename
-		} else if strings.HasPrefix(filename, "index-") && strings.HasSuffix(filename, ".js") {
-			manifest.JS["index"] = "/assets/" + filename
-		} else if strings.HasPrefix(filename, "react-vendor-") && strings.HasSuffix(filename, ".js") {
-			manifest.JS["react-vendor"] = "/assets/" + filename
-		} else if strings.HasPrefix(filename, "ui-vendor-") && strings.HasSuffix(filename, ".js") {
-			manifest.JS["ui-vendor"] = "/assets/" + filename
-		} else if strings.HasPrefix(filename, "utils-vendor-") && strings.HasSuffix(filename, ".js") {
-			manifest.JS["utils-vendor"] = "/assets/" + filename
+		// Extract asset name from filename pattern: {name}-{hash}.{ext}
+		// e.g., "index-DR2bYJZO.js" -> name="index", ext="js"
+		ext := filepath.Ext(filename) // ".css" or ".js"
+		if ext != ".css" && ext != ".js" {
+			return nil
+		}
+
+		base := filename[:len(filename)-len(ext)] // "index-DR2bYJZO"
+		if idx := strings.LastIndex(base, "-"); idx != -1 {
+			assetName := base[:idx] // "index"
+			assetPath := "/assets/" + filename
+
+			if ext == ".css" {
+				manifest.CSS[assetName] = assetPath
+			} else {
+				manifest.JS[assetName] = assetPath
+			}
 		}
 
 		return nil
@@ -68,32 +74,15 @@ func buildAssetManifest() error {
 
 // GetAssetURL returns the actual URL for a logical asset name
 func GetAssetURL(assetType, name string) string {
+	var manifestMap map[string]string
 	switch assetType {
 	case "css":
-		if url, ok := manifest.CSS[name]; ok {
-			return url
-		}
+		manifestMap = manifest.CSS
 	case "js":
-		if url, ok := manifest.JS[name]; ok {
-			return url
-		}
+		manifestMap = manifest.JS
+	default:
+		return ""
 	}
 
-	// Fallback to hardcoded values if manifest lookup fails
-	// These should match your current build
-	switch name {
-	case "index":
-		if assetType == "css" {
-			return "/assets/index-BTvxqpsA.css"
-		}
-		return "/assets/index-DR2bYJZO.js"
-	case "react-vendor":
-		return "/assets/react-vendor-BmqGXi6J.js"
-	case "ui-vendor":
-		return "/assets/ui-vendor-CEsCEvQe.js"
-	case "utils-vendor":
-		return "/assets/utils-vendor-42ANG6Sg.js"
-	}
-
-	return ""
+	return manifestMap[name]
 }
