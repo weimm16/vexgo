@@ -25,7 +25,7 @@ type CreatePostRequest struct {
 	MetaDesc   string `json:"meta_description"`
 	OGImage    string `json:"og_image"`
 	Tags       string `json:"tags"`
-	CategoryID uint   `json:"category_id"`
+	CategoryID JSONUint `json:"category_id"`
 }
 
 func (h *PostHandler) Create(c *gin.Context) {
@@ -34,7 +34,7 @@ func (h *PostHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	post, err := h.service.CreatePost(cms.CreatePostInput{
+	input := cms.CreatePostInput{
 		Title:      req.Title,
 		Content:    req.Content,
 		Status:     req.Status,
@@ -42,8 +42,11 @@ func (h *PostHandler) Create(c *gin.Context) {
 		MetaDesc:   req.MetaDesc,
 		OGImage:    req.OGImage,
 		Tags:       req.Tags,
-		CategoryID: req.CategoryID,
-	})
+	}
+	if req.CategoryID.Valid {
+		input.CategoryID = req.CategoryID.Value
+	}
+	post, err := h.service.CreatePost(input)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -79,7 +82,7 @@ func (h *PostHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	post, err := h.service.UpdatePost(uint(id), cms.CreatePostInput{
+	input := cms.CreatePostInput{
 		Title:      req.Title,
 		Content:    req.Content,
 		Status:     req.Status,
@@ -87,8 +90,11 @@ func (h *PostHandler) Update(c *gin.Context) {
 		MetaDesc:   req.MetaDesc,
 		OGImage:    req.OGImage,
 		Tags:       req.Tags,
-		CategoryID: req.CategoryID,
-	})
+	}
+	if req.CategoryID.Valid {
+		input.CategoryID = req.CategoryID.Value
+	}
+	post, err := h.service.UpdatePost(uint(id), input)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
